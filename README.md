@@ -21,6 +21,6 @@ Tri-camera module with IMU and dual/triple Cortex M7
 | --- | --- | --- | --- |  --- | 
 | STM32H753VIH6 | [Mouser](https://www.mouser.com/ProductDetail/STMicroelectronics/STM32H753VIH6?qs=%2fha2pyFaduh09l6hj91PU9oGd521L6LfDAtowUQ9At1xFSxsRRKEUA%3d%3d) | 14 | [Link](https://www.st.com/resource/en/datasheet/stm32h753vi.pdf) | Also available in different package as [STM32H753VIT6](https://www.mouser.com/ProductDetail/STMicroelectronics/STM32H753VIT6?qs=%2fha2pyFaduh09l6hj91PU4SsTEbwmG%252b1PE8cmadUoz5rVxtTE6ezFQ%3d%3d) | 
 | STM32H743VIH6  | [Mouser](https://www.mouser.com/ProductDetail/STMicroelectronics/STM32H743VIH6?qs=%2fha2pyFadujiWVHRlW6sBVJFKnRr%252bVzOL9BR8UM%252brrpLnn1Hy6YNUg%3d%3d) | 13.62 | [Link](https://www.mouser.com/datasheet/2/389/stm32h743bi-1156566.pdf) | Used on [OpenMV Cam H7](https://openmv.io/products/openmv-cam-h7), Also available in different package as [STM32H743VIT6](https://www.mouser.com/ProductDetail/STMicroelectronics/STM32H743VIT6?qs=%2fha2pyFadujiWVHRlW6sBS19o1KOsEoNOPHYwQMB6s6uRcfwYi8MwQ%3d%3d) | 
-
+| NXP i.MX RT1050 | [Digikey](https://www.digikey.com/product-detail/en/nxp-usa-inc/MIMXRT1052DVL6A/568-13515-ND/7646297) | 5.6 | [Link](https://www.nxp.com/docs/en/data-sheet/IMXRT1050CEC.pdf) | 4.5x faster on CMSIS using [MicroPython port](https://github.com/RockySong/micropython-rocky/tree/omv_initial_integrate) | 
 
 ## Resources
