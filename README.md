@@ -13,10 +13,16 @@ Tri-camera module with IMU and dual/triple Cortex M7
 | --- | --- | --- | --- |  --- | 
 | ICM-20789 | [Digikey](https://www.digikey.com/en/product-highlight/i/invensense/icm-20789-pressure-sensor) | 9.09 | [Link](http://www.invensense.com/wp-content/uploads/2017/10/DS-000169-ICM-20789-TYP-v1.3.pdf) | 3 Axis Acc + Gyro + 1 Axis Pressure | Recommended by Invensense for Drones, Newer |
 | MPU-9250 | [Digikey](https://www.digikey.com/product-detail/en/tdk-invensense/MPU-9250/1428-1019-1-ND/4626450) | 10.6| [Link](https://store.invensense.com/datasheets/invensense/MPU9250REV1.0.pdf) | 3 Axis Acc + Gyro + Compass | Recommended by Invensense for Drones, Common|
+| VMU931 | [Variense](https://variense.com/product/vmu931/) | 99.0 | [Link](http://variense.com/Docs/VMU931/specification_sheet_VMU931.pdf) | 3 Axis Acc + Gyro + Compass | Angles estimated directly, Self bias compensation |
 
+
+#### ARM Microcontrollers
+| Module | Sourcing Link | Price | Datasheet | Additional Details |
+| --- | --- | --- | --- |  --- | 
+| 
 
 - Cortex M7: 
-- IMU: [MPU 9250](http://www.invensense.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf)
+
 - IMU v2: [Variense VMU931](https://variense.com/Docs/VMU931/specification_sheet_VMU931.pdf)
 
 ## Resources
