@@ -26,11 +26,11 @@ Tri-camera module with IMU and dual/triple Cortex M7
 |  |  |  |  |  | [IMX RT1052 DEVELOPER'S KIT](http://www.embeddedartists.com/products/kits/imxrt1052_kit.php) | €149  |
 #### Distance Sensor
 
-https://www.st.com/en/imaging-and-photonics-solutions/proximity-sensors.html?querycriteria=productId=SC1934
-https://www.st.com/resource/en/datasheet/vl53l1x.pdf
-http://www.ti.com/lit/ds/symlink/opt3101.pdf
-http://www.ti.com/lit/ds/symlink/opt8241.pdf
-http://www.ti.com/lit/ds/symlink/opt8320.pdf
+- https://www.st.com/en/imaging-and-photonics-solutions/proximity-sensors.html?querycriteria=productId=SC1934
+- https://www.st.com/resource/en/datasheet/vl53l1x.pdf
+- http://www.ti.com/lit/ds/symlink/opt3101.pdf
+- http://www.ti.com/lit/ds/symlink/opt8241.pdf
+- http://www.ti.com/lit/ds/symlink/opt8320.pdf
 
 
 
