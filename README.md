@@ -24,9 +24,13 @@ Tri-camera module with IMU and dual/triple Cortex M7
 | ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) STM32H743VIH6  | [Mouser](https://www.mouser.com/ProductDetail/STMicroelectronics/STM32H743VIH6?qs=%2fha2pyFadujiWVHRlW6sBVJFKnRr%252bVzOL9BR8UM%252brrpLnn1Hy6YNUg%3d%3d) | 13.62 | [Link](https://www.mouser.com/datasheet/2/389/stm32h743bi-1156566.pdf) | Used on [OpenMV Cam H7](https://openmv.io/products/openmv-cam-h7), Also available in different package as [STM32H743VIT6](https://www.mouser.com/ProductDetail/STMicroelectronics/STM32H743VIT6?qs=%2fha2pyFadujiWVHRlW6sBS19o1KOsEoNOPHYwQMB6s6uRcfwYi8MwQ%3d%3d) |[STM32H743I-EVAL](https://www.mouser.com/ProductDetail/STMicroelectronics/STM32H743I-EVAL?qs=sGAEpiMZZMtw0nEwywcFgJjuZv55GFNmxBOleZvxxoEfyTJIVNPTJQ%3d%3d) |$460 |
 | NXP i.MX RT1050 | [Digikey](https://www.digikey.com/product-detail/en/nxp-usa-inc/MIMXRT1052DVL6A/568-13515-ND/7646297) | 5.6 | [Link](https://www.nxp.com/docs/en/data-sheet/IMXRT1050CEC.pdf) | 4.5x faster on CMSIS using [MicroPython port](https://github.com/RockySong/micropython-rocky/tree/omv_initial_integrate) | [MIMXRT1050-EVK: i.MX RT1050 Evaluation Kit](https://www.nxp.com/support/developer-resources/run-time-software/i.mx-developer-resources/i.mx-rt1050-evaluation-kit:MIMXRT1050-EVK)| US$79.00 |
 |  |  |  |  |  | [IMX RT1052 DEVELOPER'S KIT](http://www.embeddedartists.com/products/kits/imxrt1052_kit.php) | €149  |
-#### Distance Sensor
 
-- [ST: Proximity sensor for very short range](https://www.st.com/en/imaging-and-photonics-solutions/proximity-sensors.html?querycriteria=productId=SC1934)
+
+#### Distance Sensor
+| Module | Sourcing Link | Price | Datasheet | Additional Details |
+| --- | --- | --- | --- |  --- | 
+| VL53L0X | [Mouer](https://www2.mouser.com/ProductDetail/STMicroelectronics/VL53L0CXV0DH-1?qs=dTJS0cRn7ojtsK3C9%252bTaSw==) | 4.52 | [Link](https://www.st.com/resource/en/datasheet/vl53l0x.pdf) | Very Short Range, Used on Crazyflie |
+
 - [ST: VL53L1X, Long range Time-of-flight sensor, single beam, 27* FOV, 50 Hz, range: 0.8m-4.0m](https://www.st.com/resource/en/datasheet/vl53l1x.pdf)
 - ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) [TI: range 0.3-5.0 m, 2% error (very good), 4kHz](http://www.ti.com/lit/ds/symlink/opt3101.pdf)
 - [TI: Time-of-flight grid, 320x240, 1/3" format, 150Hz, range 1-5m](http://www.ti.com/lit/ds/symlink/opt8241.pdf)
