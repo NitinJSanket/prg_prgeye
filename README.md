@@ -6,7 +6,7 @@ Tri-camera module with IMU and dual/triple Cortex M7
 | Module | Sourcing Link | Price | Datasheet | Module | Price($) |Additional Details |
 | --- | --- | --- | --- |  --- | --- | --- |
 | ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) MT9V034 | [Digikey](https://www.digikey.com/catalog/es/partgroup/mt9v034/75147)  | 21.25 | [Link](http://www.onsemi.com/pub/Collateral/MT9V034-D.PDF) | [Link](http://www.uctronics.com/arducam-cmos-mt9v034-1-3-inch-0-36mp-monochrome-camera-module.html)| 49.99 | 752x480 at 60fps, Global Shutter, Used in [OpenMV Cam](https://openmv.io/products/openmv-cam-m7), Probably used in [MyntEye](https://mynteyeai.com/products/mynt-eye-stereo-camera) |
-| NOIP1SN1300A (Python 1300) | [Newark](https://www.newark.com/on-semiconductor/noip1sn1300a-qdi/image-sensor-monochrome-lcc-48/dp/02AC3796?CMP=AFC-OP) | 103.23 | [Link](http://www.onsemi.com/pub/Collateral/NOIP1SN1300A-D.PDF) | 1280x1024 at 43fps, Global Shutter, Used in [Open Visual Computer](https://arxiv.org/pdf/1809.07674.pdf) |
+| NOIP1SN1300A (Python 1300) | [Newark](https://www.newark.com/on-semiconductor/noip1sn1300a-qdi/image-sensor-monochrome-lcc-48/dp/02AC3796?CMP=AFC-OP) | 103.23 | [Link](http://www.onsemi.com/pub/Collateral/NOIP1SN1300A-D.PDF) | | | 1280x1024 at 43fps, Global Shutter, Used in [Open Visual Computer](https://arxiv.org/pdf/1809.07674.pdf) |
 
 #### Inertial Measurement Modules (IMUs)
 | Module | Sourcing Link | Price | Datasheet | Additional Details | More info | Breakout Board | Price($) | Comments|
