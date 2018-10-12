@@ -37,3 +37,4 @@ Tri-camera module with IMU and dual/triple Cortex M7
 
 
 ## Resources
+- The FSYNC Pin for IMU Hardware sync (Check page 35): [Link](https://brage.bibsys.no/xmlui/bitstream/handle/11250/2405959/15750_FULLTEXT.pdf?sequence=1)
