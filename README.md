@@ -25,7 +25,15 @@ Tri-camera module with IMU and dual/triple Cortex M7
 | NXP i.MX RT1050 | [Digikey](https://www.digikey.com/product-detail/en/nxp-usa-inc/MIMXRT1052DVL6A/568-13515-ND/7646297) | 5.6 | [Link](https://www.nxp.com/docs/en/data-sheet/IMXRT1050CEC.pdf) | 4.5x faster on CMSIS using [MicroPython port](https://github.com/RockySong/micropython-rocky/tree/omv_initial_integrate) | [MIMXRT1050-EVK: i.MX RT1050 Evaluation Kit](https://www.nxp.com/support/developer-resources/run-time-software/i.mx-developer-resources/i.mx-rt1050-evaluation-kit:MIMXRT1050-EVK)| US$79.00 |
 |  |  |  |  |  | [IMX RT1052 DEVELOPER'S KIT](http://www.embeddedartists.com/products/kits/imxrt1052_kit.php) | €149  |
 
+#### STM32H743VIH6 Specs
+| Functionality | # | PIN No. |
+| --- | --- | --- |
+| SPI| 4 | SPI_1_MOSI(88), SPI_1_MISO(90), SPI_2_MOSI(16), SPI_2_MISO(53), SPI_3_MOSI(36), SPI_3_MISO(79), SPI_4_MOSI(44), SPI_4_MISO(04) |
 
+#### STM32H743ZIH6 Eval kitSpecs
+| Functionality | # | PIN No. |
+| --- | --- | --- |
+| SPI| 5 | --- |
 #### Distance Sensor
 | Module | Sourcing Link | Price | Datasheet | Breakout Board | Price($) | Additional Details |
 | --- | --- | --- | --- |  --- | --- | --- |
