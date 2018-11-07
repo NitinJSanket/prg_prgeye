@@ -43,6 +43,10 @@ Tri-camera module with IMU and dual/triple Cortex M7
 | OPT8241 | [Mouser](https://www2.mouser.com/ProductDetail/Texas-Instruments/OPT8241NBN?qs=sGAEpiMZZMvdy8WAlGWLcKPa4nk0O3C%252bwIQ%2fiSDKtJw%3d) | 50.21 | [Link](http://www.ti.com/lit/ds/symlink/opt8241.pdf) | | |320 x 240 1/3" grid TOF sensor at 150Hz, 1m-5m range | 
 | OPT8320 | [Mouser](https://www2.mouser.com/ProductDetail/Texas-Instruments/OPT8320NBP?qs=sGAEpiMZZMvt1VFuCspEMqRfqAj1Q9FPWWzOxVfju8g%3d) | 42.30 | [Link](http://www.ti.com/lit/ds/symlink/opt8320.pdf) | | |80 x 60 1/6" grid TOF sensor at 1000Hz | 
 
+#### Other Computers running Linux at a similar compute budget
+- [Omega Onion 2](https://onion.io/omega2/)
+- [VoCore v2](https://vocore.io/v2.html)
+
 
 ## Resources
 - The FSYNC Pin for IMU Hardware sync (Check page 35): [Link](https://brage.bibsys.no/xmlui/bitstream/handle/11250/2405959/15750_FULLTEXT.pdf?sequence=1)
