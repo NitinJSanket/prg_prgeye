@@ -1,5 +1,6 @@
-# Micropython test code for I2C devices 
-The I2C devide used is Sparkfun IMU Breakout [MPU-9250](https://www.sparkfun.com/products/13762)).
+# Micropython test code for I2C devices
+The code written is test the functionality of I2C protocol with a third party device.
+The I2C devide used is Sparkfun IMU Breakout [MPU-9250](https://www.sparkfun.com/products/13762). Another resource for the device is [register map](https://cdn.sparkfun.com/assets/learn_tutorials/5/5/0/MPU-9250-Register-Map.pdf), which can be used to find  address for I2C protocol and other components of the module
 
 ## Caveats about OpenMv cam 
 - If any file/data needs to be saved on the OpenMv cam module save it in the SD card and not the internal memory of the module
