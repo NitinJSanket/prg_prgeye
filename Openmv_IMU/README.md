@@ -12,6 +12,7 @@ The pin connections can be clearly seen in the images below.
 ![Openmv side 1 connections](https://github.com/NitinJSanket/prg_prgeye/blob/master/Images/openmv_i2c_conn_1.jpg)
 ![Openmv side 2 connections](https://github.com/NitinJSanket/prg_prgeye/blob/master/Images/openmv_i2c_conn_2.jpg)
 
+- <b> IMU Connections </b>:
 <img src="https://github.com/NitinJSanket/prg_prgeye/blob/master/Images/IMU_conn.jpg" width="400">
 
 <!-- <img src="https://images-na.ssl-images-amazon.com/images/I/41ApTPgD9-L._SL500_AC_SS350_.jpg" width="400"> -->
