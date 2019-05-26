@@ -1,6 +1,16 @@
 # prg_prgeye
 Tri-camera module with IMU and dual/triple Cortex M7
 
+
+## H6 board
+- dimension limit 35x35mm
+- remove all peripherals 
+- Keep CSI ports, USB ports, serial ports
+- headers all around or ribbon cables like jevois
+- 
+
+
+
 ## Components
 #### Camera Modules 
 | Module | Sourcing Link | Price | Datasheet | Module | Price($) |Additional Details |
