@@ -7,7 +7,7 @@
 - In Arduino Micro, always initialize `Wire.begin()` after `Serial.begin()`. 
 - Runs at about `180 Hz`. Serial Monitor makes it a little slower to `110Hz`.
 
-**NOTE: RANDOM BUG (CAN'T BE FIXED I GUESS)**
+**NOTE: RANDOM BUG (CAN'T BE FIXED I GUESS)**:<br>
 If you encounter an error like this:
 ```
 exit status 1
