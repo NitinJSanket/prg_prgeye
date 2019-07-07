@@ -4,7 +4,7 @@
 
 [Reference](https://bitbucket.org/cinqlair/mpu9250)
 
-- In Arduino Micro, always initialize `Wire.begin()` after `Serial.begin()`. 
+- In Arduino Micro, always initialize `Serial.begin()` after `Wire.begin()`. 
 - Runs at about `180 Hz`. Serial Monitor makes it a little slower to `110Hz`.
 
 **NOTE: RANDOM BUG (CAN'T BE FIXED I GUESS)**:<br>
