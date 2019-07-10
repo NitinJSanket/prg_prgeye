@@ -213,17 +213,12 @@ def GenerateBatch(IBuffer, Rho, PatchSize, CropType, Vis=False):
     MaskBatch = []
 
     # Generate random image
-    if(np.shape(IBuffer)[1]>346):
-        IBuffer = np.hsplit(IBuffer, 2)
-        I1 = IBuffer[0]
-    else:
-        I1 = IBuffer
+    I1 = IBuffer
 
     # Homography and Patch generation
     IOriginal, I1Patch, I2Patch, AllPts, PerturbPts,\
     H4PtCol, Mask = GenerateRandPatch(I1, Rho, PatchSize, CropType, Vis=Vis) # Rand Patch will take the whole image as it doesn't have a choice
     ICombo = np.dstack((I1Patch, I2Patch))
-
     
     # Normalize Dataset
     # https://stackoverflow.com/questions/42275815/should-i-substract-imagenet-pretrained-inception-v3-model-mean-value-at-inceptio
@@ -242,7 +237,7 @@ def GenerateBatch(IBuffer, Rho, PatchSize, CropType, Vis=False):
     return IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, H4PtColBatch, MaskBatch
 
             
-def TestOperation(PatchPH, I1PH, I2PH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType):
+def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -253,6 +248,9 @@ def TestOperation(PatchPH, I1PH, I2PH, PatchSize, ModelPath, ReadPath, WritePath
     Outputs:
     Predictions written to ./TxtFiles/PredOut.txt
     """
+    ImageFormat = '.jpg'
+    Prefix = 'COCO_train2014_%012d'
+    
     # Generate indexes for center crop of train size
     CenterX = PatchSize[1]/2
     CenterY = PatchSize[0]/2
@@ -269,11 +267,12 @@ def TestOperation(PatchPH, I1PH, I2PH, PatchSize, ModelPath, ReadPath, WritePath
     prHVal = EVHomographyNetUnsup(PatchPH, PatchSize, 1)
     prHVal = tf.reshape(prHVal, (-1, 8, 1))
     
-    HMat = stn.solve_DLT(1, AllPts, prHVal)
+    HMatPred = stn.solve_DLT(1, AllPts, prHVal)
+    HMatTrue = stn.solve_DLT(1, AllPts, prHTruePH)
    
     # Warp I1 to I2
-    out_size = [128, 128]
-    WarpI1 = stn.transform(out_size, HMat, 1, I1PH)
+    out_size = [PatchSize[0], PatchSize[1]]
+    WarpI1 = stn.transform(out_size, HMatPred, 1, I1PH)
     
     # Setup Saver
     Saver = tf.train.Saver()
@@ -281,53 +280,60 @@ def TestOperation(PatchPH, I1PH, I2PH, PatchSize, ModelPath, ReadPath, WritePath
     with tf.Session() as sess:
         Saver.restore(sess, ModelPath)
         tu.FindNumParams(1)
-        PredOuts = open(WritePath + os.sep + 'PredOuts.txt', 'w')
-        for dirs in tqdm(next(os.walk(ReadPath))[1]):
-            CurrReadPath = ReadPath + os.sep + dirs
-            NumFilesInCurrDir = len(glob.glob(CurrReadPath + os.sep + '*.png'))
-            I = cv2.imread(CurrReadPath + os.sep + "event_%d"%1 + '.png')
-            CurrWritePath = WritePath + os.sep + dirs
-            # Create Write Folder if doesn't exist
-            if(not os.path.exists(CurrWritePath)):
-                os.makedirs(CurrWritePath)
-                
-            for ImgNum in tqdm(range(0, NumFilesInCurrDir)):
-                # for StackNum in range(0, NumImgsStack):
-                INow = cv2.imread(CurrReadPath + os.sep + "event_%d"%(ImgNum+1) + '.png')
-                Rho = [25]# [10, 10]
-                IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, H4PtColBatch, MaskBatch = GenerateBatch(INow, Rho, PatchSize, CropType, Vis=False)
-                # TODO: Better way is to feed data into a MiniBatch and Extract it again
-                # INow = np.hsplit(INow, 2)[0] # Imgs have a stack of 2 in this case, hence extract one
-                
-                FeedDict = {PatchPH: IBatch, I1PH: I1Batch, I2PH: I2Batch}
-                prHPredVal = sess.run(prHVal, FeedDict)
-                prHTrue = np.float32(np.reshape(H4PtColBatch[0], (-1, 4, 2)))[0]
-                ErrorNow = np.sum(np.sqrt((prHPredVal[:, 0] - prHTrue[:, 0])**2 + (prHPredVal[:, 1] - prHTrue[:, 1])**2))/4
-                # print(ErrorNow)
-                # print(prHPredVal)
-                # print(prHTrue)
-                # a = input('a')
-                # Timer1 = tic()
-                # WarpI1Ret = sess.run(WarpI1, FeedDict)
-                # cv2.imshow('a', WarpI1Ret[0])
-                # cv2.imshow('b', I1Batch[0])
-                # cv2.imshow('c', I2Batch[0])
-                # cv2.imshow('d', np.abs(WarpI1Ret[0]- I2Batch[0]))
-                # cv2.waitKey(0)
-                
-                # print(toc(Timer1))
-                
-                # WarpI1Ret = WarpI1Ret[0]
-                # Remap to [0,255] range
-                # WarpI1Ret = np.uint8(remap(WarpI1Ret, 0.0, 255.0, np.amin(WarpI1Ret), np.amax(WarpI1Ret)))
-                # Crop out junk pixels as they are appended in top left corner due to padding
-                # WarpI1Ret = WarpI1Ret[-PatchSize[0]:, -PatchSize[1]:, :]
-                
-                # IStacked = np.hstack((WarpI1Ret, I2Batch[0]))
-                # Write Image to file
-                # cv2.imwrite(CurrWritePath + os.sep + 'events' + os.sep +  "event_%d"%(ImgNum+1) + '.png', IStacked)
-                PredOuts.write(dirs + os.sep + "event_%d"%ImgNum + '.png' + '\t' + str(ErrorNow) + '\n')
-        PredOuts.close()
+        # PredOuts = open(WritePath + os.sep + 'PredOuts.txt', 'w')
+        NumFilesInCurrDir = len(glob.glob(ReadPath + os.sep + '*' + ImageFormat))
+        # Create Write Folder if doesn't exist
+        if(not os.path.exists(WritePath)):
+            os.makedirs(WritePath)
+
+        for ImgPath in tqdm(glob.glob(ReadPath + os.sep + '*' + ImageFormat)):
+            # for StackNum in range(0, NumImgsStack):
+            INow = cv2.imread(ImgPath)
+            Rho = [25]# [10, 10]
+            IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, H4PtColBatch, MaskBatch = GenerateBatch(INow, Rho, PatchSize, CropType, Vis=False)
+            # TODO: Better way is to feed data into a MiniBatch and Extract it again
+            # INow = np.hsplit(INow, 2)[0] # Imgs have a stack of 2 in this case, hence extract one
+            prHTrue = np.float32(np.reshape(H4PtColBatch[0], (-1, 4, 2)))
+            FeedDict = {PatchPH: IBatch, I1PH: I1Batch, I2PH: I2Batch, prHTruePH: prHTrue}
+            prHPredVal, HMatPredVal, HMatTrueVal = sess.run([prHVal, HMatPred, HMatTrue], FeedDict)
+            ErrorNow = np.sum(np.sqrt((prHPredVal[:, 0] - prHTrue[:, 0])**2 + (prHPredVal[:, 1] - prHTrue[:, 1])**2))/4
+            print(ErrorNow)
+            print(prHPredVal)
+            print(prHTrue)
+            print(HMatPredVal)
+            print(HMatTrueVal)
+            a = input('a')
+            # Timer1 = tic()
+            # WarpI1Ret = sess.run(WarpI1, FeedDict)
+            # cv2.imshow('a', WarpI1Ret[0])
+            # cv2.imshow('b', I1Batch[0])
+            # cv2.imshow('c', I2Batch[0])
+            # cv2.imshow('d', np.abs(WarpI1Ret[0]- I2Batch[0]))
+            # cv2.waitKey(0)
+            
+            # print(toc(Timer1))
+            
+            # WarpI1Ret = WarpI1Ret[0]
+            # Remap to [0,255] range
+            # WarpI1Ret = np.uint8(remap(WarpI1Ret, 0.0, 255.0, np.amin(WarpI1Ret), np.amax(WarpI1Ret)))
+            # Crop out junk pixels as they are appended in top left corner due to padding
+            # WarpI1Ret = WarpI1Ret[-PatchSize[0]:, -PatchSize[1]:, :]
+            
+            # IStacked = np.hstack((WarpI1Ret, I2Batch[0]))
+            # Write Image to file
+            # cv2.imwrite(CurrWritePath + os.sep + 'events' + os.sep +  "event_%d"%(ImgNum+1) + '.png', IStacked)
+            
+            # Extract Image Name
+            # https://stackoverflow.com/questions/4998629/split-string-with-multiple-delimiters-in-python
+            # Delimiters = ImageFormat, "_" 
+            # RegexPattern = '|'.join(map(re.escape, Delimiters))
+            # ImgNameNow = re.split(RegexPattern, ImgPath)
+            # ImageNum = int(ImgNameNow[-2])
+            
+            # INow = cv2.imread(ReadPath + os.sep + Prefix%(ImageNum) + ImageFormat)
+            # cv2.imwrite(CurrWritePath + os.sep +  Prefix%(ImageNum) + ImageFormat, INow)
+            # PredOuts.write(ImgPath + '\t' + str(ErrorNow) + '\n')
+    # PredOuts.close()
                     
                     
 def main():
@@ -369,12 +375,13 @@ def main():
     PatchPH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]*2), name='Input')
     I1PH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1')
     I2PH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]), name='I2')
+    prHTruePH = tf.placeholder(tf.float32, shape=(1, 4, 2), name='prHTrue')
 
     if(not os.path.exists(WritePath)):
         cprint("WARNING: %s doesnt exist, Creating it."%WritePath, 'yellow')
         os.mkdir(WritePath)
 
-    TestOperation(PatchPH, I1PH, I2PH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType)
+    TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType)
      
 if __name__ == '__main__':
     main()

@@ -15,38 +15,17 @@ def tic():
 def toc(StartTime):
     return time.time() - StartTime
 
-def remap(x, oMin, oMax, nMin, nMax):
-    # Taken from https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratios
+def remap(x, oMin, oMax, iMin, iMax):
     #range check
     if oMin == oMax:
         print("Warning: Zero input range")
         return None
 
-    if nMin == nMax:
+    if iMin == iMax:
         print("Warning: Zero output range")
         return None
 
-    #check reversed input range
-    reverseInput = False
-    oldMin = min(oMin, oMax)
-    oldMax = max(oMin, oMax)
-    if not oldMin == oMin:
-        reverseInput = True
-
-    #check reversed output range
-    reverseOutput = False   
-    newMin = min(nMin, nMax)
-    newMax = max(nMin, nMax)
-    if not newMin == nMin :
-        reverseOutput = True
-
-    portion = (x-oldMin)*(newMax-newMin)/(oldMax-oldMin)
-    if reverseInput:
-        portion = (oldMax-x)*(newMax-newMin)/(oldMax-oldMin)
-
-    result = portion + newMin
-    if reverseOutput:
-        result = newMax - portion
+    result = np.add(np.divide(np.multiply(x - iMin, oMax - oMin), iMax - iMin), oMin)
 
     return result
 
