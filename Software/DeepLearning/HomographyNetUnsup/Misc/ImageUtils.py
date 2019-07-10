@@ -12,8 +12,11 @@ def CenterCrop(I, OutShape):
     ImageSize = np.shape(I)
     CenterX = ImageSize[0]/2
     CenterY = ImageSize[1]/2
-    ICrop = I[int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
-              int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
+    try:
+        ICrop = I[int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
+                  int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
+    except:
+        ICrop = None
     return ICrop
 
 def CenterCropFactor(I, Factor):
@@ -22,15 +25,22 @@ def CenterCropFactor(I, Factor):
     CenterY = ImageSize[1]/2
     OutShape = ImageSize - (np.mod(ImageSize,2**Factor))
     OutShape[2] = ImageSize[2]
-    ICrop = I[int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
-              int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
+    try:
+        ICrop = I[int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
+                  int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
+    except:
+        ICrop = None
+        OutShape = None
     return (ICrop, OutShape)
 
 def RandomCrop(I1, OutShape):
     ImageSize = np.shape(I1)
-    RandX = random.randint(0, ImageSize[0]-OutShape[0])
-    RandY = random.randint(0, ImageSize[1]-OutShape[1])
-    I1Crop = I1[RandX:RandX+OutShape[0], RandY:RandY+OutShape[1], :]
+    try:
+        RandX = random.randint(0, ImageSize[0]-OutShape[0])
+        RandY = random.randint(0, ImageSize[1]-OutShape[1])
+        I1Crop = I1[RandX:RandX+OutShape[0], RandY:RandY+OutShape[1], :]
+    except:
+        I1Crop = None
     return (I1Crop)
 
 def GaussianNoise(I1):

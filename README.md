@@ -2,16 +2,15 @@
 Tri-camera module with IMU and dual/triple Cortex M7
 
 
-## H6 board
+## Hardware
+
+### H6 board
 - dimension limit 35x35mm
 - remove all peripherals 
 - Keep CSI ports, USB ports, serial ports
 - headers all around or ribbon cables like jevois
-- 
 
-
-
-## Components
+### Components
 #### Camera Modules 
 | Module | Sourcing Link | Price | Datasheet | Module | Price($) |Additional Details |
 | --- | --- | --- | --- |  --- | --- | --- |
@@ -62,3 +61,30 @@ https://github.com/torvalds/linux/blob/master/drivers/media/i2c/mt9v032.c
 
 ## Resources
 - The FSYNC Pin for IMU Hardware sync (Check page 35): [Link](https://brage.bibsys.no/xmlui/bitstream/handle/11250/2405959/15750_FULLTEXT.pdf?sequence=1)
+
+
+## Software
+
+### Neural Network Based Homography Computation
+Code can be found in [Software/DeepLearning/HomographyNetUnsup](Software/DeepLearning/HomographyNetUnsup). Follow these instructions for training and testing.
+
+#### Training
+- Download MS-COCO dataset from [here](http://cocodataset.org/#home). We'll use the train2014 set for training.
+- Prepare text files for training by running the [DataParse.py](Software/DeepLearning/HomographyNetUnsup/DataPrase.py) code. Specify ``--ReadPath`` and ``--WritePath`` as the path to COCO dataset. For eg. ``/home/nitin/Datasets/MSCOCO/train2014``.
+- Run the [TrainHomographyNet.py](Software/DeepLearning/HomographyNetUnsup/TrainHomographyNet.py) and specify the following command line flags. You can use execute ``./TrainHomographyNet.py -h`` to obtain the help given below.
+  - ``--BasePath``: Path where Images are stored. For this eg. ``/home/nitin/Datasets/MSCOCO/train2014``.
+  - ``--DivTrain``: Factor to reduce Train data by per epoch. Used only for debugging.
+  - ``--MiniBatchSize``: Size of the MiniBatch to use.
+  - ``--LoadCheckPoint``: Resume Training by loading latest model from CheckPointPath.
+  - ``--RemoveLogs``: Depracated. DO NOT USE.
+  - ``--LossFuncName``: Choice of Loss functions, choose from PhotoL1, PhotoChab, PhotoRobust. Used only for Unsupervised training.
+  - ``--NetworkType``: Choice of Network type, choose from Small, Large. Use Large for training on Images. Small network doesn't have enough capacity to learn anything on images but works on event frames.
+  - ``--CheckPointPath``: Path to save checkpoints.
+  - ``--LogsPath``: Path to save TensorBoard Logs.
+  - ``--GPUDevice``: Use specific GPU Number when you have multiple GPUs. Use -1 for running on CPU.
+  - ``--LR``: Learning Rate.
+  - ``TrainingType``: S for Supervised and US for unsupervised. Uses Loss function from ``--LossFuncName`` when training in US mode. Uses L2 loss in S mode.
+- Recommended to train about 50-100 Epochs at Batch Size of 32-256.
+
+#### Testing
+- Not implemented yet!

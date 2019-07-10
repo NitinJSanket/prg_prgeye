@@ -90,7 +90,6 @@ def SetupAll(BasePath, LearningRate):
     NumTestRunsPerEpoch = 5
     
     # Image Input Shape
-    OriginalImageSize = np.array([300, 300, 3])
     ImageSize = np.array([128, 128, 3])
     Rho = 25
     NumTrainSamples = len(TrainNames)
@@ -99,7 +98,7 @@ def SetupAll(BasePath, LearningRate):
     
     return TrainNames, ValNames, TestNames, OptimizerParams,\
         SaveCheckPoint, ImageSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
-        NumTestRunsPerEpoch, OriginalImageSize
+        NumTestRunsPerEpoch
 
 def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     """
@@ -226,7 +225,7 @@ def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
 
     return DirNames, TrainNames, ValNames, TestNames
     
-def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalImageSize):
+def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath):
     """
     Inputs: 
     DirNames - Full path to all image files without extension
@@ -254,11 +253,13 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         # Generate random image
         RandIdx = random.randint(0, len(TrainNames)-1)        
         RandImageName = BasePath + os.sep + TrainNames[RandIdx] 
-        I = cv2.imread(RandImageName)
-        I = iu.RandomCrop(I, OriginalImageSize)
-        if (I is None):
-            continue
         ImageNum += 1
+        IBuffer = cv2.imread(RandImageName)
+        if(np.shape(IBuffer)[1]>346):
+            IBuffer = np.hsplit(IBuffer, 2)
+            I = IBuffer[0]
+        else:
+            I = IBuffer
 
         # Homography and Patch generation 
         IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H4PtCol, Mask = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False)
@@ -337,14 +338,14 @@ def logZ1(a):
 def nll(x, a, c, e=1e-2):
 	return RobustLoss(x, a, c, e) + logZ1(a) # + tf.log(c)
 
-def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize, a=None, c=1e-1, ImageSize=None):
+def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, a=None, c=1e-1, ImageSize=None):
     prHVal = tf.reshape(prHVal, (-1, 8, 1))
     # Warp Image using predicted Homography values
     # Obtain 3x3 H matrix from 8x1 values
     HMat = stn.solve_DLT(MiniBatchSize, AllPtsPH, prHVal)
     
     # Warp I1 to align with I2
-    out_size = [OriginalImageSize[0], OriginalImageSize[1]]
+    out_size = [260, 346]
     WarpI1 = stn.transform(out_size, HMat, MiniBatchSize, I1PH)
     WarpMask = stn.transform(out_size, HMat, MiniBatchSize, MaskPH)
     
@@ -384,7 +385,7 @@ def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossF
     
 def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize):
+                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -410,15 +411,15 @@ def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, Tes
     if(NetworkType == 'Small'):
         prHVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
         with tf.name_scope('Loss'):
-    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize)
+    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType)
     elif(NetworkType == 'Large'):
         prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
         with tf.name_scope('Loss'):
-    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize)
+    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType)
     elif(NetworkType == 'SmallRobust'):
         prHVal, prAlpha = EVHomographyNetUnsupSmallRobust(ImgPH, ImageSize, MiniBatchSize)
         with tf.name_scope('Loss'):
-    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, Alpha = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize, a=prAlpha, ImageSize=ImageSize)
+    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, Alpha = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, a=prAlpha, ImageSize=ImageSize)
             
     with tf.name_scope('Adam'):
         Optimizer = tf.train.AdamOptimizer(learning_rate=OptimizerParams[0], beta1=OptimizerParams[1],
@@ -483,7 +484,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, Tes
                 Timer2 = tic()
 
                 IBatch, LabelBatch, I1Batch, I2Batch, I1PatchBatch, I2PatchBatch, \
-                AllPtsBatch, PerturbPtsBatch, MaskBatch = GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalImageSize)
+                AllPtsBatch, PerturbPtsBatch, MaskBatch = GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath)
 
                 FeedDict = {ImgPH: IBatch, I1PH: I1Batch, AllPtsPH: AllPtsBatch, I2PH: I2Batch, MaskPH: MaskBatch, LabelPH: LabelBatch}
                 _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
@@ -547,19 +548,19 @@ def main():
 
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
-    Parser.add_argument('--BasePath', default='/home/nitin/Datasets/MSCOCO/train2014', help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014')
+    Parser.add_argument('--BasePath', default='/home/nitin/EVDodge/DatasetsForPaper/DownfacingEventsProcessed', help='Base path of images, Default:/home/nitin/EVDodge/DatasetsForPaper/DownfacingEventsProcessed')
     Parser.add_argument('--NumEpochs', type=int, default=200, help='Number of Epochs to Train for, Default:200')
     Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
-    Parser.add_argument('--MiniBatchSize', type=int, default=32, help='Size of the MiniBatch to use, Default:32')
-    Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointPath?, Default:0')
+    Parser.add_argument('--MiniBatchSize', type=int, default=256, help='Size of the MiniBatch to use, Default:256')
+    Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointsPath?, Default:0')
     Parser.add_argument('--RemoveLogs', type=int, default=0, help='Delete log Files from ./Logs?, Default:0')
-    Parser.add_argument('--LossFuncName', default='PhotoL1', help='Choice of Loss functions, choose from PhotoL1, PhotoChab, PhotoRobust. Default:PhotoL1')
-    Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
-    Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
-    Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
+    Parser.add_argument('--LossFuncName', default='PhotoL1', help='Choice of Loss functions, choose from PhotoL1, PhotoChab, Default:PhotoL1')
+    Parser.add_argument('--NetworkType', default='Small', help='Choice of Network type, choose from Small, Large, Default:Small')
+    Parser.add_argument('--CheckPointPath', default='../CheckpointsHomography/', help='Path to save checkpoints, Default:../CheckpointsHomography/')
+    Parser.add_argument('--LogsPath', default='/media/nitin/Research/EVDodge/Logs/', help='Path to save Logs, Default:/media/nitin/Research/EVDodge/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--LR', type=float, default=1e-4, help='Learning Rate, Default: 1e-4')
-    Parser.add_argument('--TrainingType', default='S', help='Training Type, S: Supervised, US: Unsupervised, Default: US')
+    Parser.add_argument('--TrainingType', default='US', help='Training Type, S: Supervised, US: Unsupervised, Default: US')
     
     Args = Parser.parse_args()
     NumEpochs = Args.NumEpochs
@@ -585,7 +586,7 @@ def main():
     # Setup all needed parameters including file reading
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, ImageSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
-    NumTestRunsPerEpoch, OriginalImageSize = SetupAll(BasePath, LearningRate)
+    NumTestRunsPerEpoch = SetupAll(BasePath, LearningRate)
 
     # If CheckPointPath doesn't exist make the path
     if(not (os.path.isdir(CheckPointPath))):
@@ -604,15 +605,15 @@ def main():
     ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, ImageSize[0], ImageSize[1], 6), name='Input')
 
     # PH for losses
-    I1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='I1')
-    I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='I2')
-    MaskPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='Mask')
+    I1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 260, 346, 3), name='I1')
+    I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 260, 346, 3), name='I2')
+    MaskPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 260, 346, 3), name='Mask')
     AllPtsPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 4, 2), name='AllPts')
     LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 8, 1), name='Label')  
 
     TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize)
+                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType)
         
     
 if __name__ == '__main__':
