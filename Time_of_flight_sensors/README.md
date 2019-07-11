@@ -1,8 +1,11 @@
 # Time of flight sensors- VL53L1X and VL53L0X
 ## Setup
+### WARNING!!
+The code has been tested for **Arduino uno** and **Arduino MEGA 2560** using Arduino IDE version **1.8.9**
+
 ### ISSUES!
 * The code doesn't compile with old Arduino IDE. It was compiled on Arduino 1.0.6 and compilation failed.
-* Further the code doesn't work on Arduino micro. It was compiled using 
+* Further the code doesn't work on Arduino micro.
 
 ### Hardware
 
