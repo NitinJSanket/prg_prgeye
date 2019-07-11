@@ -1,15 +1,19 @@
 # Time of flight sensors- VL53L1X and VL53L0X
 ## Setup
+### ISSUES!
+* The code doesn't compile with old Arduino IDE. It was compiled on Arduino 1.0.6 and compilation failed.
+* Further the code doesn't work on Arduino micro. It was compiled using 
+
 ### Hardware
 
 The hardware connections are fairly simple. Only the relevant pin connections are shown in the description below:
 ```
-Arduino      VL53L1X board
--------      -------------
-2.6V to 5V - VIN
-       GND - GND
-       SDA - SDA
-       SCL - SCL
+Arduino        VL53L1X board
+-------        -------------
+2.6V to 5.5V - VIN
+         GND - GND
+         SDA - SDA
+         SCL - SCL
 ```
 
 Verbose desciption of all pins is provided below:
@@ -26,3 +30,12 @@ Verbose desciption of all pins is provided below:
 
 
 ### Software
+#### Libraries
+* You can use the libraries provided in this directory or you can download the library from the official repositories:[vl53l1x](https://github.com/pololu/vl53l1x-arduino), [vl53l0x](https://github.com/pololu/vl53l0x-arduino)
+* Unzip the files if you have downloaded the library from the official repo and copy it to the "library" folder of arduino.
+* Restart arduino IDE (if it was previously running)
+
+#### CODE
+* Launch the Arduino IDE and open the code that you need to run (i.e VL53L0X OR VL53L1X). 
+* Go to tools in the Arduino IDE menu and select appropriate port and the name of Arduino board you are using.
+* Upload the code to Arduino(using ctrl+u) and open serial monitor (using ctrl+shift+m).
