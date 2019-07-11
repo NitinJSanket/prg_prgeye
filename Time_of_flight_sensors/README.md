@@ -34,7 +34,7 @@ Verbose desciption of all pins is provided below:
 
 ### Software
 #### Libraries
-* You can use the libraries provided in this directory or you can download the library from the official repositories:[vl53l1x](https://github.com/pololu/vl53l1x-arduino), [vl53l0x](https://github.com/pololu/vl53l0x-arduino)
+* You can use the libraries provided in this directory or you can download the library from the official repositories:  [VL53L1X](https://github.com/pololu/vl53l1x-arduino), [VL53L0X](https://github.com/pololu/vl53l0x-arduino)
 * Unzip the files if you have downloaded the library from the official repo and copy it to the "library" folder of arduino.
 * Restart arduino IDE (if it was previously running)
 
