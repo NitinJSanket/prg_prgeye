@@ -21,7 +21,6 @@ import cv2
 import sys
 import os
 import glob
-import Misc.ImageUtils as iu
 import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
@@ -40,9 +39,11 @@ import string
 from termcolor import colored, cprint
 import math as m
 from tqdm import tqdm
+import Misc.ImageUtils as iu
 import Misc.SpecUtils as su
 import Misc.STNUtils as stn
 import Misc.TFUtils as tu
+import Misc.MiscUtils as mu
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -116,7 +117,12 @@ def GenerateRandPatch(I, Rho, PatchSize, CropType, ImageSize=None, Vis=False):
         cv2.polylines(IDisp, np.int32([AllPts]), 1, (255,255,255))
         cv2.imshow('a', IDisp)
         cv2.waitKey(1)
-        
+
+    # PerturbPts = []
+    # PerturbPts.append((AllPts[0][0]-10.0, AllPts[0][1]-10.0))
+    # PerturbPts.append((AllPts[1][0]-10.0, AllPts[1][1]+10.0))
+    # PerturbPts.append((AllPts[2][0]+10.0, AllPts[2][1]+10.0))
+    # PerturbPts.append((AllPts[3][0]+10.0, AllPts[3][1]-10.0))
     PerturbPts = []
     for point in AllPts:
         if(len(Rho) == 1):
@@ -296,13 +302,42 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
             prHTrue = np.float32(np.reshape(H4PtColBatch[0], (-1, 4, 2)))
             FeedDict = {PatchPH: IBatch, I1PH: I1Batch, I2PH: I2Batch, prHTruePH: prHTrue}
             prHPredVal, HMatPredVal, HMatTrueVal = sess.run([prHVal, HMatPred, HMatTrue], FeedDict)
+            # Pixel Error in H4Pt
             ErrorNow = np.sum(np.sqrt((prHPredVal[:, 0] - prHTrue[:, 0])**2 + (prHPredVal[:, 1] - prHTrue[:, 1])**2))/4
-            print(ErrorNow)
-            print(prHPredVal)
-            print(prHTrue)
-            print(HMatPredVal)
-            print(HMatTrueVal)
-            a = input('a')
+            
+            # Predicted Rotation
+            HMatPredValRot = HMatPredVal[0].copy()
+            HMatPredValRot[:, 2] = np.cross(HMatPredValRot[:,0], HMatPredValRot[:,1]).transpose()
+            RotPred = mu.ClosestRotMat(HMatPredValRot)
+            
+            # GT Rotation
+            HMatTrueValRot = HMatTrueVal[0].copy()
+            HMatTrueValRot[:, 2] = np.cross(HMatTrueValRot[:,0], HMatTrueValRot[:,1]).transpose()
+            RotTrue = mu.ClosestRotMat(HMatTrueValRot)
+            # Need to handle case when det becomes -1.0
+
+            # Predicted and GT Translation
+            TransPred = HMatPredVal[0].copy()
+            TransPred = TransPred[:, 2]
+            TransTrue = HMatTrueVal[0].copy()
+            TransTrue = TransTrue[:, 2]
+
+            print('H4Pt Avg, Error {}'.format(ErrorNow))
+            print('H4Pt Pred \n {}'.format(prHPredVal))
+            print('H4Pt True \n {}'.format(prHTrue))
+            print("HMatPred \n {}".format(HMatPredVal[0]))
+            print("HMatTrue \n {}".format(HMatTrueVal[0]))
+
+            print('RotPred \n {}'.format(RotPred))
+            print('RotTrue \n {}'.format(RotTrue))
+
+            print('RotPred Det {} RotTrue Det {}'.format(np.linalg.det(RotPred), np.linalg.det(RotTrue)))
+            print('Rotation Error {}'.format(mu.RotMatError(RotPred, RotTrue)))
+            
+            print('TransPred \n {}'.format(TransPred))
+            print('TransTrue \n {}'.format(TransTrue))
+            print('Translation Error {}'.format(mu.TransError(TransPred, TransTrue)))
+            input('a')
             # Timer1 = tic()
             # WarpI1Ret = sess.run(WarpI1, FeedDict)
             # cv2.imshow('a', WarpI1Ret[0])
