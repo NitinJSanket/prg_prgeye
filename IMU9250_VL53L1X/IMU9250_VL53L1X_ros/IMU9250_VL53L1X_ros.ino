@@ -1,20 +1,30 @@
 #include <Wire.h>
 #include <TimerOne.h>
 #include <VL53L1X.h>
+#include <ros.h>
+#include <stdio.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Float32.h>
 
 VL53L1X sensor;
 int my_time = 0;
-int IMU_Dist_Freq_Ratio = 1;
+int IMU_Dist_Freq_Ratio = 20;
 int count_v = 0;
 int dist = 0;
-int val, val2;
+
+ros::NodeHandle  nh;
+std_msgs::String str_msg;
+std_msgs::Float32 temp_msg;
+ros::Publisher chatter("imu_lidar_data", &temp_msg);
+
+
 
 #define    MPU9250_ADDRESS            0x68
 //#define    MAG_ADDRESS                0x0C
-
 //#define    GYRO_FULL_SCALE_250_DPS    0x00  
 //#define    GYRO_FULL_SCALE_500_DPS    0x08
 #define    GYRO_FULL_SCALE_1000_DPS   0x10
+
 //#define    GYRO_FULL_SCALE_2000_DPS   0x18
 
 //#define    ACC_FULL_SCALE_2_G        0x00  
@@ -61,16 +71,13 @@ volatile bool intFlag=false;
 void setup()
 {
   // Arduino initializations
-  Serial.begin(115200);
+  nh.initNode();
+  nh.advertise(chatter);  
+  
+//  Serial.begin(115200);
   Wire.begin();
   Wire.setClock(400000);
-  sensor.setTimeout(50);
-  if (!sensor.init())
-  {
-    Serial.println("Failed to detect and initialize sensor!");
-    while (1);
-  }
-  
+ 
   // Use long distance mode and allow up to 50000 us (50 ms) for a measurement.
   // You can change these settings to adjust the performance of the sensor, but
   // the minimum timing budget is 20 ms for short distance mode and 33 ms for
@@ -78,9 +85,6 @@ void setup()
   // information on range and timing limits.
   sensor.setDistanceMode(VL53L1X::Long);
   sensor.setMeasurementTimingBudget(13000);
-  float tim_b = sensor.getMeasurementTimingBudget();
-  Serial.print("measurement timing budget = ");
-  Serial.println(tim_b);
 
   // Start continuous readings at a rate of one measurement every 50 ms (the
   // inter-measurement period). This period should be at least as long as the
@@ -91,7 +95,8 @@ void setup()
   //////////////////////////////////////////////////////////////////////////// 
 
   
-  Serial.println("IMU Starting...");
+//  Serial.println("IMU Starting...");
+  nh.loginfo("IMU Starting...");
   // Set accelerometers low pass filter at 5Hz
   I2CwriteByte(MPU9250_ADDRESS,29,0x06);
   // Set gyroscope low pass filter at 5Hz
@@ -108,10 +113,18 @@ void setup()
    pinMode(13, OUTPUT);
   Timer1.initialize(10000);         // initialize timer1, and set a 1/2 second period
   Timer1.attachInterrupt(callback);  // attaches callback() as a timer overflow interrupt
-  
-  
+//  delay(1000);
+  sensor.setTimeout(1000);
+  if (!sensor.init())
+  {
+//    Serial.println("Failed to detect and initialize sensor!");
+      nh.loginfo("Failed to detect and initialize sensor!");
+    while (1);
+  }
   // Store initial time
   ti=millis();
+
+
 }
 
 
@@ -130,34 +143,29 @@ void callback()
 // Main loop, read and display data
 void loop()
 {
+//  char string_to_pub[80];
+//  char distance[7];
 //  if(count_v%IMU_Dist_Freq_Ratio == 0)
 //  {
-//    sensor.read();
+    dist = sensor.read();
 //    dist = sensor.ranging_data.range_mm;
 //  }
-
-  val = sensor.read();
-  if(val!=0)
-  {
-    Serial.print(val);
-    val2=val;
-  }
-  else
-  {
-    Serial.print(val2);
-  }
 //  Serial.print(dist);
-  Serial.print(" Dist update: ");
+//  Serial.print(" Dist update: ");
+  
+  String op;
 //  if(count_v%IMU_Dist_Freq_Ratio == 0)
 //  {
 //    Serial.print("Y");
+//    op = "Y";
 //  }
-//  else
+//  else 
 //  {
 //    Serial.print("N");
+//    op = "N";
 //  }
 //  Serial.print ("\t");
- 
+  
   // ____________________________________
   // :::  accelerometer and gyroscope ::: 
 
@@ -178,38 +186,86 @@ void loop()
   int16_t gz=Buf[12]<<8 | Buf[13];
   
     // Display values
-  
+//  char val[6];
   // Accelerometer
-  Serial.print("aX: ");
-  Serial.print (ax,DEC); 
-  Serial.print ("\t");
-  Serial.print("aY: ");
-  Serial.print (ay,DEC);
-  Serial.print ("\t");
-  Serial.print("aZ: ");
-  Serial.print (az,DEC);  
-  Serial.print ("\t");
-  Serial.print ("\t");
-  Serial.print ("\t");
-//  
+//  Serial.print("aX: ");
+//  strcat(string_to_pub,"aX: ");
+//  Serial.print (ax,DEC); 
+//  dtostrf(ax, 5, 1, val);
+//  strcat(string_to_pub,val);
+//  Serial.print ("\t");
+//  strcat(string_to_pub,"\t");
+  
+//  Serial.print("aY: ");
+//  strcat(string_to_pub,"aY: ");
+//  Serial.print (ay,DEC);
+//  dtostrf(ay, 5, 1, val);
+//  strcat(string_to_pub,val);
+//  Serial.print ("\t");
+//  strcat(string_to_pub,"\t");
+  
+//  Serial.print("aZ: ");
+//  strcat(string_to_pub,"aZ: ");
+//  Serial.print (az,DEC);  
+//  dtostrf(az, 5, 1, val);
+//  strcat(string_to_pub,val);
+//  Serial.print ("\t");
+//  strcat(string_to_pub,"\t");
+////  Serial.print ("\t");
+//  strcat(string_to_pub,"\t");
+////  Serial.print ("\t");
+//  strcat(string_to_pub,"\t");
+
+//String acc = "aX: = "+String(ax)+"\t"+"ay: = "+String(ay)+"\t"+"aZ: = "+String(az)+"\t";
+
 //  // Gyroscope
 
-  Serial.print("gX: ");
-  Serial.print (gx,DEC); 
-  Serial.print ("\t");
-  Serial.print("gY: ");
-  Serial.print (gy,DEC);
-  Serial.print ("\t");
-  Serial.print("gZ: ");
-  Serial.print (gz,DEC);  
-  Serial.print ("\t");
+////  Serial.print("gX: ");
+//  strcat(string_to_pub,"gX: ");
+////  Serial.print (gx,DEC);
+//  dtostrf(gx, 5, 1, val);
+//  strcat(string_to_pub,val);
+////  Serial.print ("\t");
+//  strcat(string_to_pub,"\t");
+//  
+////  Serial.print("gY: ");
+//  strcat(string_to_pub,"gY: ");
+////  Serial.print (gy,DEC);
+//  dtostrf(gy, 5, 1, val);
+//  strcat(string_to_pub,val);
+////  Serial.print ("\t");
+//  strcat(string_to_pub,"\t");
+//  
+////  Serial.print("gZ: ");
+//  strcat(string_to_pub,"gZ: ");
+////  Serial.print (gz,DEC);
+//  dtostrf(gz, 5, 1, val);
+//  strcat(string_to_pub,val);
+////  Serial.print ("\t");
+//  strcat(string_to_pub,"\t");
+//String gyro = "gX: = "+String(gx)+"\t"+"gy: = "+String(gy)+"\t"+"gz: = "+String(gz)+"\t";
 
   
   my_time++;
-  Serial.print("Time-Stamp: ");
-  Serial.print(my_time);
+//  Serial.print("Time-Stamp: ");
+//  strcat(string_to_pub,"Time-Stamp: ");
+//  Serial.print(my_time);
+//  dtostrf(my_time, 5, 1, val);
+//  strcat(string_to_pub,val);
   // End of line
-  Serial.println("");
+//  Serial.println("");
+//  strcat(string_to_pub,"\n");
 //  delay(100);    
-  count_v++;
+  count_v++;  
+
+//String imu_data = "dist = "+String(dist)+" Dist update: "+String(op)+"\t"+acc+gyro+"Time-Stamp: "+String(my_time)+"\n";
+//int length_ = imu_data.indexOf("\n")+2;
+//char data_final[length_+1];
+//imu_data.toCharArray(data_final,length_+1);
+
+  temp_msg.data = dist;
+//  str_msg.data = data_final;
+  chatter.publish( &temp_msg );
+  nh.spinOnce();
+  
 }
