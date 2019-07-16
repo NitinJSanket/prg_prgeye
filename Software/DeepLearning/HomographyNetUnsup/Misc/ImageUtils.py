@@ -85,3 +85,33 @@ def StandardizeInputs(I):
 def StandardizeInputsTF(I):
     I = tf.math.multiply(tf.math.subtract(tf.math.divide(I, 255.0), 0.5), 2.0)
     return I
+
+def HPFilter(I, Radius = 10):
+    # Code adapted from: https://akshaysin.github.io/fourier_transform.html#.XSYBbnVKhhF
+    if(len(np.shape(I)) == 3):
+        I = cv2.cvtColor(I, cv2.COLOR_BGR2GRAY)
+
+    F = cv2.dft(np.float32(I), flags=cv2.DFT_COMPLEX_OUTPUT)
+    FShift = np.fft.fftshift(F)
+       
+    # Circular HPF mask, center circle is 0, remaining all ones
+    Rows, Cols = I.shape
+    Mask = np.ones((Rows, Cols, 2), np.uint8)
+    Center = [int(Rows / 2), int(Cols / 2)]
+    x, y = np.ogrid[:Rows, :Cols]
+    MaskArea = (x - Center[0]) ** 2 + (y - Center[1]) ** 2 <= Radius**2
+    Mask[MaskArea] = 0
+
+    # Filter by Masking FFT Spectrum
+    FShiftFilt = np.multiply(FShift, Mask)
+    FFilt = np.fft.ifftshift(FShiftFilt)
+    IFilt = cv2.idft(FFilt)
+    IFilt = cv2.magnitude(IFilt[:, :, 0], IFilt[:, :, 1])
+    return IFilt
+
+def rgb2gray(rgb):
+    # Code adapted from: https://stackoverflow.com/questions/12201577/how-can-i-convert-an-rgb-image-into-grayscale-in-python
+    r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+
+    return gray

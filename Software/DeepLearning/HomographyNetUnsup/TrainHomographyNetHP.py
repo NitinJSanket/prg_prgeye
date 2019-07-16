@@ -26,8 +26,6 @@ import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
 from Network.EVHomographyNetUnsupSmall import EVHomographyNetUnsupSmall
-from Network.EVHomographyNetUnsupSmall2 import EVHomographyNetUnsupSmall2
-from Network.EVHomographyNetUnsupSmall3 import EVHomographyNetUnsupSmall3
 from Network.EVHomographyNetUnsup import EVHomographyNetUnsup
 from Network.EVHomographyNetUnsupSmallRobust import EVHomographyNetUnsupSmallRobust
 from Misc.MiscUtils import *
@@ -43,6 +41,7 @@ from tqdm import tqdm
 import Misc.SpecUtils as su
 import Misc.STNUtils as stn
 import Misc.TFUtils as tu
+import Misc.MiscUtils as mu
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -90,8 +89,8 @@ def SetupAll(BasePath, LearningRate):
     NumTestRunsPerEpoch = 5
     
     # Image Input Shape
-    OriginalImageSize = np.array([300, 300, 3])
-    ImageSize = np.array([128, 128, 3])
+    OriginalImageSize = np.array([300, 300, 1])
+    ImageSize = np.array([128, 128, 1])
     Rho = 25
     NumTrainSamples = len(TrainNames)
     NumValSamples = len(ValNames)
@@ -155,6 +154,7 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     HInv = np.linalg.inv(H)
 
     WarpedI = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
+    WarpedI = np.expand_dims(WarpedI, 2)
     if(Vis is True):
         WarpedImgDisp = WarpedI.copy()
         cv2.imshow('c', WarpedImgDisp)
@@ -253,17 +253,22 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
     while ImageNum < MiniBatchSize:
         # Generate random image
         RandIdx = random.randint(0, len(TrainNames)-1)        
-        RandImageName = BasePath + os.sep + TrainNames[RandIdx] 
-        I = cv2.imread(RandImageName)
+        RandImageName = BasePath + os.sep + TrainNames[RandIdx]
+        I = cv2.imread(RandImageName, 0)
+        I = np.expand_dims(I, 2) # DO NOT REMOVE THIS!! CROP DOESN'T WORK WITHOUT IT!!
         I = iu.RandomCrop(I, OriginalImageSize)
-        if (I is None):
+        if (I is None): # Some Images are smaller than OriginalImageSize, hence they'll fail at crop
             continue
+        I = iu.HPFilter(np.squeeze(I), Radius = 10)
+        I = np.uint8(mu.remap(I, 0.0, 255.0, np.amin(I), np.amax(I)))
+        I = np.expand_dims(I, 2)
+        
         ImageNum += 1
 
         # Homography and Patch generation 
         IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H4PtCol, Mask = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False)
 
-        ICombined = np.dstack((CroppedI[:,:,0:3], CroppedWarpedI[:,:,0:3]))
+        ICombined = np.dstack((CroppedI, CroppedWarpedI))
         # Normalize Dataset
         # https://stackoverflow.com/questions/42275815/should-i-substract-imagenet-pretrained-inception-v3-model-mean-value-at-inceptio
         IS = iu.StandardizeInputs(np.float32(ICombined))
@@ -431,11 +436,11 @@ def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, Tes
     # Tensorboard
     # Create a summary to monitor loss tensor
     tf.summary.scalar('LossEveryIter', loss)
-    tf.summary.image('WarpedImg', WarpI1[:,:,:,0:3])
-    tf.summary.image('I1', I1PH[:,:,:,0:3])
-    tf.summary.image('I2', I2PH[:,:,:,0:3])
-    tf.summary.image('Mask', MaskPH[:,:,:,0:3])
-    tf.summary.image('WarpMask', WarpMask[:,:,:,0:3])
+    tf.summary.image('WarpedImg', WarpI1[:,:,:,0:1])
+    tf.summary.image('I1', I1PH[:,:,:,0:1])
+    tf.summary.image('I2', I2PH[:,:,:,0:1])
+    tf.summary.image('Mask', MaskPH[:,:,:,0:1])
+    tf.summary.image('WarpMask', WarpMask[:,:,:,0:1])
     # tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3])
     # tf.summary.image('I2Patch', I2Patch[:,:,:,0:3])
     # tf.summary.image('I2Patch - WarpI1Patch', tf.abs(I2Patch[:,:,:,0:3] - WarpI1Patch[:,:,:,0:3]))
