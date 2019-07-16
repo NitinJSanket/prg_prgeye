@@ -13,10 +13,10 @@ The hardware connections are fairly simple. Only the relevant pin connections ar
 ```
 Arduino        VL53L1X board
 -------        -------------
-2.6V to 5.5V - VIN
-         GND - GND
-         SDA - SDA
-         SCL - SCL
+2.6V to 5.5V -  VIN
+     GND     -  GND
+     SDA     -  SDA
+     SCL     -  SCL
 ```
 
 Verbose desciption of all pins is provided below:
