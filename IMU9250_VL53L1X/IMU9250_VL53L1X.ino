@@ -3,11 +3,10 @@
 #include <VL53L1X.h>
 
 VL53L1X sensor;
-int my_time = 0;
-int IMU_Dist_Freq_Ratio = 1;
-int count_v = 0;
-int dist = 0;
-int val, val2;
+int val, val2=0;
+// Initial time
+long int ti;
+volatile bool intFlag=false;
 
 #define    MPU9250_ADDRESS            0x68
 //#define    MAG_ADDRESS                0x0C
@@ -53,15 +52,13 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
 
 
 
-// Initial time
-long int ti;
-volatile bool intFlag=false;
+
 
 // Initializations
 void setup()
 {
   // Arduino initializations
-  Serial.begin(115200);
+  Serial.begin(230400);
   Wire.begin();
   Wire.setClock(400000);
   sensor.setTimeout(50);
@@ -78,9 +75,6 @@ void setup()
   // information on range and timing limits.
   sensor.setDistanceMode(VL53L1X::Long);
   sensor.setMeasurementTimingBudget(13000);
-  float tim_b = sensor.getMeasurementTimingBudget();
-  Serial.print("measurement timing budget = ");
-  Serial.println(tim_b);
 
   // Start continuous readings at a rate of one measurement every 50 ms (the
   // inter-measurement period). This period should be at least as long as the
@@ -91,7 +85,7 @@ void setup()
   //////////////////////////////////////////////////////////////////////////// 
 
   
-  Serial.println("IMU Starting...");
+//  Serial.println("IMU Starting...");
   // Set accelerometers low pass filter at 5Hz
   I2CwriteByte(MPU9250_ADDRESS,29,0x06);
   // Set gyroscope low pass filter at 5Hz
@@ -112,10 +106,10 @@ void setup()
   
   // Store initial time
   ti=millis();
+  
+  //Starup delay
+  delay(100);    
 }
-
-
-
 
 
 // Counter
@@ -130,12 +124,7 @@ void callback()
 // Main loop, read and display data
 void loop()
 {
-//  if(count_v%IMU_Dist_Freq_Ratio == 0)
-//  {
-//    sensor.read();
-//    dist = sensor.ranging_data.range_mm;
-//  }
-
+  Serial.print("#");
   val = sensor.read();
   if(val!=0)
   {
@@ -146,17 +135,7 @@ void loop()
   {
     Serial.print(val2);
   }
-//  Serial.print(dist);
-  Serial.print(" Dist update: ");
-//  if(count_v%IMU_Dist_Freq_Ratio == 0)
-//  {
-//    Serial.print("Y");
-//  }
-//  else
-//  {
-//    Serial.print("N");
-//  }
-//  Serial.print ("\t");
+  Serial.print (",");
  
   // ____________________________________
   // :::  accelerometer and gyroscope ::: 
@@ -180,36 +159,30 @@ void loop()
     // Display values
   
   // Accelerometer
-  Serial.print("aX: ");
+//  Serial.print("aX: ");
   Serial.print (ax,DEC); 
-  Serial.print ("\t");
-  Serial.print("aY: ");
+  Serial.print (","); 
+//  Serial.print("aY: ");
   Serial.print (ay,DEC);
-  Serial.print ("\t");
-  Serial.print("aZ: ");
-  Serial.print (az,DEC);  
-  Serial.print ("\t");
-  Serial.print ("\t");
-  Serial.print ("\t");
-//  
+  Serial.print (",");
+//  Serial.print("aZ: ");
+  Serial.print (az,DEC);
+  Serial.print (",");  
 //  // Gyroscope
 
-  Serial.print("gX: ");
-  Serial.print (gx,DEC); 
-  Serial.print ("\t");
-  Serial.print("gY: ");
+//  Serial.print("gX: ");
+  Serial.print (gx,DEC);
+  Serial.print (","); 
+//  Serial.print ("\t");
+//  Serial.print("gY: ");
   Serial.print (gy,DEC);
-  Serial.print ("\t");
-  Serial.print("gZ: ");
-  Serial.print (gz,DEC);  
-  Serial.print ("\t");
+  Serial.print (",");
+//  Serial.print ("\t");
+//  Serial.print("gZ: ");
+  Serial.print (gz,DEC);
+  Serial.print (",");  
+//  Serial.print ("\t");
 
-  
-  my_time++;
-  Serial.print("Time-Stamp: ");
-  Serial.print(my_time);
   // End of line
-  Serial.println("");
-//  delay(100);    
-  count_v++;
+  Serial.print("\n");
 }
