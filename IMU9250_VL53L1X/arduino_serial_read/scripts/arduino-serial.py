@@ -6,10 +6,10 @@ import serial
 
 
 def serial_pub():
-	pub = rospy.Publisher('chatter', String, queue_size=10)
-	rospy.init_node('talker', anonymous=True)
+	pub = rospy.Publisher('/imu_lidar_data', String, queue_size=10)
+	rospy.init_node('arduino_serial_read', anonymous=True)
 	# rate = rospy.Rate(10) # 10hz
-
+	rospy.loginfo("Reading serial data");
 	# Establish the connection on a specific port
 	ser = serial.Serial('/dev/ttyACM0', 230400)
 
