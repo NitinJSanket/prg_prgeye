@@ -13,10 +13,10 @@ The hardware connections are fairly simple. Only the relevant pin connections ar
 ```
 Arduino        VL53L1X board
 -------        -------------
-2.6V to 5.5V - VIN
-         GND - GND
-         SDA - SDA
-         SCL - SCL
+2.6V to 5.5V -  VIN
+     GND     -  GND
+     SDA     -  SDA
+     SCL     -  SCL
 ```
 
 Verbose desciption of all pins is provided below:
@@ -34,8 +34,8 @@ Verbose desciption of all pins is provided below:
 
 ### Software
 #### Libraries
-* You can use the libraries provided in the **Libraries** directory or you can download them from the official repositories:  [VL53L1X](https://github.com/pololu/vl53l1x-arduino), [VL53L0X](https://github.com/pololu/vl53l0x-arduino)
-* Unzip the files if you have downloaded the library from the official repo and copy it to the "library" folder of arduino.
+* Use the libraries provided in the **Libraries** directory
+* Unzip the files if you have downloaded the library from the official repo and copy it to the "library" folder of arduino.[Warning: There can be multiple "library" folders for arduino. Make sure to install the library in right directory.]
 * Restart arduino IDE (if it was previously running)
 
 #### CODE
