@@ -31,6 +31,7 @@ sudo chmod u+x TeensyduinoInstall.linux64
 8. Follow the instruction in the setup. Select the installation folder of `Arduino` during the `Teensyduino` installation.
 9. Once you are done with your installation, you should see something like this in your `arduino` application:
 <img src="../Images/teensyduino.jpg">
+
 10. In `arduino` application, under `Tools`, make sure the board is setup to `teensy 3.2/3.1` and USB type `serial`. Tested with CPU speed: `120MHz (overclock)`. 
 
 ***
