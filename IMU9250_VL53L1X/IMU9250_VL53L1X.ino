@@ -4,7 +4,7 @@
 
 VL53L1X sensor;
 int val, val2=0;
-// Initial time
+// Initial time 230400
 long int ti;
 volatile bool intFlag=false;
 
@@ -49,8 +49,6 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
   Wire.write(Data);
   Wire.endTransmission();
 }
-
-
 
 
 
