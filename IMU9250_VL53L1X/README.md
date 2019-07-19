@@ -26,8 +26,9 @@ sudo chmod u+x teensy
 7. Install `Teensyduino`:
 ```
 sudo chmod u+x TeensyduinoInstall.linux64
+./TeensyduinoInstall.linux64
 ```
-8. Select the `Arduino` Folder during the `Teensyduino` installation.
+8. Follow the instruction in the setup. Select the installation folder of `Arduino` during the `Teensyduino` installation.
 9. Once you are done with your installation, you should see something like this in your `arduino` application:
 <img src="../Images/teensyduino.jpg">
 10. In `arduino` application, under `Tools`, make sure the board is setup to `teensy 3.2/3.1` and USB type `serial`. Tested with CPU speed: `120MHz (overclock)`. 
@@ -44,7 +45,7 @@ sudo chmod u+x TeensyduinoInstall.linux64
 
 ## Flashing code on Arduino
 * Open the code in Ardunino IDE and connect the arduino using usb. For IMU or LIDAR pin connections checkout [this readme](https://github.com/NitinJSanket/prg_prgeye/blob/master/Time_of_flight_sensors/README.md)
-* Select the proper Arduino board and port under the tools menu
+* Select the proper Teensy board and port (```usually /dev/ttyACM0 serial```) under the tools menu
 * Upload the code using the gui or by using the shortcut ``` ctrl + u ```.
 
 
