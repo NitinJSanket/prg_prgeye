@@ -58,15 +58,16 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
 void setup()
 {
   // Arduino initializations
-  Serial.begin(230400); //230400
-  Wire.begin();
-  Wire.setClock(400000);
+  Serial.begin(115200);
+  Serial.print("Hello");
+//  Wire.begin();
+//  Wire.setClock(400000);
   sensor.setTimeout(50);
-  if (!sensor.init())
-  {
-    Serial.println("Failed to detect and initialize sensor!");
-    while (1);
-  }
+//  if (!sensor.init())
+//  {
+//    Serial.println("Failed to detect and initialize sensor!");
+//    while (1);
+//  }
   
   // Use long distance mode and allow up to 50000 us (50 ms) for a measurement.
   // You can change these settings to adjust the performance of the sensor, but
@@ -124,7 +125,7 @@ void callback()
 // Main loop, read and display data
 void loop()
 {
-  Serial.print("#");
+//  Serial.print("#");
   val = sensor.read();
   if(val!=0)
   {
@@ -135,7 +136,7 @@ void loop()
   {
     Serial.print(val2);
   }
-  Serial.print (",");
+//  Serial.print (",");
  
   // ____________________________________
   // :::  accelerometer and gyroscope ::: 
