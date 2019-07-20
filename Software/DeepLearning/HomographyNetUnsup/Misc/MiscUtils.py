@@ -18,11 +18,11 @@ def toc(StartTime):
 def remap(x, oMin, oMax, iMin, iMax):
     #range check
     if oMin == oMax:
-        print("Warning: Zero input range")
+        print("Warning: Zero output range")
         return None
 
     if iMin == iMax:
-        print("Warning: Zero output range")
+        print("Warning: Zero input range")
         return None
 
     result = np.add(np.divide(np.multiply(x - iMin, oMax - oMin), iMax - iMin), oMin)

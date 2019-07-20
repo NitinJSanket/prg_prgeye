@@ -193,11 +193,7 @@ def transformer(U, theta, out_size, name='SpatialTransformer', **kwargs):
             #  Added: add two matrices M and B defined as follows in 
             # order to perform the equation: H x M x [xs...;ys...;1s...] + H x [width/2...;height/2...;0...]
             theta_shape = theta.get_shape().as_list()
-            # initial
-
-
-
-
+            # initial 
             # grid of (x_t, y_t, 1), eq (1) in ref [1]
             height_f = tf.cast(height, 'float32')
             width_f = tf.cast(width, 'float32')
