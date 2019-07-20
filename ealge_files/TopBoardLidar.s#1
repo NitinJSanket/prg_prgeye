@@ -9228,7 +9228,7 @@ I2C Pull-ups from bus</text>
 <rectangle x1="-59.5503" y1="-30.5943" x2="-59.4741" y2="-30.5181" layer="94"/>
 <rectangle x1="-38.8239" y1="-30.5943" x2="-38.7477" y2="-30.5181" layer="94"/>
 <rectangle x1="-38.6715" y1="-30.5943" x2="-38.1381" y2="-30.5181" layer="94"/>
-<text x="-64.3128" y="-56.007" size="0.1524" layer="200" font="vector">/home/pratique/Downloads/prg-white (1).bmp</text>
+<text x="-60.96" y="-55.88" size="2.54" layer="94" ratio="5" distance="59">open hardware</text>
 </plain>
 <instances>
 <instance part="C4" gate="G$1" x="-33.02" y="60.96" smashed="yes">

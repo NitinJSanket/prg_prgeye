@@ -7406,6 +7406,8 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <part name="U$2" library="SparkX" deviceset="SPARKX-LOGO" device="4"/>
 <part name="LOGO1" library="SparkFun-Aesthetics" deviceset="OSHW-LOGO" device="MINI"/>
 <part name="U$1" library="SparkX" deviceset="SPARKX-LOGO" device="4"/>
+<part name="GND2" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
+<part name="GND3" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -9324,6 +9326,12 @@ I2C Pull-ups from bus</text>
 <instance part="U$2" gate="G$1" x="-88.9" y="-50.8" smashed="yes"/>
 <instance part="LOGO1" gate="G$1" x="-88.9" y="-35.56" smashed="yes"/>
 <instance part="U$1" gate="G$1" x="-88.9" y="-50.8" smashed="yes"/>
+<instance part="GND2" gate="1" x="-17.78" y="0" smashed="yes">
+<attribute name="VALUE" x="-17.78" y="-0.254" size="1.778" layer="96" align="top-center"/>
+</instance>
+<instance part="GND3" gate="1" x="-81.28" y="0" smashed="yes">
+<attribute name="VALUE" x="-81.28" y="-0.254" size="1.778" layer="96" align="top-center"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -9397,6 +9405,20 @@ I2C Pull-ups from bus</text>
 <pinref part="GND5" gate="1" pin="GND"/>
 <wire x1="-33.02" y1="-7.62" x2="-25.4" y2="-7.62" width="0.1524" layer="91"/>
 <wire x1="-25.4" y1="-7.62" x2="-25.4" y2="-10.16" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U2" gate="A" pin="6"/>
+<wire x1="-68.58" y1="-2.54" x2="-68.58" y2="7.62" width="0.1524" layer="91"/>
+<wire x1="-68.58" y1="7.62" x2="-81.28" y2="7.62" width="0.1524" layer="91"/>
+<pinref part="GND3" gate="1" pin="GND"/>
+<wire x1="-81.28" y1="7.62" x2="-81.28" y2="2.54" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="GND2" gate="1" pin="GND"/>
+<wire x1="-17.78" y1="2.54" x2="-30.48" y2="2.54" width="0.1524" layer="91"/>
+<wire x1="-30.48" y1="2.54" x2="-30.48" y2="-2.54" width="0.1524" layer="91"/>
+<pinref part="U2" gate="A" pin="5"/>
+<wire x1="-30.48" y1="-2.54" x2="-33.02" y2="-2.54" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$3" class="0">

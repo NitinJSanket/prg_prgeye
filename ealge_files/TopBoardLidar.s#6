@@ -1834,9 +1834,9 @@ I2C Pull-ups from bus</text>
 <attribute name="LAST_DATE_TIME" x="59.69" y="-52.07" size="2.286" layer="94" font="vector"/>
 <attribute name="SHEET" x="73.66" y="-57.15" size="2.54" layer="94" font="vector"/>
 </instance>
-<instance part="U2" gate="A" x="-5.08" y="10.16" smashed="yes" rot="R180">
-<attribute name="NAME" x="-0.3556" y="1.0414" size="2.0828" layer="95" ratio="10" rot="SR180"/>
-<attribute name="VALUE" x="0.0508" y="24.8412" size="2.0828" layer="96" ratio="10" rot="SR180"/>
+<instance part="U2" gate="A" x="-50.8" y="-7.62" smashed="yes" rot="R180">
+<attribute name="NAME" x="-46.0756" y="-16.7386" size="2.0828" layer="95" ratio="10" rot="SR180"/>
+<attribute name="VALUE" x="-45.6692" y="7.0612" size="2.0828" layer="96" ratio="10" rot="SR180"/>
 </instance>
 <instance part="U3" gate="U1" x="17.78" y="55.88" smashed="yes">
 <attribute name="NAME" x="10.16" y="64.262" size="1.778" layer="95"/>
@@ -1860,8 +1860,8 @@ I2C Pull-ups from bus</text>
 <instance part="SUPPLY17" gate="G$1" x="30.48" y="78.74" smashed="yes">
 <attribute name="VALUE" x="30.48" y="81.534" size="1.778" layer="96" align="bottom-center"/>
 </instance>
-<instance part="SUPPLY18" gate="G$1" x="-27.94" y="15.24" smashed="yes">
-<attribute name="VALUE" x="-27.94" y="18.034" size="1.778" layer="96" align="bottom-center"/>
+<instance part="SUPPLY18" gate="G$1" x="-73.66" y="-2.54" smashed="yes">
+<attribute name="VALUE" x="-73.66" y="0.254" size="1.778" layer="96" align="bottom-center"/>
 </instance>
 <instance part="SUPPLY19" gate="G$1" x="55.88" y="86.36" smashed="yes">
 <attribute name="VALUE" x="55.88" y="89.154" size="1.778" layer="96" align="bottom-center"/>
@@ -1891,8 +1891,8 @@ I2C Pull-ups from bus</text>
 <instance part="GND1" gate="1" x="2.54" y="50.8" smashed="yes">
 <attribute name="VALUE" x="2.54" y="50.546" size="1.778" layer="96" align="top-center"/>
 </instance>
-<instance part="GND5" gate="1" x="20.32" y="5.08" smashed="yes">
-<attribute name="VALUE" x="20.32" y="4.826" size="1.778" layer="96" align="top-center"/>
+<instance part="GND5" gate="1" x="-25.4" y="-12.7" smashed="yes">
+<attribute name="VALUE" x="-25.4" y="-12.954" size="1.778" layer="96" align="top-center"/>
 </instance>
 <instance part="GND6" gate="1" x="-96.52" y="60.96" smashed="yes">
 <attribute name="VALUE" x="-96.52" y="60.706" size="1.778" layer="96" align="top-center"/>
@@ -1946,8 +1946,8 @@ I2C Pull-ups from bus</text>
 <segment>
 <pinref part="U2" gate="A" pin="4"/>
 <pinref part="SUPPLY18" gate="G$1" pin="3.3V"/>
-<wire x1="-22.86" y1="12.7" x2="-27.94" y2="12.7" width="0.1524" layer="91"/>
-<wire x1="-27.94" y1="12.7" x2="-27.94" y2="15.24" width="0.1524" layer="91"/>
+<wire x1="-68.58" y1="-5.08" x2="-73.66" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="-73.66" y1="-5.08" x2="-73.66" y2="-2.54" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="GND" class="0">
@@ -1974,8 +1974,8 @@ I2C Pull-ups from bus</text>
 <segment>
 <pinref part="U2" gate="A" pin="1"/>
 <pinref part="GND5" gate="1" pin="GND"/>
-<wire x1="12.7" y1="10.16" x2="20.32" y2="10.16" width="0.1524" layer="91"/>
-<wire x1="20.32" y1="10.16" x2="20.32" y2="7.62" width="0.1524" layer="91"/>
+<wire x1="-33.02" y1="-7.62" x2="-25.4" y2="-7.62" width="0.1524" layer="91"/>
+<wire x1="-25.4" y1="-7.62" x2="-25.4" y2="-10.16" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -2005,8 +2005,8 @@ I2C Pull-ups from bus</text>
 </segment>
 <segment>
 <pinref part="U2" gate="A" pin="2"/>
-<wire x1="-22.86" y1="10.16" x2="-27.94" y2="10.16" width="0.1524" layer="91"/>
-<label x="-27.94" y="10.16" size="1.27" layer="95" rot="R180" xref="yes"/>
+<wire x1="-68.58" y1="-7.62" x2="-73.66" y2="-7.62" width="0.1524" layer="91"/>
+<label x="-73.66" y="-7.62" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 <net name="SCL" class="0">
@@ -2021,8 +2021,8 @@ I2C Pull-ups from bus</text>
 </segment>
 <segment>
 <pinref part="U2" gate="A" pin="3"/>
-<wire x1="12.7" y1="12.7" x2="20.32" y2="12.7" width="0.1524" layer="91"/>
-<label x="20.32" y="12.7" size="1.27" layer="95" xref="yes"/>
+<wire x1="-33.02" y1="-5.08" x2="-25.4" y2="-5.08" width="0.1524" layer="91"/>
+<label x="-25.4" y="-5.08" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="N$8" class="0">
