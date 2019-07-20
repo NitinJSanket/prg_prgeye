@@ -5,6 +5,7 @@
 
 #include <VL53L1X.h>
 #include <Wire.h>
+int count = 0;
 
 // Constructors ////////////////////////////////////////////////////////////////
 
@@ -438,28 +439,29 @@ uint16_t VL53L1X::read(bool blocking)
   if (blocking)
   {
     startTimeout();
-    while (!dataReady())
-    {
-      if (checkTimeoutExpired())
-      {
+    // while (dataReady())
+    // {
+    //   if (count == 0)
+    //   {
         did_timeout = true;
         ranging_data.range_status = None;
         ranging_data.range_mm = 0;
         ranging_data.peak_signal_count_rate_MCPS = 0;
         ranging_data.ambient_count_rate_MCPS = 0;
+        count++;
         return ranging_data.range_mm;
-      }
-    }
+    //   }
+    // }
   }
 
-  readResults();
+  // readResults();
 
   if (!calibrated)
   {
     setupManualCalibration();
     calibrated = true;
   }
-
+  
   updateDSS();
 
   getRangingData();
