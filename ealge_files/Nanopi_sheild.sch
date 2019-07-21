@@ -1447,9 +1447,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <part name="GND1" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="GND2" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="GND3" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
-<part name="GND4" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
-<part name="GND5" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
-<part name="GND6" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="GND7" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="GND8" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="LEFT_ASFT" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_12X2" device="" package3d_urn="urn:adsk.eagle:package:38225/1"/>
@@ -3302,15 +3299,6 @@ where H5 chip is mounted</text>
 <instance part="GND3" gate="1" x="5.08" y="71.12" smashed="yes">
 <attribute name="VALUE" x="5.08" y="70.866" size="1.778" layer="96" align="top-center"/>
 </instance>
-<instance part="GND4" gate="1" x="10.16" y="68.58" smashed="yes">
-<attribute name="VALUE" x="10.16" y="68.326" size="1.778" layer="96" align="top-center"/>
-</instance>
-<instance part="GND5" gate="1" x="83.82" y="68.58" smashed="yes">
-<attribute name="VALUE" x="83.82" y="68.326" size="1.778" layer="96" align="top-center"/>
-</instance>
-<instance part="GND6" gate="1" x="91.44" y="71.12" smashed="yes">
-<attribute name="VALUE" x="91.44" y="70.866" size="1.778" layer="96" align="top-center"/>
-</instance>
 <instance part="GND7" gate="1" x="142.24" y="66.04" smashed="yes">
 <attribute name="VALUE" x="142.24" y="65.786" size="1.778" layer="96" align="top-center"/>
 </instance>
@@ -3364,21 +3352,6 @@ where H5 chip is mounted</text>
 <pinref part="U1" gate="A" pin="1"/>
 <pinref part="GND3" gate="1" pin="GND"/>
 <wire x1="30.48" y1="73.66" x2="5.08" y2="73.66" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="GND4" gate="1" pin="GND"/>
-<pinref part="U1" gate="A" pin="3"/>
-<wire x1="10.16" y1="71.12" x2="30.48" y2="71.12" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="U1" gate="A" pin="2"/>
-<pinref part="GND6" gate="1" pin="GND"/>
-<wire x1="66.04" y1="73.66" x2="91.44" y2="73.66" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="GND5" gate="1" pin="GND"/>
-<wire x1="66.04" y1="71.12" x2="83.82" y2="71.12" width="0.1524" layer="91"/>
-<pinref part="U1" gate="A" pin="4"/>
 </segment>
 <segment>
 <pinref part="RIGHT_ASFT" gate="G$1" pin="23"/>
@@ -3470,6 +3443,11 @@ where H5 chip is mounted</text>
 <wire x1="114.3" y1="17.78" x2="116.84" y2="17.78" width="0.1524" layer="91"/>
 <label x="116.84" y="17.78" size="1.27" layer="95" xref="yes"/>
 </segment>
+<segment>
+<pinref part="U1" gate="A" pin="3"/>
+<wire x1="30.48" y1="71.12" x2="25.4" y2="71.12" width="0.1524" layer="91"/>
+<label x="25.4" y="71.12" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
 </net>
 <net name="DP_CAM" class="0">
 <segment>
@@ -3481,6 +3459,11 @@ where H5 chip is mounted</text>
 <pinref part="RIGHT_ASFT" gate="G$1" pin="8"/>
 <wire x1="114.3" y1="20.32" x2="116.84" y2="20.32" width="0.1524" layer="91"/>
 <label x="116.84" y="20.32" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="U1" gate="A" pin="2"/>
+<wire x1="66.04" y1="73.66" x2="71.12" y2="73.66" width="0.1524" layer="91"/>
+<label x="71.12" y="73.66" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="TX" class="0">
@@ -3495,6 +3478,18 @@ where H5 chip is mounted</text>
 <pinref part="LEFT_ASFT" gate="G$1" pin="9"/>
 <wire x1="25.4" y1="17.78" x2="22.86" y2="17.78" width="0.1524" layer="91"/>
 <label x="22.86" y="17.78" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
+</net>
+<net name="V_CAM" class="0">
+<segment>
+<pinref part="U1" gate="A" pin="4"/>
+<wire x1="66.04" y1="71.12" x2="71.12" y2="71.12" width="0.1524" layer="91"/>
+<label x="71.12" y="71.12" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="RIGHT_ASFT" gate="G$1" pin="21"/>
+<wire x1="99.06" y1="2.54" x2="96.52" y2="2.54" width="0.1524" layer="91"/>
+<label x="96.52" y="2.54" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 </nets>
