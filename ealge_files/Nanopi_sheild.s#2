@@ -1443,7 +1443,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <parts>
 <part name="U1" library="Molex_By_element14_Batch_1" deviceset="52207-0885" device=""/>
 <part name="FRAME1" library="SparkFun-Aesthetics" library_urn="urn:adsk.eagle:library:507" deviceset="FRAME-A4L" device=""/>
-<part name="J1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="USB_AB" device="_SMT" package3d_urn="urn:adsk.eagle:package:38266/1"/>
+<part name="TEENSY_USB" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="USB_AB" device="_SMT" package3d_urn="urn:adsk.eagle:package:38266/1"/>
 <part name="GND1" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="GND2" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="GND3" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
@@ -1456,6 +1456,8 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <part name="RIGHT_ASFT" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_12X2" device="" package3d_urn="urn:adsk.eagle:package:38225/1"/>
 <part name="BOTTOM_ASFT" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_10X2" device="" package3d_urn="urn:adsk.eagle:package:38291/1"/>
 <part name="GND9" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
+<part name="TEENSY_USB1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="USB_AB" device="_SMT" package3d_urn="urn:adsk.eagle:package:38266/1"/>
+<part name="GND10" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -1473,7 +1475,7 @@ where H5 chip is mounted</text>
 <attribute name="LAST_DATE_TIME" x="168.91" y="-62.23" size="2.286" layer="94" font="vector"/>
 <attribute name="SHEET" x="182.88" y="-67.31" size="2.54" layer="94" font="vector"/>
 </instance>
-<instance part="J1" gate="G$1" x="147.32" y="68.58" smashed="yes" rot="R180">
+<instance part="TEENSY_USB" gate="G$1" x="147.32" y="68.58" smashed="yes" rot="R180">
 <attribute name="NAME" x="149.86" y="61.976" size="1.778" layer="95" font="vector" rot="R180"/>
 <attribute name="VALUE" x="149.86" y="75.184" size="1.778" layer="96" font="vector" rot="R180" align="top-left"/>
 </instance>
@@ -1516,6 +1518,13 @@ where H5 chip is mounted</text>
 <instance part="GND9" gate="1" x="96.52" y="-2.54" smashed="yes">
 <attribute name="VALUE" x="96.52" y="-2.794" size="1.778" layer="96" align="top-center"/>
 </instance>
+<instance part="TEENSY_USB1" gate="G$1" x="167.64" y="15.24" smashed="yes" rot="R180">
+<attribute name="NAME" x="170.18" y="8.636" size="1.778" layer="95" font="vector" rot="R180"/>
+<attribute name="VALUE" x="170.18" y="21.844" size="1.778" layer="96" font="vector" rot="R180" align="top-left"/>
+</instance>
+<instance part="GND10" gate="1" x="180.34" y="7.62" smashed="yes">
+<attribute name="VALUE" x="180.34" y="7.366" size="1.778" layer="96" align="top-center"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -1530,11 +1539,11 @@ where H5 chip is mounted</text>
 <pinref part="GND2" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="J1" gate="G$1" pin="SHIELD"/>
+<pinref part="TEENSY_USB" gate="G$1" pin="SHIELD"/>
 <pinref part="GND7" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="J1" gate="G$1" pin="GND"/>
+<pinref part="TEENSY_USB" gate="G$1" pin="GND"/>
 <pinref part="GND8" gate="1" pin="GND"/>
 </segment>
 <segment>
@@ -1562,6 +1571,11 @@ where H5 chip is mounted</text>
 <wire x1="99.06" y1="0" x2="96.52" y2="0" width="0.1524" layer="91"/>
 <pinref part="GND9" gate="1" pin="GND"/>
 </segment>
+<segment>
+<pinref part="TEENSY_USB1" gate="G$1" pin="GND"/>
+<wire x1="172.72" y1="10.16" x2="180.34" y2="10.16" width="0.1524" layer="91"/>
+<pinref part="GND10" gate="1" pin="GND"/>
+</segment>
 </net>
 <net name="ID" class="0">
 <segment>
@@ -1570,7 +1584,7 @@ where H5 chip is mounted</text>
 <label x="27.94" y="68.58" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 <segment>
-<pinref part="J1" gate="G$1" pin="USBID"/>
+<pinref part="TEENSY_USB" gate="G$1" pin="USBID"/>
 <wire x1="152.4" y1="66.04" x2="160.02" y2="66.04" width="0.1524" layer="91"/>
 <label x="160.02" y="66.04" size="1.27" layer="95" xref="yes"/>
 </segment>
@@ -1582,7 +1596,7 @@ where H5 chip is mounted</text>
 <label x="27.94" y="66.04" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 <segment>
-<pinref part="J1" gate="G$1" pin="D-"/>
+<pinref part="TEENSY_USB" gate="G$1" pin="D-"/>
 <wire x1="152.4" y1="71.12" x2="160.02" y2="71.12" width="0.1524" layer="91"/>
 <label x="160.02" y="71.12" size="1.27" layer="95" xref="yes"/>
 </segment>
@@ -1599,7 +1613,7 @@ where H5 chip is mounted</text>
 <label x="68.58" y="68.58" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
-<pinref part="J1" gate="G$1" pin="D+"/>
+<pinref part="TEENSY_USB" gate="G$1" pin="D+"/>
 <wire x1="152.4" y1="68.58" x2="160.02" y2="68.58" width="0.1524" layer="91"/>
 <label x="160.02" y="68.58" size="1.27" layer="95" xref="yes"/>
 </segment>
@@ -1609,14 +1623,9 @@ where H5 chip is mounted</text>
 <label x="116.84" y="25.4" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="V_TEENSY" class="0">
+<net name="V_5V" class="0">
 <segment>
-<pinref part="U1" gate="A" pin="8"/>
-<wire x1="66.04" y1="66.04" x2="68.58" y2="66.04" width="0.1524" layer="91"/>
-<label x="68.58" y="66.04" size="1.27" layer="95" xref="yes"/>
-</segment>
-<segment>
-<pinref part="J1" gate="G$1" pin="VBUS"/>
+<pinref part="TEENSY_USB" gate="G$1" pin="VBUS"/>
 <wire x1="152.4" y1="73.66" x2="160.02" y2="73.66" width="0.1524" layer="91"/>
 <label x="160.02" y="73.66" size="1.27" layer="95" xref="yes"/>
 </segment>
@@ -1624,6 +1633,54 @@ where H5 chip is mounted</text>
 <pinref part="RIGHT_ASFT" gate="G$1" pin="2"/>
 <wire x1="114.3" y1="27.94" x2="116.84" y2="27.94" width="0.1524" layer="91"/>
 <label x="116.84" y="27.94" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="U1" gate="A" pin="8"/>
+<wire x1="66.04" y1="66.04" x2="68.58" y2="66.04" width="0.1524" layer="91"/>
+<label x="68.58" y="66.04" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="TEENSY_USB1" gate="G$1" pin="VBUS"/>
+<wire x1="172.72" y1="20.32" x2="180.34" y2="20.32" width="0.1524" layer="91"/>
+<label x="180.34" y="20.32" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="DM_CAM" class="0">
+<segment>
+<pinref part="TEENSY_USB1" gate="G$1" pin="D-"/>
+<wire x1="172.72" y1="17.78" x2="180.34" y2="17.78" width="0.1524" layer="91"/>
+<label x="180.34" y="17.78" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="RIGHT_ASFT" gate="G$1" pin="10"/>
+<wire x1="114.3" y1="17.78" x2="116.84" y2="17.78" width="0.1524" layer="91"/>
+<label x="116.84" y="17.78" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="DP_CAM" class="0">
+<segment>
+<pinref part="TEENSY_USB1" gate="G$1" pin="D+"/>
+<wire x1="172.72" y1="15.24" x2="180.34" y2="15.24" width="0.1524" layer="91"/>
+<label x="180.34" y="15.24" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="RIGHT_ASFT" gate="G$1" pin="8"/>
+<wire x1="114.3" y1="20.32" x2="116.84" y2="20.32" width="0.1524" layer="91"/>
+<label x="116.84" y="20.32" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="TX" class="0">
+<segment>
+<pinref part="LEFT_ASFT" gate="G$1" pin="7"/>
+<wire x1="25.4" y1="20.32" x2="22.86" y2="20.32" width="0.1524" layer="91"/>
+<label x="22.86" y="20.32" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
+</net>
+<net name="RX" class="0">
+<segment>
+<pinref part="LEFT_ASFT" gate="G$1" pin="9"/>
+<wire x1="25.4" y1="17.78" x2="22.86" y2="17.78" width="0.1524" layer="91"/>
+<label x="22.86" y="17.78" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 </nets>

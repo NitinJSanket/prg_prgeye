@@ -1456,7 +1456,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <part name="RIGHT_ASFT" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_12X2" device="" package3d_urn="urn:adsk.eagle:package:38225/1"/>
 <part name="BOTTOM_ASFT" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_10X2" device="" package3d_urn="urn:adsk.eagle:package:38291/1"/>
 <part name="GND9" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
-<part name="TEENSY_USB1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="USB_AB" device="_SMT" package3d_urn="urn:adsk.eagle:package:38266/1"/>
+<part name="CAMERA_USB1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="USB_AB" device="_SMT" package3d_urn="urn:adsk.eagle:package:38266/1"/>
 <part name="GND10" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 </parts>
 <sheets>
@@ -3332,7 +3332,7 @@ where H5 chip is mounted</text>
 <instance part="GND9" gate="1" x="96.52" y="-2.54" smashed="yes">
 <attribute name="VALUE" x="96.52" y="-2.794" size="1.778" layer="96" align="top-center"/>
 </instance>
-<instance part="TEENSY_USB1" gate="G$1" x="167.64" y="15.24" smashed="yes" rot="R180">
+<instance part="CAMERA_USB1" gate="G$1" x="167.64" y="15.24" smashed="yes" rot="R180">
 <attribute name="NAME" x="170.18" y="8.636" size="1.778" layer="95" font="vector" rot="R180"/>
 <attribute name="VALUE" x="170.18" y="21.844" size="1.778" layer="96" font="vector" rot="R180" align="top-left"/>
 </instance>
@@ -3386,7 +3386,7 @@ where H5 chip is mounted</text>
 <pinref part="GND9" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="TEENSY_USB1" gate="G$1" pin="GND"/>
+<pinref part="CAMERA_USB1" gate="G$1" pin="GND"/>
 <wire x1="172.72" y1="10.16" x2="180.34" y2="10.16" width="0.1524" layer="91"/>
 <pinref part="GND10" gate="1" pin="GND"/>
 </segment>
@@ -3454,14 +3454,14 @@ where H5 chip is mounted</text>
 <label x="68.58" y="66.04" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
-<pinref part="TEENSY_USB1" gate="G$1" pin="VBUS"/>
+<pinref part="CAMERA_USB1" gate="G$1" pin="VBUS"/>
 <wire x1="172.72" y1="20.32" x2="180.34" y2="20.32" width="0.1524" layer="91"/>
 <label x="180.34" y="20.32" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="DM_CAM" class="0">
 <segment>
-<pinref part="TEENSY_USB1" gate="G$1" pin="D-"/>
+<pinref part="CAMERA_USB1" gate="G$1" pin="D-"/>
 <wire x1="172.72" y1="17.78" x2="180.34" y2="17.78" width="0.1524" layer="91"/>
 <label x="180.34" y="17.78" size="1.27" layer="95" xref="yes"/>
 </segment>
@@ -3473,7 +3473,7 @@ where H5 chip is mounted</text>
 </net>
 <net name="DP_CAM" class="0">
 <segment>
-<pinref part="TEENSY_USB1" gate="G$1" pin="D+"/>
+<pinref part="CAMERA_USB1" gate="G$1" pin="D+"/>
 <wire x1="172.72" y1="15.24" x2="180.34" y2="15.24" width="0.1524" layer="91"/>
 <label x="180.34" y="15.24" size="1.27" layer="95" xref="yes"/>
 </segment>
