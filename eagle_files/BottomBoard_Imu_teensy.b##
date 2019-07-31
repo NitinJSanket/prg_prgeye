@@ -9,7 +9,7 @@
 <grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="no" altdistance="5" altunitdist="mil" altunit="mil"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
-<layer number="2" name="Route2" color="16" fill="1" visible="no" active="no"/>
+<layer number="2" name="Route2" color="16" fill="1" visible="yes" active="yes"/>
 <layer number="3" name="Route3" color="17" fill="1" visible="no" active="no"/>
 <layer number="4" name="Route4" color="18" fill="1" visible="no" active="no"/>
 <layer number="5" name="Route5" color="19" fill="1" visible="no" active="no"/>
@@ -22,7 +22,7 @@
 <layer number="12" name="Route12" color="20" fill="1" visible="no" active="no"/>
 <layer number="13" name="Route13" color="21" fill="1" visible="no" active="no"/>
 <layer number="14" name="Route14" color="22" fill="1" visible="no" active="no"/>
-<layer number="15" name="Route15" color="23" fill="1" visible="no" active="no"/>
+<layer number="15" name="Route15" color="23" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
@@ -1017,7 +1017,7 @@ Datasheet</description>
 <class number="0" name="default" width="0" drill="0">
 </class>
 </classes>
-<designrules name="default">
+<designrules name="default *">
 <description language="de">&lt;b&gt;EAGLE Design Rules&lt;/b&gt;
 &lt;p&gt;
 Die Standard-Design-Rules sind so gewählt, dass sie für 
@@ -1032,9 +1032,9 @@ a wide range of applications. Your particular design
 may have different requirements, so please make the
 necessary adjustments and save your customized
 design rules under a new name.</description>
-<param name="layerSetup" value="(1*16)"/>
-<param name="mtCopper" value="0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm"/>
-<param name="mtIsolate" value="1.5mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm"/>
+<param name="layerSetup" value="(1+2*15+16)"/>
+<param name="mtCopper" value="0.035mm 0.017mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.035mm 0.017mm 0.035mm"/>
+<param name="mtIsolate" value="0.18mm 1.12mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.2mm 0.15mm 0.18mm"/>
 <param name="mdWireWire" value="6mil"/>
 <param name="mdWirePad" value="6mil"/>
 <param name="mdWireVia" value="6mil"/>
@@ -1201,156 +1201,156 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
-<element name="C10" library="t32_ref" package="C0805" value="2.2uF" x="-20.32" y="45.72" smashed="yes">
-<attribute name="DESC" value="2.2uF / 25 VDC / X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Taiyo Yuden" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="TMK212B7225KG-TR" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-19.177" y="47.625" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-20.32" y="45.72" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="963-TMK212B7225KG-TR" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0805" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-22.479" y="47.625" size="0.635" layer="27" ratio="10" rot="R270"/>
+<element name="C10" library="t32_ref" package="C0805" value="2.2uF" x="15.24" y="69.85" smashed="yes">
+<attribute name="DESC" value="2.2uF / 25 VDC / X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Taiyo Yuden" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="TMK212B7225KG-TR" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="15.24" y="69.85" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="16.383" y="71.755" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="963-TMK212B7225KG-TR" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0805" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="13.081" y="71.755" size="0.635" layer="27" ratio="10" rot="R270"/>
 </element>
-<element name="C11" library="t32_ref" package="C0805" value="2.2uF" x="-26.67" y="45.72" smashed="yes">
-<attribute name="DESC" value="2.2uF / 25 VDC / X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Taiyo Yuden" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="TMK212B7225KG-TR" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-25.527" y="47.625" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-26.67" y="45.72" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="963-TMK212B7225KG-TR" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0805" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-28.829" y="47.625" size="0.635" layer="27" ratio="10" rot="R270"/>
+<element name="C11" library="t32_ref" package="C0805" value="2.2uF" x="8.89" y="69.85" smashed="yes">
+<attribute name="DESC" value="2.2uF / 25 VDC / X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Taiyo Yuden" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="TMK212B7225KG-TR" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="8.89" y="69.85" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="10.033" y="71.755" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="963-TMK212B7225KG-TR" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0805" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="6.731" y="71.755" size="0.635" layer="27" ratio="10" rot="R270"/>
 </element>
-<element name="C12" library="t32_ref" package="C0603" value="0.1uF" x="-54.61" y="50.8" smashed="yes">
-<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="GRM188R71C104KA01D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-53.721" y="52.07" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-54.61" y="50.8" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-56.1975" y="52.07" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C12" library="t32_ref" package="C0603" value="0.1uF" x="-19.05" y="74.93" smashed="yes">
+<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM188R71C104KA01D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-19.05" y="74.93" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="-18.161" y="76.2" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-20.6375" y="76.2" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
-<element name="C13" library="t32_ref" package="C0805" value="2.2uF" x="-33.02" y="45.72" smashed="yes">
-<attribute name="DESC" value="2.2uF / 25 VDC / X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Taiyo Yuden" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="TMK212B7225KG-TR" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-31.877" y="47.625" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-33.02" y="45.72" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="963-TMK212B7225KG-TR" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0805" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-35.179" y="47.625" size="0.635" layer="27" ratio="10" rot="R270"/>
+<element name="C13" library="t32_ref" package="C0805" value="2.2uF" x="2.54" y="69.85" smashed="yes">
+<attribute name="DESC" value="2.2uF / 25 VDC / X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Taiyo Yuden" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="TMK212B7225KG-TR" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="2.54" y="69.85" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="3.683" y="71.755" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="963-TMK212B7225KG-TR" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0805" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="0.381" y="71.755" size="0.635" layer="27" ratio="10" rot="R270"/>
 </element>
-<element name="C14" library="t32_ref" package="C0603" value="22pF" x="-15.24" y="54.61" smashed="yes">
-<attribute name="DESC" value="22pF / 50VDC / C0G (NP0)" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Vishay / Vitramon" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="VJ0603A220JXACW1BC" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-14.351" y="55.88" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-15.24" y="54.61" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="77-VJ0603A220JXACBC" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-16.8275" y="55.88" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C14" library="t32_ref" package="C0603" value="22pF" x="20.32" y="78.74" smashed="yes">
+<attribute name="DESC" value="22pF / 50VDC / C0G (NP0)" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Vishay / Vitramon" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="VJ0603A220JXACW1BC" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="20.32" y="78.74" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="21.209" y="80.01" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="77-VJ0603A220JXACBC" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="18.7325" y="80.01" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
-<element name="C15" library="t32_ref" package="C0603" value="22pF" x="-20.32" y="54.61" smashed="yes">
-<attribute name="DESC" value="22pF / 50VDC / C0G (NP0)" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Vishay / Vitramon" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="VJ0603A220JXACW1BC" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-19.431" y="55.88" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-20.32" y="54.61" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="77-VJ0603A220JXACBC" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-21.9075" y="55.88" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C15" library="t32_ref" package="C0603" value="22pF" x="15.24" y="78.74" smashed="yes">
+<attribute name="DESC" value="22pF / 50VDC / C0G (NP0)" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Vishay / Vitramon" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="VJ0603A220JXACW1BC" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="15.24" y="78.74" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="16.129" y="80.01" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="77-VJ0603A220JXACBC" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="13.6525" y="80.01" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
-<element name="C16" library="t32_ref" package="C0603" value="0.1uF" x="-25.4" y="54.61" smashed="yes">
-<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="GRM188R71C104KA01D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-24.511" y="55.88" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-25.4" y="54.61" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-26.9875" y="55.88" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C16" library="t32_ref" package="C0603" value="0.1uF" x="10.16" y="78.74" smashed="yes">
+<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM188R71C104KA01D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="10.16" y="78.74" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="11.049" y="80.01" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="8.5725" y="80.01" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
-<element name="C3" library="SparkFun-Capacitors" package="0603-CAP" value="0.1uF" x="-54.61" y="54.61" smashed="yes">
-<attribute name="NAME" x="-55.499" y="55.372" size="0.4064" layer="25" font="vector"/>
-<attribute name="PROD_ID" value="CAP-00810" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-55.626" y="53.467" size="0.4064" layer="27" font="vector"/>
+<element name="C3" library="SparkFun-Capacitors" package="0603-CAP" value="0.1uF" x="-19.05" y="78.74" smashed="yes">
+<attribute name="NAME" x="-19.939" y="79.502" size="0.4064" layer="25" font="vector"/>
+<attribute name="PROD_ID" value="CAP-00810" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-20.066" y="77.597" size="0.4064" layer="27" font="vector"/>
 </element>
-<element name="C4" library="SparkFun-Capacitors" package="0603-CAP" value="0.1uF" x="-58.42" y="54.61" smashed="yes">
-<attribute name="NAME" x="-59.309" y="55.372" size="0.4064" layer="25" font="vector"/>
-<attribute name="PROD_ID" value="CAP-00810" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-59.436" y="53.467" size="0.4064" layer="27" font="vector"/>
+<element name="C4" library="SparkFun-Capacitors" package="0603-CAP" value="0.1uF" x="-22.86" y="78.74" smashed="yes">
+<attribute name="NAME" x="-23.749" y="79.502" size="0.4064" layer="25" font="vector"/>
+<attribute name="PROD_ID" value="CAP-00810" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-23.876" y="77.597" size="0.4064" layer="27" font="vector"/>
 </element>
-<element name="C5" library="t32_ref" package="C0603" value="0.1uF" x="-29.21" y="50.8" smashed="yes">
-<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="GRM188R71C104KA01D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-28.321" y="52.07" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-29.21" y="50.8" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-30.7975" y="52.07" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C5" library="t32_ref" package="C0603" value="0.1uF" x="6.35" y="74.93" smashed="yes">
+<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM188R71C104KA01D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="6.35" y="74.93" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="7.239" y="76.2" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="4.7625" y="76.2" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
-<element name="C6" library="t32_ref" package="C0603" value="0.1uF" x="-34.29" y="50.8" smashed="yes">
-<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="GRM188R71C104KA01D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-33.401" y="52.07" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-34.29" y="50.8" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-35.8775" y="52.07" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C6" library="t32_ref" package="C0603" value="0.1uF" x="1.27" y="74.93" smashed="yes">
+<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM188R71C104KA01D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="1.27" y="74.93" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="2.159" y="76.2" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-0.3175" y="76.2" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
-<element name="C7" library="t32_ref" package="C0603" value="0.1uF" x="-39.37" y="50.8" smashed="yes">
-<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="GRM188R71C104KA01D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-38.481" y="52.07" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-39.37" y="50.8" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-40.9575" y="52.07" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C7" library="t32_ref" package="C0603" value="0.1uF" x="-3.81" y="74.93" smashed="yes">
+<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM188R71C104KA01D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-3.81" y="74.93" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="-2.921" y="76.2" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-5.3975" y="76.2" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
-<element name="C8" library="t32_ref" package="C0603" value="0.1uF" x="-44.45" y="50.8" smashed="yes">
-<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="GRM188R71C104KA01D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-43.561" y="52.07" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-44.45" y="50.8" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-46.0375" y="52.07" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C8" library="t32_ref" package="C0603" value="0.1uF" x="-8.89" y="74.93" smashed="yes">
+<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM188R71C104KA01D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-8.89" y="74.93" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="-8.001" y="76.2" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-10.4775" y="76.2" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
-<element name="C9" library="t32_ref" package="C0603" value="0.1uF" x="-49.53" y="50.8" smashed="yes">
-<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="GRM188R71C104KA01D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-48.641" y="52.07" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-49.53" y="50.8" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Capacitor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-51.1175" y="52.07" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
+<element name="C9" library="t32_ref" package="C0603" value="0.1uF" x="-13.97" y="74.93" smashed="yes">
+<attribute name="DESC" value="0.1uF / 16VDC /  X7R " x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM188R71C104KA01D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-13.97" y="74.93" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="-13.081" y="76.2" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="81-GRM39X104K16" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Capacitor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-15.5575" y="76.2" size="0.635" layer="27" font="vector" ratio="10" rot="R270"/>
 </element>
 <element name="CAM_MOLEX" library="con-molex" package="22-23-2041" value="22-23-2041" x="-52.07" y="24.13" smashed="yes">
 <attribute name="NAME" x="-57.15" y="27.94" size="1.016" layer="25" ratio="14"/>
 <attribute name="VALUE" x="-57.15" y="19.05" size="1.016" layer="27" ratio="14"/>
 </element>
-<element name="D1" library="SparkFun-LED" library_urn="urn:adsk.eagle:library:529" package="LED-0603" package3d_urn="urn:adsk.eagle:package:39354/1" value="GREEN" x="-15.24" y="58.42" smashed="yes">
-<attribute name="NAME" x="-15.24" y="59.055" size="0.6096" layer="25" font="vector" ratio="20" align="bottom-center"/>
-<attribute name="PROD_ID" value="DIO-00821" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-15.24" y="57.785" size="0.6096" layer="27" font="vector" ratio="20" align="top-center"/>
+<element name="D1" library="SparkFun-LED" library_urn="urn:adsk.eagle:library:529" package="LED-0603" package3d_urn="urn:adsk.eagle:package:39354/1" value="GREEN" x="20.32" y="82.55" smashed="yes">
+<attribute name="NAME" x="20.32" y="83.185" size="0.6096" layer="25" font="vector" ratio="20" align="bottom-center"/>
+<attribute name="PROD_ID" value="DIO-00821" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="20.32" y="81.915" size="0.6096" layer="27" font="vector" ratio="20" align="top-center"/>
 </element>
 <element name="FLEX-RIBBON" library="Molex_By_element14_Batch_1" package="MOLEX_52207-0485" value="52207-0485" x="-29.21" y="1.27" smashed="yes">
 <attribute name="MPN" value="52207-0485" x="0" y="0" size="1.778" layer="27" display="off"/>
@@ -1361,176 +1361,176 @@ design rules under a new name.</description>
 <attribute name="SUPPLIER" value="Molex" x="0" y="0" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="-34.7472" y="1.6002" size="2.0828" layer="27" ratio="10" rot="SR0"/>
 </element>
-<element name="G1" library="t32_ref" package="HC49US" value="16MHz" x="-39.37" y="36.83" smashed="yes">
-<attribute name="DESC" value="16MHz / 18pF / 10ppm" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="ABRACON" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="ABL-16.000MHz-B1U" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-42.545" y="39.497" size="0.889" layer="25" ratio="11"/>
-<attribute name="NAME" x="-39.37" y="36.83" size="0.7" layer="51" align="center"/>
-<attribute name="OC_MOUSER" value="815-ABL-16-B1U" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="HC-49US" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Crystal" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-42.545" y="33.274" size="0.889" layer="27" ratio="11"/>
+<element name="G1" library="t32_ref" package="HC49US" value="16MHz" x="45.72" y="41.91" smashed="yes">
+<attribute name="DESC" value="16MHz / 18pF / 10ppm" x="85.09" y="5.08" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="ABRACON" x="85.09" y="5.08" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="ABL-16.000MHz-B1U" x="85.09" y="5.08" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="46.99" y="40.64" size="0.7" layer="51" align="center"/>
+<attribute name="NAME" x="42.545" y="44.577" size="0.889" layer="25" ratio="11"/>
+<attribute name="OC_MOUSER" value="815-ABL-16-B1U" x="85.09" y="5.08" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="HC-49US" x="85.09" y="5.08" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Crystal" x="85.09" y="5.08" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="42.545" y="38.354" size="0.889" layer="27" ratio="11"/>
 </element>
-<element name="G2" library="t32_ref" package="TC26H" value="32.768kHz" x="-43.18" y="20.32" smashed="yes">
-<attribute name="DESC" value="32.768kHz / 12.5pF / 20ppm" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Citizen FineDevice" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value=" CFS206-32.768KDZF-UB" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-44.577" y="22.352" size="1.27" layer="25" ratio="10" rot="R90"/>
-<attribute name="NAME" x="-43.18" y="24.72" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="695-CFS206-327KF-U" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="TC-26H" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Crystal" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-40.513" y="22.352" size="1.27" layer="27" ratio="10" rot="R90"/>
+<element name="G2" library="t32_ref" package="TC26H" value="32.768kHz" x="54.61" y="43.18" smashed="yes">
+<attribute name="DESC" value="32.768kHz / 12.5pF / 20ppm" x="97.79" y="22.86" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Citizen FineDevice" x="97.79" y="22.86" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value=" CFS206-32.768KDZF-UB" x="97.79" y="22.86" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="54.61" y="47.58" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="53.213" y="45.212" size="1.27" layer="25" ratio="10" rot="R90"/>
+<attribute name="OC_MOUSER" value="695-CFS206-327KF-U" x="97.79" y="22.86" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="TC-26H" x="97.79" y="22.86" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Crystal" x="97.79" y="22.86" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="57.277" y="45.212" size="1.27" layer="27" ratio="10" rot="R90"/>
 </element>
-<element name="K1" library="t32_ref" package="LQFP64-05" value="MK20DX256VLH7" x="-21.59" y="25.4" smashed="yes">
-<attribute name="DESC" value="MK20DX256VLH7" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="NXP" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="MK20DX256VLH7" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-22.9744" y="28.21" size="0.8128" layer="25" font="vector" ratio="15" rot="SR0"/>
-<attribute name="NAME" x="-21.59" y="25.4" size="0.7" layer="51" align="center"/>
-<attribute name="OC_MOUSER" value="841-MK20DX256VLH7" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="LQFP-64" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Microcontroller" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-23.5744" y="22.155" size="0.8128" layer="25" font="vector" ratio="15" rot="SR0"/>
+<element name="K1" library="t32_ref" package="LQFP64-05" value="MK20DX256VLH7" x="54.61" y="64.77" smashed="yes">
+<attribute name="DESC" value="MK20DX256VLH7" x="76.2" y="39.37" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="NXP" x="76.2" y="39.37" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="MK20DX256VLH7" x="76.2" y="39.37" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="54.61" y="63.5" size="0.7" layer="51" align="center"/>
+<attribute name="NAME" x="53.2256" y="67.58" size="0.8128" layer="25" font="vector" ratio="15" rot="SR0"/>
+<attribute name="OC_MOUSER" value="841-MK20DX256VLH7" x="76.2" y="39.37" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="LQFP-64" x="76.2" y="39.37" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Microcontroller" x="76.2" y="39.37" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="52.6256" y="61.525" size="0.8128" layer="25" font="vector" ratio="15" rot="SR0"/>
 </element>
-<element name="K2" library="t32_ref" package="LQFP32-08" value="MKL04Z32VLC4" x="-34.29" y="24.13" smashed="yes">
-<attribute name="DESC" value="MKL04Z32VLC4 (preprogrammed)" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="PJRC" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="IC_MKL04Z32_TQFP32" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-37.465" y="29.61" size="1.27" layer="25" font="vector" ratio="10"/>
-<attribute name="NAME" x="-34.29" y="24.13" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="PACKAGE" value="LQFP-32" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Microcontroller" x="0" y="0" size="1.778" layer="27" display="off"/>
+<element name="K2" library="t32_ref" package="LQFP32-08" value="MKL04Z32VLC4" x="139.7" y="11.43" smashed="yes">
+<attribute name="DESC" value="MKL04Z32VLC4 (preprogrammed)" x="173.99" y="-12.7" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="PJRC" x="173.99" y="-12.7" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="IC_MKL04Z32_TQFP32" x="173.99" y="-12.7" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="139.7" y="11.43" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="136.525" y="16.91" size="1.27" layer="25" font="vector" ratio="10"/>
+<attribute name="PACKAGE" value="LQFP-32" x="173.99" y="-12.7" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Microcontroller" x="173.99" y="-12.7" size="1.778" layer="27" display="off"/>
 </element>
-<element name="P1" library="t32_ref" package="LED-0805" value="" x="-24.13" y="49.53" smashed="yes">
-<attribute name="DESC" value="orange" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="ROHM Semiconductor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="SML-211DTT86" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-26.035" y="50.673" size="0.889" layer="25" font="vector" ratio="11"/>
-<attribute name="NAME" x="-24.13" y="49.53" size="0.7" layer="51" align="center"/>
-<attribute name="OC_MOUSER" value="755-SML-211DTT86" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0805" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="LED" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-25.827" y="47.8425" size="0.635" layer="27" ratio="10"/>
+<element name="P1" library="t32_ref" package="LED-0805" value="" x="11.43" y="73.66" smashed="yes">
+<attribute name="DESC" value="orange" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="ROHM Semiconductor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="SML-211DTT86" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="11.43" y="73.66" size="0.7" layer="51" align="center"/>
+<attribute name="NAME" x="9.525" y="74.803" size="0.889" layer="25" font="vector" ratio="11"/>
+<attribute name="OC_MOUSER" value="755-SML-211DTT86" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0805" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="LED" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="9.733" y="71.9725" size="0.635" layer="27" ratio="10"/>
 </element>
-<element name="R1" library="SparkFun-Resistors" library_urn="urn:adsk.eagle:library:532" package="0603" package3d_urn="urn:adsk.eagle:package:39650/1" value="100" x="-29.21" y="54.61" smashed="yes">
-<attribute name="NAME" x="-29.21" y="55.372" size="0.6096" layer="25" font="vector" ratio="20" align="bottom-center"/>
-<attribute name="PROD_ID" value="RES-12438" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-29.21" y="53.848" size="0.6096" layer="27" font="vector" ratio="20" align="top-center"/>
+<element name="R1" library="SparkFun-Resistors" library_urn="urn:adsk.eagle:library:532" package="0603" package3d_urn="urn:adsk.eagle:package:39650/1" value="100" x="6.35" y="78.74" smashed="yes">
+<attribute name="NAME" x="6.35" y="79.502" size="0.6096" layer="25" font="vector" ratio="20" align="bottom-center"/>
+<attribute name="PROD_ID" value="RES-12438" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="6.35" y="77.978" size="0.6096" layer="27" font="vector" ratio="20" align="top-center"/>
 </element>
-<element name="R10" library="t32_ref" package="R0603" value="33R" x="-15.24" y="50.8" smashed="yes">
-<attribute name="DESC" value="33R / 1% / 0.25 W" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Panasonic" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="ERJ-PA3F33R0V" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-16.256" y="48.895" size="0.889" layer="25" ratio="11" rot="R90"/>
-<attribute name="NAME" x="-15.24" y="50.8" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="667-ERJ-PA3F33R0V" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Resistor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-13.335" y="49.53" size="0.635" layer="27" ratio="10" rot="R90"/>
+<element name="R10" library="t32_ref" package="R0603" value="33R" x="20.32" y="74.93" smashed="yes">
+<attribute name="DESC" value="33R / 1% / 0.25 W" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Panasonic" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="ERJ-PA3F33R0V" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="20.32" y="74.93" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="19.304" y="73.025" size="0.889" layer="25" ratio="11" rot="R90"/>
+<attribute name="OC_MOUSER" value="667-ERJ-PA3F33R0V" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Resistor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="22.225" y="73.66" size="0.635" layer="27" ratio="10" rot="R90"/>
 </element>
-<element name="R11" library="t32_ref" package="L0603" value="" x="-33.02" y="54.61" smashed="yes">
-<attribute name="DESC" value="600R / 100MHz" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value=" BLM18AG601SN1D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-34.925" y="55.499" size="0.889" layer="25" ratio="11"/>
-<attribute name="NAME" x="-33.02" y="54.61" size="0.7" layer="51" align="center"/>
-<attribute name="OC_MOUSER" value="81-BLM11A601S" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Ferrite" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-34.925" y="52.8955" size="0.889" layer="27" ratio="11"/>
+<element name="R11" library="t32_ref" package="L0603" value="" x="2.54" y="78.74" smashed="yes">
+<attribute name="DESC" value="600R / 100MHz" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value=" BLM18AG601SN1D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="2.54" y="78.74" size="0.7" layer="51" align="center"/>
+<attribute name="NAME" x="0.635" y="79.629" size="0.889" layer="25" ratio="11"/>
+<attribute name="OC_MOUSER" value="81-BLM11A601S" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Ferrite" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="0.635" y="77.0255" size="0.889" layer="27" ratio="11"/>
 </element>
-<element name="R12" library="t32_ref" package="L0603" value="" x="-38.1" y="54.61" smashed="yes">
-<attribute name="DESC" value="600R / 100MHz" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Murata Electronics" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value=" BLM18AG601SN1D" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-40.005" y="55.499" size="0.889" layer="25" ratio="11"/>
-<attribute name="NAME" x="-38.1" y="54.61" size="0.7" layer="51" align="center"/>
-<attribute name="OC_MOUSER" value="81-BLM11A601S" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Ferrite" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-40.005" y="52.8955" size="0.889" layer="27" ratio="11"/>
+<element name="R12" library="t32_ref" package="L0603" value="" x="-2.54" y="78.74" smashed="yes">
+<attribute name="DESC" value="600R / 100MHz" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Murata Electronics" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value=" BLM18AG601SN1D" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-2.54" y="78.74" size="0.7" layer="51" align="center"/>
+<attribute name="NAME" x="-4.445" y="79.629" size="0.889" layer="25" ratio="11"/>
+<attribute name="OC_MOUSER" value="81-BLM11A601S" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Ferrite" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-4.445" y="77.0255" size="0.889" layer="27" ratio="11"/>
 </element>
-<element name="R13" library="t32_ref" package="SOT-23" value="" x="-15.24" y="44.45" smashed="yes">
-<attribute name="DESC" value="Dual Schottky, common cat" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="NXP Semiconductors" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="BAT54C,215" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-17.145" y="46.355" size="0.889" layer="25" ratio="11"/>
-<attribute name="NAME" x="-15.24" y="44.45" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="771-BAT54C-T/R" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="SOT-23" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Diode" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-16.51" y="41.656" size="0.635" layer="27" ratio="10"/>
+<element name="R13" library="t32_ref" package="SOT-23" value="" x="20.32" y="68.58" smashed="yes">
+<attribute name="DESC" value="Dual Schottky, common cat" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="NXP Semiconductors" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="BAT54C,215" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="20.32" y="68.58" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="18.415" y="70.485" size="0.889" layer="25" ratio="11"/>
+<attribute name="OC_MOUSER" value="771-BAT54C-T/R" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="SOT-23" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Diode" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="19.05" y="65.786" size="0.635" layer="27" ratio="10"/>
 </element>
-<element name="R14" library="t32_ref" package="F0805" value="FUSE" x="-39.37" y="44.45" smashed="yes">
-<attribute name="DESC" value="6V / 0.5A" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Bel Fuse" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="0ZCK0050FF2E" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-38.227" y="46.355" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
-<attribute name="NAME" x="-39.37" y="44.45" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="530-0ZCK0050FF2E" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0805" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="PPTC" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-41.529" y="45.72" size="0.635" layer="27" ratio="10" rot="R270"/>
+<element name="R14" library="t32_ref" package="F0805" value="FUSE" x="-3.81" y="68.58" smashed="yes">
+<attribute name="DESC" value="6V / 0.5A" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Bel Fuse" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="0ZCK0050FF2E" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-3.81" y="68.58" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="-2.667" y="70.485" size="0.889" layer="25" font="vector" ratio="11" rot="R270"/>
+<attribute name="OC_MOUSER" value="530-0ZCK0050FF2E" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0805" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="PPTC" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-5.969" y="69.85" size="0.635" layer="27" ratio="10" rot="R270"/>
 </element>
-<element name="R4" library="SparkFun-Resistors" package="0603-RES" value="10K" x="-43.18" y="54.61" smashed="yes">
-<attribute name="NAME" x="-44.069" y="55.372" size="0.4064" layer="25" font="vector"/>
-<attribute name="PROD_ID" value="RES-00824" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-44.196" y="53.467" size="0.4064" layer="27" font="vector"/>
+<element name="R4" library="SparkFun-Resistors" package="0603-RES" value="10K" x="-7.62" y="78.74" smashed="yes">
+<attribute name="NAME" x="-8.509" y="79.502" size="0.4064" layer="25" font="vector"/>
+<attribute name="PROD_ID" value="RES-00824" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-8.636" y="77.597" size="0.4064" layer="27" font="vector"/>
 </element>
-<element name="R5" library="SparkFun-Resistors" package="0603-RES" value="10K" x="-46.99" y="54.61" smashed="yes">
-<attribute name="NAME" x="-47.879" y="55.372" size="0.4064" layer="25" font="vector"/>
-<attribute name="PROD_ID" value="RES-00824" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-48.006" y="53.467" size="0.4064" layer="27" font="vector"/>
+<element name="R5" library="SparkFun-Resistors" package="0603-RES" value="10K" x="-11.43" y="78.74" smashed="yes">
+<attribute name="NAME" x="-12.319" y="79.502" size="0.4064" layer="25" font="vector"/>
+<attribute name="PROD_ID" value="RES-00824" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-12.446" y="77.597" size="0.4064" layer="27" font="vector"/>
 </element>
-<element name="R6" library="SparkFun-Resistors" package="0603-RES" value="10K" x="-50.8" y="54.61" smashed="yes">
-<attribute name="NAME" x="-51.689" y="55.372" size="0.4064" layer="25" font="vector"/>
-<attribute name="PROD_ID" value="RES-00824" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-51.816" y="53.467" size="0.4064" layer="27" font="vector"/>
+<element name="R6" library="SparkFun-Resistors" package="0603-RES" value="10K" x="-15.24" y="78.74" smashed="yes">
+<attribute name="NAME" x="-16.129" y="79.502" size="0.4064" layer="25" font="vector"/>
+<attribute name="PROD_ID" value="RES-00824" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-16.256" y="77.597" size="0.4064" layer="27" font="vector"/>
 </element>
-<element name="R7" library="t32_ref" package="R0603" value="33R" x="-44.45" y="45.72" smashed="yes">
-<attribute name="DESC" value="33R / 1% / 0.25 W" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Panasonic" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="ERJ-PA3F33R0V" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-45.466" y="43.815" size="0.889" layer="25" ratio="11" rot="R90"/>
-<attribute name="NAME" x="-44.45" y="45.72" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="667-ERJ-PA3F33R0V" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Resistor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-42.545" y="44.45" size="0.635" layer="27" ratio="10" rot="R90"/>
+<element name="R7" library="t32_ref" package="R0603" value="33R" x="-8.89" y="69.85" smashed="yes">
+<attribute name="DESC" value="33R / 1% / 0.25 W" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Panasonic" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="ERJ-PA3F33R0V" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-8.89" y="69.85" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="-9.906" y="67.945" size="0.889" layer="25" ratio="11" rot="R90"/>
+<attribute name="OC_MOUSER" value="667-ERJ-PA3F33R0V" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Resistor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-6.985" y="68.58" size="0.635" layer="27" ratio="10" rot="R90"/>
 </element>
-<element name="R8" library="t32_ref" package="R0603" value="470R" x="-49.53" y="45.72" smashed="yes">
-<attribute name="DESC" value="470R / 1 % /  0.1 W" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Vishay" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="CRCW0603470RFKEA" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-50.546" y="43.815" size="0.889" layer="25" ratio="11" rot="R90"/>
-<attribute name="NAME" x="-49.53" y="45.72" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="71-CRCW0603-470-E3" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Resistor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-47.625" y="44.45" size="0.635" layer="27" ratio="10" rot="R90"/>
+<element name="R8" library="t32_ref" package="R0603" value="470R" x="-13.97" y="69.85" smashed="yes">
+<attribute name="DESC" value="470R / 1 % /  0.1 W" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Vishay" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="CRCW0603470RFKEA" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-13.97" y="69.85" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="-14.986" y="67.945" size="0.889" layer="25" ratio="11" rot="R90"/>
+<attribute name="OC_MOUSER" value="71-CRCW0603-470-E3" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Resistor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-12.065" y="68.58" size="0.635" layer="27" ratio="10" rot="R90"/>
 </element>
-<element name="R9" library="t32_ref" package="R0603" value="470R" x="-54.61" y="45.72" smashed="yes">
-<attribute name="DESC" value="470R / 1 % /  0.1 W" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="Vishay" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="CRCW0603470RFKEA" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-55.626" y="43.815" size="0.889" layer="25" ratio="11" rot="R90"/>
-<attribute name="NAME" x="-54.61" y="45.72" size="0.7" layer="51" rot="R90" align="center"/>
-<attribute name="OC_MOUSER" value="71-CRCW0603-470-E3" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="0603" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Resistor" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-52.705" y="44.45" size="0.635" layer="27" ratio="10" rot="R90"/>
+<element name="R9" library="t32_ref" package="R0603" value="470R" x="-19.05" y="69.85" smashed="yes">
+<attribute name="DESC" value="470R / 1 % /  0.1 W" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Vishay" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="CRCW0603470RFKEA" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-19.05" y="69.85" size="0.7" layer="51" rot="R90" align="center"/>
+<attribute name="NAME" x="-20.066" y="67.945" size="0.889" layer="25" ratio="11" rot="R90"/>
+<attribute name="OC_MOUSER" value="71-CRCW0603-470-E3" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="0603" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Resistor" x="35.56" y="24.13" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-17.145" y="68.58" size="0.635" layer="27" ratio="10" rot="R90"/>
 </element>
-<element name="S1" library="t32_ref" package="ALPS_SKHH" value="" x="-17.78" y="39.37" smashed="yes">
-<attribute name="DESC" value="SPST" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="ALPS" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="SKHHPKA010" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-19.685" y="32.925" size="0.8128" layer="25" font="vector" ratio="10"/>
-<attribute name="NAME" x="-17.78" y="39.37" size="0.7" layer="51" rot="R270" align="center"/>
-<attribute name="OC_MOUSER" value="688-SKHHPK" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="PACKAGE" value="6x6x5 MM" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="TYPE" value="Tactile switch" x="0" y="0" size="1.778" layer="27" display="off"/>
+<element name="S1" library="t32_ref" package="ALPS_SKHH" value="" x="107.95" y="55.88" smashed="yes">
+<attribute name="DESC" value="SPST" x="125.73" y="16.51" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="ALPS" x="125.73" y="16.51" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="SKHHPKA010" x="125.73" y="16.51" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="173.99" y="55.88" size="0.7" layer="51" rot="R270" align="center"/>
+<attribute name="NAME" x="106.045" y="49.435" size="0.8128" layer="25" font="vector" ratio="10"/>
+<attribute name="OC_MOUSER" value="688-SKHHPK" x="125.73" y="16.51" size="1.778" layer="27" display="off"/>
+<attribute name="PACKAGE" value="6x6x5 MM" x="125.73" y="16.51" size="1.778" layer="27" display="off"/>
+<attribute name="TYPE" value="Tactile switch" x="125.73" y="16.51" size="1.778" layer="27" display="off"/>
 </element>
 <element name="S2" library="SparkFun-Switches" library_urn="urn:adsk.eagle:library:535" package="SWITCH_SPST_SMD_A" package3d_urn="urn:adsk.eagle:package:40179/1" value="" x="-57.15" y="35.56" smashed="yes">
 <attribute name="NAME" x="-56.388" y="34.163" size="0.6096" layer="25" font="vector" ratio="20" rot="R180" align="bottom-center"/>
@@ -1538,18 +1538,18 @@ design rules under a new name.</description>
 <attribute name="SF_SKU" value="COM-10860" x="0" y="0" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="-57.15" y="36.957" size="0.6096" layer="27" font="vector" ratio="20" rot="R180" align="top-center"/>
 </element>
-<element name="SJ2" library="t32_ref" package="SOLDERJUMPER" value="" x="-20.32" y="49.53" smashed="yes">
-<attribute name="NAME" x="-21.971" y="50.8" size="0.8128" layer="25" ratio="18"/>
-<attribute name="NAME" x="-20.32" y="49.53" size="0.7" layer="51" align="center"/>
-<attribute name="VALUE" x="-21.844" y="47.879" size="0.4064" layer="27" ratio="10"/>
+<element name="SJ2" library="t32_ref" package="SOLDERJUMPER" value="" x="15.24" y="73.66" smashed="yes">
+<attribute name="NAME" x="13.589" y="74.93" size="0.8128" layer="25" ratio="18"/>
+<attribute name="NAME" x="15.24" y="73.66" size="0.7" layer="51" align="center"/>
+<attribute name="VALUE" x="13.716" y="72.009" size="0.4064" layer="27" ratio="10"/>
 </element>
-<element name="SX1" library="t32_ref" package="PTH_39MIL" value="PIN" x="-17.78" y="58.42" smashed="yes"/>
+<element name="SX1" library="t32_ref" package="PTH_39MIL" value="PIN" x="17.78" y="82.55" smashed="yes"/>
 <element name="T1" library="t32_ref" package="SOT-223" value="MCP1825S" x="-27.94" y="36.83" smashed="yes">
 <attribute name="DESC" value="3.3V 500mA" x="0" y="0" size="1.778" layer="27" display="off"/>
 <attribute name="MF" value="Microchip Technology" x="0" y="0" size="1.778" layer="27" display="off"/>
 <attribute name="MPN" value="MCP1825S-3302E/DB" x="0" y="0" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-31.75" y="33.02" size="0.889" layer="25" ratio="11" rot="R90"/>
 <attribute name="NAME" x="-27.94" y="36.83" size="0.7" layer="51" align="center"/>
+<attribute name="NAME" x="-31.75" y="33.02" size="0.889" layer="25" ratio="11" rot="R90"/>
 <attribute name="OC_MOUSER" value="579-MCP1825S-3302EDB" x="0" y="0" size="1.778" layer="27" display="off"/>
 <attribute name="PACKAGE" value="SOT-223-3" x="0" y="0" size="1.778" layer="27" display="off"/>
 <attribute name="TYPE" value="Voltage regulator" x="0" y="0" size="1.778" layer="27" display="off"/>
@@ -1612,35 +1612,42 @@ design rules under a new name.</description>
 <wire x1="-33.8582" y1="8.4074" x2="-40.3352" y2="8.4074" width="0" layer="19" extent="1-1"/>
 <wire x1="-30.7086" y1="6.0706" x2="-33.8582" y2="8.4074" width="0" layer="19" extent="1-1"/>
 <wire x1="-24.5618" y1="8.4074" x2="-30.7086" y2="6.0706" width="0" layer="19" extent="1-1"/>
-<wire x1="-18.3388" y1="19.485" x2="-24.5618" y2="8.4074" width="0" layer="19" extent="1-1"/>
-<wire x1="-15.675" y1="28.6512" x2="-18.3388" y2="19.485" width="0" layer="19" extent="1-1"/>
-<wire x1="-14.5288" y1="37.1094" x2="-15.675" y2="28.6512" width="0" layer="19" extent="1-1"/>
-<wire x1="-21.0312" y1="37.1094" x2="-14.5288" y2="37.1094" width="0" layer="19" extent="1-1"/>
-<wire x1="-27.94" y1="40.005" x2="-21.0312" y2="37.1094" width="0" layer="19" extent="1-1"/>
-<wire x1="-26.67" y1="44.704" x2="-27.94" y2="40.005" width="0" layer="19" extent="1-1"/>
-<wire x1="-29.21" y1="50.038" x2="-26.67" y2="44.704" width="0" layer="19" extent="1-1"/>
-<wire x1="-28.36" y1="54.61" x2="-29.21" y2="50.038" width="0" layer="19" extent="1-1"/>
-<wire x1="-25.4" y1="53.848" x2="-28.36" y2="54.61" width="0" layer="19" extent="1-1"/>
-<wire x1="-20.32" y1="53.848" x2="-25.4" y2="53.848" width="0" layer="19" extent="1-1"/>
-<wire x1="-15.24" y1="53.848" x2="-20.32" y2="53.848" width="0" layer="19" extent="1-1"/>
-<wire x1="-34.29" y1="50.038" x2="-29.21" y2="50.038" width="0" layer="19" extent="1-1"/>
-<wire x1="-33.782" y1="54.61" x2="-34.29" y2="50.038" width="0" layer="19" extent="1-1"/>
-<wire x1="-20.32" y1="44.704" x2="-26.67" y2="44.704" width="0" layer="19" extent="1-1"/>
+<wire x1="57.8612" y1="58.855" x2="-24.5618" y2="8.4074" width="0" layer="19" extent="1-1"/>
+<wire x1="60.525" y1="68.0212" x2="57.8612" y2="58.855" width="0" layer="19" extent="1-1"/>
+<wire x1="111.2012" y1="53.6194" x2="60.525" y2="68.0212" width="0" layer="19" extent="1-1"/>
+<wire x1="104.6988" y1="53.6194" x2="111.2012" y2="53.6194" width="0" layer="19" extent="1-1"/>
+<wire x1="-27.94" y1="40.005" x2="104.6988" y2="53.6194" width="0" layer="19" extent="1-1"/>
+<wire x1="8.89" y1="68.834" x2="-27.94" y2="40.005" width="0" layer="19" extent="1-1"/>
+<wire x1="6.35" y1="74.168" x2="8.89" y2="68.834" width="0" layer="19" extent="1-1"/>
+<wire x1="7.2" y1="78.74" x2="6.35" y2="74.168" width="0" layer="19" extent="1-1"/>
+<wire x1="10.16" y1="77.978" x2="7.2" y2="78.74" width="0" layer="19" extent="1-1"/>
+<wire x1="15.24" y1="77.978" x2="10.16" y2="77.978" width="0" layer="19" extent="1-1"/>
+<wire x1="20.32" y1="77.978" x2="15.24" y2="77.978" width="0" layer="19" extent="1-1"/>
+<wire x1="1.27" y1="74.168" x2="6.35" y2="74.168" width="0" layer="19" extent="1-1"/>
+<wire x1="1.778" y1="78.74" x2="1.27" y2="74.168" width="0" layer="19" extent="1-1"/>
+<wire x1="15.24" y1="68.834" x2="8.89" y2="68.834" width="0" layer="19" extent="1-1"/>
 <wire x1="-27.94" y1="33.655" x2="-27.94" y2="40.005" width="0" layer="19" extent="1-1"/>
-<wire x1="-27.505" y1="27.6606" x2="-27.94" y2="33.655" width="0" layer="19" extent="1-1"/>
-<wire x1="-38.7826" y1="23.73" x2="-27.505" y2="27.6606" width="0" layer="19" extent="1-1"/>
-<wire x1="-38.7826" y1="22.93" x2="-38.7826" y2="23.73" width="0" layer="19" extent="1-1"/>
-<wire x1="-48.26" y1="24.13" x2="-38.7826" y2="23.73" width="0" layer="19" extent="1-1"/>
+<wire x1="48.695" y1="67.0306" x2="-27.94" y2="33.655" width="0" layer="19" extent="1-1"/>
+<wire x1="135.2074" y1="11.03" x2="48.695" y2="67.0306" width="0" layer="19" extent="1-1"/>
+<wire x1="135.2074" y1="10.23" x2="135.2074" y2="11.03" width="0" layer="19" extent="1-1"/>
+<wire x1="-48.26" y1="24.13" x2="135.2074" y2="11.03" width="0" layer="19" extent="1-1"/>
 <wire x1="-49.73" y1="34.01" x2="-48.26" y2="24.13" width="0" layer="19" extent="1-1"/>
 <wire x1="-49.53" y1="35.56" x2="-49.73" y2="34.01" width="0" layer="19" extent="1-1"/>
 <wire x1="-48.93" y1="37.11" x2="-49.53" y2="35.56" width="0" layer="19" extent="1-1"/>
 <wire x1="-47.98" y1="36.56" x2="-48.93" y2="37.11" width="0" layer="19" extent="1-1"/>
 <wire x1="-54.9" y1="33.81" x2="-49.73" y2="34.01" width="0" layer="19" extent="1-1"/>
-<wire x1="-54.61" y1="46.482" x2="-48.93" y2="37.11" width="0" layer="19" extent="1-1"/>
-<wire x1="-54.61" y1="50.038" x2="-54.61" y2="46.482" width="0" layer="19" extent="1-1"/>
-<wire x1="-53.76" y1="54.61" x2="-54.61" y2="50.038" width="0" layer="19" extent="1-1"/>
-<wire x1="-57.57" y1="54.61" x2="-53.76" y2="54.61" width="0" layer="19" extent="1-1"/>
-<wire x1="-49.53" y1="50.038" x2="-54.61" y2="50.038" width="0" layer="19" extent="1-1"/>
+<wire x1="-19.05" y1="70.612" x2="-48.93" y2="37.11" width="0" layer="19" extent="1-1"/>
+<wire x1="-19.05" y1="74.168" x2="-19.05" y2="70.612" width="0" layer="19" extent="1-1"/>
+<wire x1="-18.2" y1="78.74" x2="-19.05" y2="74.168" width="0" layer="19" extent="1-1"/>
+<wire x1="-22.01" y1="78.74" x2="-18.2" y2="78.74" width="0" layer="19" extent="1-1"/>
+<wire x1="-13.97" y1="74.168" x2="-19.05" y2="74.168" width="0" layer="19" extent="1-1"/>
+<polygon width="0.1524" layer="2">
+<vertex x="-1.27" y="26.67"/>
+<vertex x="-1.27" y="-1.27"/>
+<vertex x="26.67" y="-1.27"/>
+<vertex x="26.67" y="27.94"/>
+<vertex x="0" y="27.94"/>
+</polygon>
 </signal>
 <signal name="VDD">
 <contactref element="K1" pad="7"/>
@@ -1656,18 +1663,24 @@ design rules under a new name.</description>
 <contactref element="K2" pad="4"/>
 <contactref element="T1" pad="3"/>
 <contactref element="R13" pad="1"/>
-<wire x1="-20.32" y1="46.736" x2="-16.129" y2="43.434" width="0" layer="19" extent="1-1"/>
-<wire x1="-29.21" y1="51.562" x2="-20.32" y2="46.736" width="0" layer="19" extent="1-1"/>
-<wire x1="-34.29" y1="51.562" x2="-29.21" y2="51.562" width="0" layer="19" extent="1-1"/>
-<wire x1="-37.338" y1="54.61" x2="-34.29" y2="51.562" width="0" layer="19" extent="1-1"/>
-<wire x1="-25.654" y1="33.655" x2="-16.129" y2="43.434" width="0" layer="19" extent="1-1"/>
-<wire x1="-27.505" y1="28.1432" x2="-25.654" y2="33.655" width="0" layer="19" extent="1-1"/>
-<wire x1="-27.505" y1="26.162" x2="-27.505" y2="28.1432" width="0" layer="19" extent="1-1"/>
-<wire x1="-15.675" y1="29.1592" x2="-25.654" y2="33.655" width="0" layer="19" extent="1-1"/>
-<wire x1="-18.8468" y1="19.485" x2="-15.675" y2="29.1592" width="0" layer="19" extent="1-1"/>
-<wire x1="-38.7826" y1="25.33" x2="-27.505" y2="26.162" width="0" layer="19" extent="1-1"/>
-<wire x1="-38.7826" y1="24.53" x2="-38.7826" y2="25.33" width="0" layer="19" extent="1-1"/>
-<wire x1="-54.61" y1="51.562" x2="-37.338" y2="54.61" width="0" layer="19" extent="1-1"/>
+<wire x1="15.24" y1="70.866" x2="19.431" y2="67.564" width="0" layer="19" extent="1-1"/>
+<wire x1="6.35" y1="75.692" x2="15.24" y2="70.866" width="0" layer="19" extent="1-1"/>
+<wire x1="1.27" y1="75.692" x2="6.35" y2="75.692" width="0" layer="19" extent="1-1"/>
+<wire x1="-1.778" y1="78.74" x2="1.27" y2="75.692" width="0" layer="19" extent="1-1"/>
+<wire x1="-25.654" y1="33.655" x2="19.431" y2="67.564" width="0" layer="19" extent="1-1"/>
+<wire x1="48.695" y1="67.5132" x2="-25.654" y2="33.655" width="0" layer="19" extent="1-1"/>
+<wire x1="48.695" y1="65.532" x2="48.695" y2="67.5132" width="0" layer="19" extent="1-1"/>
+<wire x1="60.525" y1="68.5292" x2="-25.654" y2="33.655" width="0" layer="19" extent="1-1"/>
+<wire x1="57.3532" y1="58.855" x2="60.525" y2="68.5292" width="0" layer="19" extent="1-1"/>
+<wire x1="135.2074" y1="12.63" x2="48.695" y2="65.532" width="0" layer="19" extent="1-1"/>
+<wire x1="135.2074" y1="11.83" x2="135.2074" y2="12.63" width="0" layer="19" extent="1-1"/>
+<wire x1="-19.05" y1="75.692" x2="-1.778" y2="78.74" width="0" layer="19" extent="1-1"/>
+<polygon width="0.1524" layer="15">
+<vertex x="-3.81" y="29.21"/>
+<vertex x="27.94" y="29.21"/>
+<vertex x="27.94" y="-2.54"/>
+<vertex x="-3.81" y="-2.54"/>
+</polygon>
 </signal>
 <signal name="VDDIO">
 <contactref element="R4" pad="2"/>
@@ -1679,10 +1692,10 @@ design rules under a new name.</description>
 <contactref element="S2" pad="2"/>
 <contactref element="D1" pad="A"/>
 <contactref element="FLEX-RIBBON" pad="1"/>
-<wire x1="-42.33" y1="54.61" x2="-16.117" y2="58.42" width="0" layer="19" extent="1-1"/>
-<wire x1="-46.14" y1="54.61" x2="-42.33" y2="54.61" width="0" layer="19" extent="1-1"/>
-<wire x1="-49.95" y1="54.61" x2="-46.14" y2="54.61" width="0" layer="19" extent="1-1"/>
-<wire x1="-51.08" y1="36.56" x2="-49.95" y2="54.61" width="0" layer="19" extent="1-1"/>
+<wire x1="-6.77" y1="78.74" x2="19.443" y2="82.55" width="0" layer="19" extent="1-1"/>
+<wire x1="-10.58" y1="78.74" x2="-6.77" y2="78.74" width="0" layer="19" extent="1-1"/>
+<wire x1="-14.39" y1="78.74" x2="-10.58" y2="78.74" width="0" layer="19" extent="1-1"/>
+<wire x1="-51.08" y1="36.56" x2="-14.39" y2="78.74" width="0" layer="19" extent="1-1"/>
 <wire x1="-50.13" y1="34.01" x2="-51.08" y2="36.56" width="0" layer="19" extent="1-1"/>
 <wire x1="-47.98" y1="34.56" x2="-50.13" y2="34.01" width="0" layer="19" extent="1-1"/>
 <wire x1="-57.9" y1="33.81" x2="-51.08" y2="36.56" width="0" layer="19" extent="1-1"/>
@@ -1691,114 +1704,114 @@ design rules under a new name.</description>
 <signal name="REGOUT1">
 <contactref element="U2" pad="10"/>
 <contactref element="C3" pad="1"/>
-<wire x1="-55.46" y1="54.61" x2="-49.33" y2="34.01" width="0" layer="19" extent="1-1"/>
+<wire x1="-19.9" y1="78.74" x2="-49.33" y2="34.01" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="!CS1">
 <contactref element="U2" pad="22"/>
 <contactref element="R6" pad="1"/>
-<wire x1="-51.65" y1="54.61" x2="-49.73" y2="37.11" width="0" layer="19" extent="1-1"/>
+<wire x1="-16.09" y1="78.74" x2="-49.73" y2="37.11" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="SCL/SCLK">
 <contactref element="U2" pad="23"/>
 <contactref element="R5" pad="1"/>
 <contactref element="FLEX-RIBBON" pad="2"/>
 <contactref element="K1" pad="37"/>
-<wire x1="-15.675" y1="23.6474" x2="-28.702" y2="6.0706" width="0" layer="19" extent="1-1"/>
-<wire x1="-50.13" y1="37.11" x2="-15.675" y2="23.6474" width="0" layer="19" extent="1-1"/>
-<wire x1="-47.84" y1="54.61" x2="-50.13" y2="37.11" width="0" layer="19" extent="1-1"/>
+<wire x1="60.525" y1="63.0174" x2="-28.702" y2="6.0706" width="0" layer="19" extent="1-1"/>
+<wire x1="-50.13" y1="37.11" x2="60.525" y2="63.0174" width="0" layer="19" extent="1-1"/>
+<wire x1="-12.28" y1="78.74" x2="-50.13" y2="37.11" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="SDA/SDI">
 <contactref element="U2" pad="24"/>
 <contactref element="R4" pad="1"/>
 <contactref element="FLEX-RIBBON" pad="3"/>
 <contactref element="K1" pad="38"/>
-<wire x1="-15.675" y1="24.1554" x2="-29.718" y2="6.0706" width="0" layer="19" extent="1-1"/>
-<wire x1="-50.53" y1="37.11" x2="-15.675" y2="24.1554" width="0" layer="19" extent="1-1"/>
-<wire x1="-44.03" y1="54.61" x2="-50.53" y2="37.11" width="0" layer="19" extent="1-1"/>
+<wire x1="60.525" y1="63.5254" x2="-29.718" y2="6.0706" width="0" layer="19" extent="1-1"/>
+<wire x1="-50.53" y1="37.11" x2="60.525" y2="63.5254" width="0" layer="19" extent="1-1"/>
+<wire x1="-8.47" y1="78.74" x2="-50.53" y2="37.11" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$2">
 <contactref element="K2" pad="16"/>
 <contactref element="K1" pad="22"/>
-<wire x1="-22.8346" y1="19.485" x2="-31.49" y2="19.6374" width="0" layer="19" extent="1-1"/>
+<wire x1="53.3654" y1="58.855" x2="142.5" y2="6.9374" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$3">
 <contactref element="K1" pad="24"/>
 <contactref element="K2" pad="17"/>
-<wire x1="-21.844" y1="19.485" x2="-29.7974" y2="21.33" width="0" layer="19" extent="1-1"/>
+<wire x1="54.356" y1="58.855" x2="144.1926" y2="8.63" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$5">
 <contactref element="K1" pad="32"/>
 <contactref element="G1" pad="1"/>
 <contactref element="C14" pad="1"/>
-<wire x1="-41.783" y1="36.83" x2="-15.24" y2="55.372" width="0" layer="19" extent="1-1"/>
-<wire x1="-17.8308" y1="19.485" x2="-41.783" y2="36.83" width="0" layer="19" extent="1-1"/>
+<wire x1="43.307" y1="41.91" x2="20.32" y2="79.502" width="0" layer="19" extent="1-1"/>
+<wire x1="58.3692" y1="58.855" x2="43.307" y2="41.91" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$6">
 <contactref element="K1" pad="33"/>
 <contactref element="G1" pad="2"/>
 <contactref element="C15" pad="1"/>
-<wire x1="-36.957" y1="36.83" x2="-20.32" y2="55.372" width="0" layer="19" extent="1-1"/>
-<wire x1="-15.675" y1="21.6408" x2="-36.957" y2="36.83" width="0" layer="19" extent="1-1"/>
+<wire x1="48.133" y1="41.91" x2="15.24" y2="79.502" width="0" layer="19" extent="1-1"/>
+<wire x1="60.525" y1="61.0108" x2="48.133" y2="41.91" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$7">
 <contactref element="K1" pad="19"/>
 <contactref element="G2" pad="2"/>
-<wire x1="-24.3332" y1="19.485" x2="-42.4942" y2="20.32" width="0" layer="19" extent="1-1"/>
+<wire x1="51.8668" y1="58.855" x2="55.2958" y2="43.18" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$8">
 <contactref element="K1" pad="20"/>
 <contactref element="G2" pad="1"/>
-<wire x1="-23.8506" y1="19.485" x2="-43.8658" y2="20.32" width="0" layer="19" extent="1-1"/>
+<wire x1="52.3494" y1="58.855" x2="53.9242" y2="43.18" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$11">
 <contactref element="K1" pad="17"/>
 <contactref element="C8" pad="1"/>
-<wire x1="-25.3492" y1="19.485" x2="-44.45" y2="51.562" width="0" layer="19" extent="1-1"/>
+<wire x1="50.8508" y1="58.855" x2="-8.89" y2="75.692" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$13">
 <contactref element="K1" pad="14"/>
 <contactref element="C7" pad="1"/>
 <contactref element="R8" pad="2"/>
-<wire x1="-49.53" y1="44.958" x2="-39.37" y2="51.562" width="0" layer="19" extent="1-1"/>
-<wire x1="-27.505" y1="22.6568" x2="-39.37" y2="51.562" width="0" layer="19" extent="1-1"/>
+<wire x1="-13.97" y1="69.088" x2="-3.81" y2="75.692" width="0" layer="19" extent="1-1"/>
+<wire x1="48.695" y1="62.0268" x2="-3.81" y2="75.692" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$10">
 <contactref element="K1" pad="5"/>
 <contactref element="R10" pad="2"/>
-<wire x1="-27.505" y1="27.1526" x2="-15.24" y2="50.038" width="0" layer="19" extent="1-1"/>
+<wire x1="48.695" y1="66.5226" x2="20.32" y2="74.168" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$14">
 <contactref element="K1" pad="6"/>
 <contactref element="R7" pad="2"/>
-<wire x1="-44.45" y1="44.958" x2="-27.505" y2="26.6446" width="0" layer="19" extent="1-1"/>
+<wire x1="-8.89" y1="69.088" x2="48.695" y2="66.0146" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$15">
 <contactref element="K1" pad="13"/>
 <contactref element="R8" pad="1"/>
 <contactref element="C13" pad="1"/>
 <contactref element="R12" pad="1"/>
-<wire x1="-33.02" y1="46.736" x2="-38.862" y2="54.61" width="0" layer="19" extent="1-1"/>
-<wire x1="-49.53" y1="46.482" x2="-38.862" y2="54.61" width="0" layer="19" extent="1-1"/>
-<wire x1="-27.505" y1="23.1394" x2="-33.02" y2="46.736" width="0" layer="19" extent="1-1"/>
+<wire x1="2.54" y1="70.866" x2="-3.302" y2="78.74" width="0" layer="19" extent="1-1"/>
+<wire x1="-13.97" y1="70.612" x2="-3.302" y2="78.74" width="0" layer="19" extent="1-1"/>
+<wire x1="48.695" y1="62.5094" x2="2.54" y2="70.866" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="USB_DM">
 <contactref element="R7" pad="1"/>
 <contactref element="U1" pad="2"/>
-<wire x1="-44.45" y1="46.482" x2="-44.5008" y2="6.0706" width="0" layer="19" extent="1-1"/>
+<wire x1="-8.89" y1="70.612" x2="-44.5008" y2="6.0706" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="V_MICRO_USB">
 <contactref element="C11" pad="1"/>
 <contactref element="R14" pad="1"/>
 <contactref element="U1" pad="1"/>
-<wire x1="-39.37" y1="45.339" x2="-43.4848" y2="6.0706" width="0" layer="19" extent="1-1"/>
-<wire x1="-26.67" y1="46.736" x2="-39.37" y2="45.339" width="0" layer="19" extent="1-1"/>
+<wire x1="-3.81" y1="69.469" x2="-43.4848" y2="6.0706" width="0" layer="19" extent="1-1"/>
+<wire x1="8.89" y1="70.866" x2="-3.81" y2="69.469" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="ID">
 <contactref element="K2" pad="10"/>
 <contactref element="K1" pad="23"/>
 <contactref element="U1" pad="4"/>
-<wire x1="-36.29" y1="19.6374" x2="-46.482" y2="6.0706" width="0" layer="19" extent="1-1"/>
-<wire x1="-22.352" y1="19.485" x2="-36.29" y2="19.6374" width="0" layer="19" extent="1-1"/>
+<wire x1="137.7" y1="6.9374" x2="-46.482" y2="6.0706" width="0" layer="19" extent="1-1"/>
+<wire x1="53.848" y1="58.855" x2="137.7" y2="6.9374" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$53">
 <contactref element="K1" pad="15"/>
@@ -1807,76 +1820,76 @@ design rules under a new name.</description>
 <contactref element="C7" pad="2"/>
 <contactref element="C13" pad="2"/>
 <contactref element="R11" pad="2"/>
-<wire x1="-39.37" y1="50.038" x2="-32.258" y2="54.61" width="0" layer="19" extent="1-1"/>
-<wire x1="-44.45" y1="50.038" x2="-39.37" y2="50.038" width="0" layer="19" extent="1-1"/>
-<wire x1="-33.02" y1="44.704" x2="-39.37" y2="50.038" width="0" layer="19" extent="1-1"/>
-<wire x1="-27.505" y1="22.1488" x2="-33.02" y2="44.704" width="0" layer="19" extent="1-1"/>
-<wire x1="-27.505" y1="21.6408" x2="-27.505" y2="22.1488" width="0" layer="19" extent="1-1"/>
+<wire x1="-3.81" y1="74.168" x2="3.302" y2="78.74" width="0" layer="19" extent="1-1"/>
+<wire x1="-8.89" y1="74.168" x2="-3.81" y2="74.168" width="0" layer="19" extent="1-1"/>
+<wire x1="2.54" y1="68.834" x2="-3.81" y2="74.168" width="0" layer="19" extent="1-1"/>
+<wire x1="48.695" y1="61.5188" x2="2.54" y2="68.834" width="0" layer="19" extent="1-1"/>
+<wire x1="48.695" y1="61.0108" x2="48.695" y2="61.5188" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$61">
 <contactref element="T1" pad="1"/>
 <contactref element="SJ2" pad="2"/>
 <contactref element="C16" pad="1"/>
-<wire x1="-25.4" y1="55.372" x2="-19.558" y2="49.53" width="0" layer="19" extent="1-1"/>
-<wire x1="-30.226" y1="33.655" x2="-19.558" y2="49.53" width="0" layer="19" extent="1-1"/>
+<wire x1="10.16" y1="79.502" x2="16.002" y2="73.66" width="0" layer="19" extent="1-1"/>
+<wire x1="-30.226" y1="33.655" x2="16.002" y2="73.66" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$9">
 <contactref element="K2" pad="18"/>
 <contactref element="S1" pad="1"/>
 <contactref element="S1" pad="2"/>
-<wire x1="-21.0312" y1="41.6306" x2="-14.5288" y2="41.6306" width="0" layer="19" extent="1-1"/>
-<wire x1="-29.7974" y1="22.13" x2="-21.0312" y2="41.6306" width="0" layer="19" extent="1-1"/>
+<wire x1="104.6988" y1="58.1406" x2="111.2012" y2="58.1406" width="0" layer="19" extent="1-1"/>
+<wire x1="144.1926" y1="9.43" x2="104.6988" y2="58.1406" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$67">
 <contactref element="SX1" pad="1"/>
 <contactref element="R14" pad="2"/>
 <contactref element="SJ2" pad="1"/>
-<wire x1="-21.082" y1="49.53" x2="-17.78" y2="58.42" width="0" layer="19" extent="1-1"/>
-<wire x1="-39.37" y1="43.561" x2="-21.082" y2="49.53" width="0" layer="19" extent="1-1"/>
+<wire x1="14.478" y1="73.66" x2="17.78" y2="82.55" width="0" layer="19" extent="1-1"/>
+<wire x1="-3.81" y1="67.691" x2="14.478" y2="73.66" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$70">
 <contactref element="K1" pad="25"/>
 <contactref element="K2" pad="15"/>
-<wire x1="-21.336" y1="19.485" x2="-32.29" y2="19.6374" width="0" layer="19" extent="1-1"/>
+<wire x1="54.864" y1="58.855" x2="141.7" y2="6.9374" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$68">
 <contactref element="R13" pad="3"/>
 <contactref element="C9" pad="1"/>
 <contactref element="K1" pad="21"/>
-<wire x1="-23.3426" y1="19.485" x2="-15.24" y2="45.466" width="0" layer="19" extent="1-1"/>
-<wire x1="-49.53" y1="51.562" x2="-15.24" y2="45.466" width="0" layer="19" extent="1-1"/>
+<wire x1="52.8574" y1="58.855" x2="20.32" y2="69.596" width="0" layer="19" extent="1-1"/>
+<wire x1="-13.97" y1="75.692" x2="20.32" y2="69.596" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="VCC">
 <contactref element="C4" pad="1"/>
 <contactref element="S2" pad="1"/>
-<wire x1="-59.27" y1="54.61" x2="-59.4" y2="33.81" width="0" layer="19" extent="1-1"/>
+<wire x1="-23.71" y1="78.74" x2="-59.4" y2="33.81" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$4">
 <contactref element="D1" pad="C"/>
 <contactref element="R1" pad="1"/>
-<wire x1="-30.06" y1="54.61" x2="-14.363" y2="58.42" width="0" layer="19" extent="1-1"/>
+<wire x1="5.5" y1="78.74" x2="21.197" y2="82.55" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$20">
 <contactref element="R9" pad="2"/>
 <contactref element="P1" pad="-"/>
-<wire x1="-54.61" y1="44.958" x2="-23.241" y2="49.53" width="0" layer="19" extent="1-1"/>
+<wire x1="-19.05" y1="69.088" x2="12.319" y2="73.66" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$21">
 <contactref element="K1" pad="50"/>
 <contactref element="P1" pad="+"/>
-<wire x1="-18.3388" y1="31.315" x2="-25.019" y2="49.53" width="0" layer="19" extent="1-1"/>
+<wire x1="57.8612" y1="70.685" x2="10.541" y2="73.66" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$1">
 <contactref element="K1" pad="34"/>
 <contactref element="K2" pad="25"/>
 <contactref element="K2" pad="8"/>
-<wire x1="-31.49" y1="28.6226" x2="-38.7826" y2="21.33" width="0" layer="19" extent="1-1"/>
-<wire x1="-15.675" y1="22.1488" x2="-31.49" y2="28.6226" width="0" layer="19" extent="1-1"/>
+<wire x1="142.5" y1="15.9226" x2="135.2074" y2="8.63" width="0" layer="19" extent="1-1"/>
+<wire x1="60.525" y1="61.5188" x2="142.5" y2="15.9226" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="USB_DP">
 <contactref element="U1" pad="3"/>
 <contactref element="R10" pad="1"/>
-<wire x1="-15.24" y1="51.562" x2="-45.4914" y2="6.0706" width="0" layer="19" extent="1-1"/>
+<wire x1="20.32" y1="75.692" x2="-45.4914" y2="6.0706" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="V_CAM">
 <contactref element="CAM_MOLEX" pad="1"/>

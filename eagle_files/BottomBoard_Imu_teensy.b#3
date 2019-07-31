@@ -824,13 +824,9 @@ design rules under a new name.</description>
 </signal>
 <signal name="AUX_CL">
 <contactref element="U1" pad="7"/>
-<contactref element="U2" pad="7"/>
-<wire x1="-25.13" y1="2.26" x2="-26.4" y2="-5.36" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="AUX_DA">
 <contactref element="U1" pad="21"/>
-<contactref element="U2" pad="21"/>
-<wire x1="-23.93" y1="5.36" x2="-25.2" y2="-2.26" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="!CS">
 <contactref element="U1" pad="22"/>
