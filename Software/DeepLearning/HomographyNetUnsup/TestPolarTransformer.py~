@@ -1,0 +1,242 @@
+#!/usr/bin/env python
+
+# Dependencies:
+# opencv, do (pip install opencv-python)
+# skimage, do (sudo)
+# termcolor, do (pip install termcolor)
+# tqdm, do (pip install tqdm)
+
+# TODO:
+# Clean print statements
+# Global step only loss/epoch on tensorboard
+# Print Num parameters in model as a function
+# Clean comments
+# Check Factor from network list
+# ClearLogs command line argument
+# Adapt more augmentation from: https://github.com/sthalles/deeplab_v3/blob/master/preprocessing/inception_preprocessing.py
+# Tensorboard logging of images
+
+import tensorflow as tf
+import cv2
+import sys
+import os
+import glob
+import Misc.ImageUtils as iu
+import random
+from skimage import data, exposure, img_as_float
+import matplotlib.pyplot as plt
+from Network.EVHomographyNetUnsup import EVHomographyNetUnsup
+from Misc.MiscUtils import *
+import numpy as np
+import time
+import argparse
+import shutil
+from StringIO import StringIO
+import string
+from termcolor import colored, cprint
+import math as m
+from tqdm import tqdm
+import Misc.SpecUtils as su
+import Misc.STNUtils as stn
+import matplotlib.pyplot as plt
+
+def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
+    """
+    Inputs: 
+    I is the input image
+    Rho is the maximum perturbation in either direction on each corner, i.e., perturbation for each corner lies in [-Rho, Rho]
+    Vis when enabled, Visualizes the image and the perturbed image 
+    Outputs:
+    H is the random homography
+    Points are labeled as:
+    
+    Top Left = p1, Top Right = p2, Bottom Right = p3, Bottom Left = p4 (Clockwise from Top Left)
+    Code adapted from: https://github.com/mez/deep_homography_estimation/blob/master/Dataset_Generation_Visualization.ipynb
+    """
+ #    if(ImageSize is None):
+ #        ImageSize = np.shape(I)	
+    
+ #    RandX = random.randint(Rho, ImageSize[0]-Rho-PatchSize[0])
+ #    RandY = random.randint(Rho, ImageSize[1]-Rho-PatchSize[1])
+
+ #    p1 = (RandX, RandY)
+ #    p2 = (RandX, RandY + PatchSize[0])
+ #    p3 = (RandX + PatchSize[0], RandY + PatchSize[1])
+ #    p4 = (RandX + PatchSize[0], RandY)
+
+ #    AllPts = [p1, p2, p3, p4]
+
+ #    if(Vis is True):
+ #        IDisp = I.copy()
+	# cv2.imshow('org', I)
+	# cv2.waitKey(1)
+
+ #    if(Vis is True):
+ #        IDisp = I.copy()
+ #    	cv2.polylines(IDisp, np.int32([AllPts]), isClosed=True, color=(255, 255, 255), thickness=1)
+	# cv2.imshow('a', IDisp)
+	# cv2.waitKey(1)
+
+ #    PerturbPts = []
+ #    for point in AllPts:
+ #        PerturbPts.append((point[0] + random.randint(-Rho,Rho), point[1] + random.randint(-Rho,Rho)))
+
+ #    if(Vis is True):
+ #        PertubImgDisp = I.copy()
+ #        cv2.polylines(PertubImgDisp, np.int32([PerturbPts]), 1, (0,0,0))
+ #        cv2.imshow('b', PertubImgDisp)
+ #        cv2.waitKey(1)
+        
+ #    # Obtain Homography between the 2 images
+ #    H = cv2.getPerspectiveTransform(np.float32(AllPts), np.float32(PerturbPts))
+ #    # Get Inverse Homography
+ #    HInv = np.linalg.inv(H)
+
+ #    WarpedI = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
+ #    if(Vis is True):
+ #        WarpedImgDisp = WarpedI.copy()
+ #        cv2.imshow('c', WarpedImgDisp)
+ #        cv2.waitKey(1)
+
+ #    CroppedI = I[RandX:RandX + PatchSize[0], RandY:RandY + PatchSize[1], :]
+ #    CroppedWarpedI = WarpedI[RandX:RandX + PatchSize[0], RandY:RandY + PatchSize[1], :]
+
+    if(ImageSize is None):
+        ImageSize = np.shape(I) 
+    
+    IOrg = I.copy()
+    RandX = random.randint(Rho, ImageSize[1]-Rho-PatchSize[1])
+    RandY = random.randint(Rho, ImageSize[0]-Rho-PatchSize[0])
+
+    p1 = (RandX, RandY)
+    p2 = (RandX, RandY + PatchSize[0])
+    p3 = (RandX + PatchSize[1], RandY + PatchSize[0])
+    p4 = (RandX + PatchSize[1], RandY)
+
+    AllPts = [p1, p2, p3, p4]
+
+    if(Vis is True):
+        IDisp = I.copy()
+        cv2.imshow('org', I)
+        cv2.waitKey(1)
+
+    if(Vis is True):
+        IDisp = I.copy()
+        cv2.polylines(IDisp, np.int32([AllPts]), 1, (0,0,0))
+        cv2.imshow('a', IDisp)
+        cv2.waitKey(1)
+
+    PerturbPts = []
+    for point in AllPts:
+        PerturbPts.append((point[0] + random.randint(-Rho,Rho), point[1] + random.randint(-Rho,Rho)))
+
+    if(Vis is True):
+        PertubImgDisp = I.copy()
+        cv2.polylines(PertubImgDisp, np.int32([PerturbPts]), 1, (0,0,0))
+        cv2.imshow('b', PertubImgDisp)
+        cv2.waitKey(1)
+        
+    # Obtain Homography between the 2 images
+    H = cv2.getPerspectiveTransform(np.float32(AllPts), np.float32(PerturbPts))
+    # Get Inverse Homography
+    HInv = np.linalg.inv(H)
+
+    WarpedI = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
+    if(Vis is True):
+        WarpedImgDisp = WarpedI.copy()
+        cv2.imshow('c', WarpedImgDisp)
+        cv2.waitKey(1)
+
+
+    Mask = np.zeros(np.shape(I))
+    Mask[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :] = 1
+    CroppedI = I[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :]
+    CroppedWarpedI = WarpedI[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :]
+    
+    if(Vis is True):
+        CroppedIDisp = np.hstack((CroppedI, CroppedWarpedI))
+        print(np.shape(CroppedIDisp))
+        cv2.imshow('d', CroppedIDisp)
+        cv2.waitKey(0)
+
+    H4Pt = np.subtract(np.array(PerturbPts), np.array(AllPts))
+    H4PtCol = np.transpose(np.reshape(H4Pt, (1,np.product(H4Pt.shape))))
+
+
+
+    return CroppedI, CroppedWarpedI, H4PtCol, PerturbPts, AllPts, IOrg, WarpedI, Mask
+    
+
+def main():
+    BasePath = '/media/nitin/Research/EVDodge/processed/1/events/frame_00000001.png'
+    I = cv2.imread(BasePath)
+    I = np.hsplit(I, 2)
+    I = I[0]
+    PatchSize = [128, 128]
+    Rho = 20
+    I, IPerturb, H4Pt, PerturbPts, AllPts, IOrg, WarpedI, Mask = RandHomographyPerturbation(I, Rho, PatchSize, Vis=False)
+    cv2.circle(IOrg,(346, 260), 10, (0,0,255), -1)
+
+    AllPts = np.expand_dims(AllPts, axis=0)
+    PerturbPts = np.expand_dims(PerturbPts, axis=0)
+    IOrg = np.expand_dims(IOrg, axis=0)
+    Mask = np.expand_dims(Mask, axis=0)
+    AllPtsTensor = tf.convert_to_tensor(np.float32(AllPts), dtype='float')
+    PerturbPtsTensor = tf.convert_to_tensor(np.float32(PerturbPts), dtype='float')
+    H4PtTensor = tf.convert_to_tensor(np.float32(H4Pt), dtype='float')
+    ITensor = tf.convert_to_tensor(np.float32(IOrg), dtype='float')
+    MaskTensor = tf.convert_to_tensor(np.float32(Mask), dtype='float')
+    theta = tf.convert_to_tensor(np.float32([[0], [0]]), dtype='float')
+    out_size = [128, 128]
+
+    BM = tf.boolean_mask(ITensor, MaskTensor)
+    BM = tf.reshape(BM, (-1, 128, 128, 3))
+    Polar = su.polar_transformer(BM, theta, out_size, name='polar_transformer',
+                                 log=True, radius_factor=1.0)
+    
+    # MiniBatchSize = 1
+    # HMat = stn.solve_DLT(MiniBatchSize, AllPtsTensor, H4PtTensor)
+    # Tensorflow's direct without scaling as in Unsupervised Deep Homography Paper
+    # warped_image = tf.contrib.image.transform(ITensor, HMat, interpolation='BILINEAR', output_shape=None, name=None)
+    # WarpMask = tf.contrib.image.transform(MaskTensor, HMat, interpolation='BILINEAR', output_shape=None, name=None)
+    # Tensorflow's direct with scaling as in Unsupervised Deep Homography Paper
+    # WarpedIPred = stn.transform(out_size, HMat, MiniBatchSize, ITensor)
+    # WarpMask = stn.transform(out_size, HMat, MiniBatchSize, MaskTensor)
+    # Try Polar Transformer Network
+    with tf.Session() as sess:
+        # A = WarpedIPred.eval()
+        # H = HMat.eval()
+        # Z = WarpMask.eval()
+        # print(H)
+        # print(np.shape(A))
+        # A = np.squeeze(Polar.eval())
+        A = np.squeeze(Polar.eval())
+        # cv2.namedWindow('a',  cv2.WINDOW_NORMAL)
+        # cv2.imshow('aaaaa', np.hstack((np.squeeze(A),  WarpedI, IOrg[0], np.squeeze(Z))))
+        # plt.imshow(np.hstack((np.squeeze(A), np.squeeze(IOrg))))
+        # plt.show()
+        #  = np.zeros(np.shape(np.squeeze(IOrg)))
+        # B = cv2.normalize(A,B,0,255,cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+        # cv2.imshow('a', np.hstack((np.uint8(A), np.squeeze(IOrg))))
+        cv2.imshow('a', np.uint8(A))
+        print(np.shape(A))
+        print(np.amax(A))
+        print(np.amin(A))
+        cv2.waitKey(0)
+
+
+
+    # Try Sparse Image Warp
+
+    # warped_image, flow_field = tf.contrib.image.sparse_image_warp(image=ITensor, source_control_point_locations=AllPtsTensor,\
+    #     dest_control_point_locations=PerturbPtsTensor, \
+    #    interpolation_order=1, regularization_weight=0.0,  num_boundary_points=0,  name='sparse_image_warp')
+    # with tf.Session() as sess:
+    #    A = warped_image.eval()
+    # cv2.imshow('a', warped_image)
+    # cv2.waitKey(0)
+
+
+if __name__ == '__main__':
+    main()
+ 

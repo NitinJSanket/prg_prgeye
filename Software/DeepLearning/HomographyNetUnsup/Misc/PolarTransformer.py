@@ -28,21 +28,20 @@ def polar_transformer(U, theta, out_size, name='polar_transformer',
     def _interpolate(im, x, y, out_size):
         with tf.variable_scope('_interpolate'):
             # constants
-            num_batch = out_size[0]# np.shape(im)[0]
-            height = 128# out_size[1] # np.shape(im)[1]
-            width = 128# out_size[2] # np.shape(im)[2]
-            channels = 3# out_size[3] # np.shape(im)[3]
-    
+            num_batch = np.shape(im)[0]
+            height = np.shape(im)[1]
+            width = np.shape(im)[2]
+            channels = np.shape(im)[3]
 
             x = tf.cast(x, 'float32')
             y = tf.cast(y, 'float32')
             height_f = tf.cast(height, 'float32')
             width_f = tf.cast(width, 'float32')
-            out_height = 128 # out_size[1] # 0
-            out_width = 128# out_size[2] # 1
+            out_height = out_size[1]
+            out_width = out_size[2]
             zero = tf.zeros([], dtype='int32')
-            max_y = tf.cast(128 - 1, 'int32')
-            max_x = tf.cast(128 - 1, 'int32')
+            max_y = tf.cast(tf.shape(im)[1] - 1, 'int32')
+            max_x = tf.cast(tf.shape(im)[2] - 1, 'int32')
 
             # scale indices from [-1, 1] to [0, width/height]
             x = (x + 1.0)*(width_f) / 2.0
@@ -104,13 +103,13 @@ def polar_transformer(U, theta, out_size, name='polar_transformer',
 
     def _transform(theta, input_dim, out_size):
         with tf.variable_scope('_transform'):
-            num_batch = out_size[0] # np.shape(input_dim)[0]
-            num_channels = 3 # out_size[3] # np.shape(input_dim)[3]
+            num_batch = tf.shape(input_dim)[0]
+            num_channels = tf.shape(input_dim)[3]
             theta = tf.reshape(theta, (-1, 2))
             theta = tf.cast(theta, 'float32')
 
-            out_height = 128 # out_size[1] # 0
-            out_width = 128 # out_size[2] # 1
+            out_height = out_size[1]
+            out_width = out_size[2]
             grid = _meshgrid(out_height, out_width)
             grid = tf.expand_dims(grid, 0)
             grid = tf.reshape(grid, [-1])
@@ -119,7 +118,7 @@ def polar_transformer(U, theta, out_size, name='polar_transformer',
 
             ## here we do the polar/log-polar transform
 
-            W = tf.cast(out_size[1], 'float32') # tf.cast(np.shape(input_dim)[1], 'float32')
+            W = tf.cast(tf.shape(input_dim)[1], 'float32')
             maxR = W*radius_factor
 
             # if radius is from 1 to W/2; log R is from 0 to log(W/2)
