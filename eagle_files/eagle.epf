@@ -168,11 +168,13 @@ UsedLibrary="/home/pratique/EAGLE/libraries/invensense.lbr"
 UsedLibrary="/home/pratique/EAGLE/libraries/vl53l1x.lbr"
 UsedLibrary="/home/pratique/EAGLE/projects/teensy-boards-master/Teensy 3.2 reference board clone/t32_ref.lbr"
 UsedLibrary="/home/pratique/EAGLE/libraries/Molex_Library/Molex_By_element14_Batch_1.lbr"
+UsedLibrary="/home/pratique/Downloads/con-molex-micro-fit-3_0.lbr"
+UsedLibrary="/home/pratique/Downloads/con-molex.lbr"
 
 [Win_1]
 Type="Control Panel"
 Number=0
 
 [Desktop]
-Screen="3840 1080"
+Screen="1920 1080"
 Window="Win_1"
