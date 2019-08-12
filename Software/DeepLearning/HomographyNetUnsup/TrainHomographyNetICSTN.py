@@ -134,8 +134,10 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
         IDisp = I.copy()
         cv2.polylines(IDisp, np.int32([AllPts]), 1, (0,0,0))
         cv2.imshow('a', IDisp)
-        cv2.waitKey(1)
+        cv2.waitKey(1)	
 
+
+    # Change this to add translation too
     PerturbPts = []
     for point in AllPts:
         PerturbPts.append((point[0] + random.randint(-Rho,Rho), point[1] + random.randint(-Rho,Rho)))
@@ -146,6 +148,7 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
         cv2.imshow('b', PertubImgDisp)
         cv2.waitKey(1)
         
+    # Get this from genPerturbationsNP and vec2mtrxNP
     # Obtain Homography between the 2 images
     H = cv2.getPerspectiveTransform(np.float32(AllPts), np.float32(PerturbPts))
     # Get Inverse Homography

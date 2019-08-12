@@ -106,3 +106,50 @@ def transformImage(opt,image,pMtrx):
 		imageBR = tf.to_float(tf.gather(imageVecOut,idxBR))*(Xratio)*(Yratio)
 		imageWarp = imageUL+imageUR+imageBL+imageBR
 	return imageWarp
+
+# generate training batch
+def genPerturbationsNP(opt):
+	X = opt.canon4pts[:,0]
+	Y = opt.canon4pts[:,1]
+	dX = np.random_normal([1, 4])*opt.pertScale + \
+		 np.random_normal([1, 1])*opt.transScale
+	dY = np.random_normal([1, 4])*opt.pertScale + \
+		 np.random_normal([1, 1])*opt.transScale
+	O = np.zeros([1, 4], dtype=np.float32)
+	I = np.ones([1, 4], dtype=np.float32)
+	# fit warp parameters to generated displacements
+	if opt.warpType=="homography":
+		A = [[X,Y,I,O,O,O,-X*(X+dX),-Y*(X+dX)], [O,O,O,X,Y,I,-X*(Y+dY),-Y*(Y+dY)]]
+		b = [X+dX,Y+dY]
+		pPert = np.linalg.solve(A,b)[:,:,0]
+		pPert -= [[1,0,0,0,1,0,0,0]].astype(float)
+	else:
+		if opt.warpType=="translation":
+			J = np.concatenate([[I,O], [O,I]],axis=1)
+		if opt.warpType=="similarity":
+			J = np.concatenate([[X,Y,I,O], [-Y,X,O,I]],axis=1)
+		if opt.warpType=="affine":
+			J = np.concatenate([[X,Y,I,O,O,O], [O,O,O,X,Y,I]],axis=1)
+		dXY = np.concat([dX,dY],1)
+		pPert = np.linalg.lstsq(J,dXY)[:,:, 0]
+	return pPert
+
+# convert warp parameter,s to matrix
+# This in Canon4Pts domain, i.e., [-1,1]
+def vec2mtrxNP(opt, p):
+	O = np.zeros([opt.batchSize])
+	I = np.ones([opt.batchSize])
+	if opt.warpType=="translation":
+		tx, ty = np.split(p,axis=1)
+		pMtrx = np.transpose(np.stack([[I,O,tx],[O,I,ty],[O,O,I]]), perm=[2,0,1])
+	if opt.warpType=="similarity":
+		pc,ps,tx,ty = np.split(p,axis=1)
+		pMtrx = np.transpose(np.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]), perm=[2,0,1])
+	if opt.warpType=="affine":
+		p1,p2,p3,p4,p5,p6,p7,p8 = np.split(p,axis=1)
+		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]), perm=[2,0,1])
+	if opt.warpType=="homography":
+		p1,p2,p3,p4,p5,p6,p7,p8 = np.split(p,axis=1)
+		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]), perm=[2,0,1])
+	transMtrx = tf.matmul(opt.refMtrx, pMtrx)
+	return pMtrx, transMtrx
