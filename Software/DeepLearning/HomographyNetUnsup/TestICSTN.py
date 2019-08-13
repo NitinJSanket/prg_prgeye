@@ -43,7 +43,7 @@ from scipy.spatial.transform import Rotation as Rot
 import Misc.warpICSTN as warp
 import Misc.MiscUtils as mu
 
-def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
+def RandHomographyPerturbation(I, Rho, PatchSize, pMtrx, ImageSize=None, Vis=False):
     """
     Inputs: 
     I is the input image
@@ -57,7 +57,7 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     Code adapted from: https://github.com/mez/deep_homography_estimation/blob/master/Dataset_Generation_Visualization.ipynb
     """
     if(ImageSize is None):
-        ImageSize = np.shape(I) 
+        ImageSize = np.shape(I)
     
     RandX = random.randint(Rho, ImageSize[1]-Rho-PatchSize[1])
     RandY = random.randint(Rho, ImageSize[0]-Rho-PatchSize[0])
@@ -70,31 +70,46 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     AllPts = [p1, p2, p3, p4]
 
     # Rotation Part
-    MaxRVal = np.array([2.0, 2.0, 2.0]) # In Degrees, Using 30 fps at 60 deg/s 
-    EulAng = 0.05*MaxRVal*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
-    R = Rot.from_euler('zyx', EulAng, degrees=True).as_dcm()
-    # R = np.eye(3)
+    # MaxRVal = np.array([2.0, 2.0, 2.0]) # In Degrees, Using 30 fps at 60 deg/s 
+    # EulAng = 0.05*MaxRVal*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
+    # R = Rot.from_euler('zyx', EulAng, degrees=True).as_dcm()
+    # # R = np.eye(3)
 
-    # Translation Part
-    MaxTVal = np.array([[0.08], [0.08], [0.02]]) # In m, Using 30 fps at 2.5 m/s
-    T = np.array(2*MaxTVal*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
+    # # Translation Part
+    # MaxTVal = np.array([[0.08], [0.08], [0.02]]) # In m, Using 30 fps at 2.5 m/s
+    # T = np.array(2*MaxTVal*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
     
-    # Normal Part
-    N = np.array([[0.0], [0.0], [1.0]]) # Keep this fixed 
-    N = np.divide(N, np.linalg.norm(N))
+    # # Normal Part
+    # N = np.array([[0.0], [0.0], [1.0]]) # Keep this fixed 
+    # N = np.divide(N, np.linalg.norm(N))
 
-    # Camera Matrix
-    K = np.eye(3)
-    K[0,0] = 400.0
-    K[1,1] = 400.0
-    K[0,2] = ImageSize[0]/2
-    K[1,2] = ImageSize[1]/2
+    # # Camera Matrix
+    # K = np.eye(3)
+    # K[0,0] = 400.0
+    # K[1,1] = 400.0
+    # K[0,2] = ImageSize[0]/2
+    # K[1,2] = ImageSize[1]/2
     
-    # Compose Homography
-    H = np.add(R, np.matmul(T, N.T))
-    H = np.divide(H, H[2,2])
-    H = np.matmul(K, np.matmul(H, np.linalg.inv(K)))
+    # # Compose Homography
+    # H = np.add(R, np.matmul(T, N.T))
+    # H = np.divide(H, H[2,2])
+    # H = np.matmul(K, np.matmul(H, np.linalg.inv(K)))
 
+    M = np.eye(3)
+    A = np.eye(3)
+    A[0,2] = 0.1
+    A[1,2] = 0.1
+    # M[0,0] = RandX + PatchSize[0]/2
+    # M[0,2] = RandX + PatchSize[0]/2
+    # M[1,1] = RandY + PatchSize[1]/2
+    # M[1,2] = RandY + PatchSize[1]/2
+    M[0,0] = ImageSize[0]/2
+    M[0,2] = ImageSize[0]/2
+    M[1,1] = ImageSize[1]/2
+    M[1,2] = ImageSize[1]/2
+    H = np.matmul(np.matmul(np.linalg.inv(M),A), M)
+    print(H)
+    
     # Get Inverse Homography
     HInv = np.linalg.inv(H)
     
@@ -160,11 +175,10 @@ def main():
     
     PatchSize = [128, 128, 3]
     Rho = 20
-    MiniBatchSize = 1
-    I, IPerturb, H4Pt, PerturbPts, AllPts, IOrg, WarpedI, Mask = RandHomographyPerturbation(I, Rho, PatchSize, Vis=False)
-
+    MiniBatchSize = 16
+    
     class Options:
-        def __init__(self, PatchSize=[128,128,3], MiniBatchSize=1, warpType='homography'):
+        def __init__(self, PatchSize=[128,128,3], MiniBatchSize=16, warpType='homography', pertScale=0.25, transScale=0.25):
             self.W = PatchSize[0] # PatchSize is Width, Height, NumChannels
             self.H = PatchSize[1] 
             self.batchSize = MiniBatchSize
@@ -180,8 +194,16 @@ def main():
             self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
 	    self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
 	    self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
+            self.pertScale = pertScale
+            self.transScale = transScale
 
     opt = Options()
+
+    pRand = warp.genPerturbationsNP(opt)
+    pMtrx, transMtrx = warp.vec2mtrxNP(opt, pRand)
+
+    I, IPerturb, H4Pt, PerturbPts, AllPts, IOrg, WarpedI, Mask = RandHomographyPerturbation(I, Rho, PatchSize, pMtrx, Vis=True)
+    input('q')
 
     ITensor = tf.convert_to_tensor(np.float32(I), dtype='float')
     p = tf.to_float([[0,0,0.1,0,0,0.1,0,0]]) 

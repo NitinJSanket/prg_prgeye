@@ -109,47 +109,55 @@ def transformImage(opt,image,pMtrx):
 
 # generate training batch
 def genPerturbationsNP(opt):
-	X = opt.canon4pts[:,0]
-	Y = opt.canon4pts[:,1]
-	dX = np.random_normal([1, 4])*opt.pertScale + \
-		 np.random_normal([1, 1])*opt.transScale
-	dY = np.random_normal([1, 4])*opt.pertScale + \
-		 np.random_normal([1, 1])*opt.transScale
-	O = np.zeros([1, 4], dtype=np.float32)
-	I = np.ones([1, 4], dtype=np.float32)
+	# DOESNT WORK FOR batchSize = 1
+	X = np.tile(opt.canon4pts[:,0],[opt.batchSize,1]) # opt.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32) BS x 4
+	Y = np.tile(opt.canon4pts[:,1],[opt.batchSize,1]) # BS x 4
+	dX = np.random.normal(size=[opt.batchSize,4])*opt.pertScale + \
+		 np.random.normal(size=[opt.batchSize,1])*opt.transScale # transScale = 0.25, pertScale = 0.25 BS x 4
+	dY = np.random.normal(size=[opt.batchSize,4])*opt.pertScale + \
+		 np.random.normal(size=[opt.batchSize,1])*opt.transScale # transScale = 0.25, pertScale = 0.25 BS x 4
+	O = np.zeros([opt.batchSize,4],dtype=np.float32)
+	I = np.ones([opt.batchSize,4],dtype=np.float32)
+            
 	# fit warp parameters to generated displacements
 	if opt.warpType=="homography":
-		A = [[X,Y,I,O,O,O,-X*(X+dX),-Y*(X+dX)], [O,O,O,X,Y,I,-X*(Y+dY),-Y*(Y+dY)]]
-		b = [X+dX,Y+dY]
-		pPert = np.linalg.solve(A,b)[:,:,0]
-		pPert -= [[1,0,0,0,1,0,0,0]].astype(float)
+		A = np.concatenate([np.stack([X,Y,I,O,O,O,-X*(X+dX),-Y*(X+dX)],axis=-1),
+					   np.stack([O,O,O,X,Y,I,-X*(Y+dY),-Y*(Y+dY)],axis=-1)],1) # Normal Ax = b (8 parameters) 
+		b = np.expand_dims(np.concatenate([X+dX,Y+dY],1),-1)
+		pPert = np.linalg.solve(A,b)[:,:,0]  # Homography matrix as a vector
+		pPert -= np.asarray([[1,0,0,0,1,0,0,0]]).astype(float) # 1 is subtracted for homogeneous transformation
 	else:
 		if opt.warpType=="translation":
-			J = np.concatenate([[I,O], [O,I]],axis=1)
+			J = np.concatenate([np.stack([I,O],axis=-1),
+								np.stack([O,I],axis=-1)],axis=1)
 		if opt.warpType=="similarity":
-			J = np.concatenate([[X,Y,I,O], [-Y,X,O,I]],axis=1)
+			J = np.concatenate([np.stack([X,Y,I,O],axis=-1),
+								np.stack([-Y,X,O,I],axis=-1)],axis=1)
 		if opt.warpType=="affine":
-			J = np.concatenate([[X,Y,I,O,O,O], [O,O,O,X,Y,I]],axis=1)
-		dXY = np.concat([dX,dY],1)
-		pPert = np.linalg.lstsq(J,dXY)[:,:, 0]
+			J = np.concatenate([np.stack([X,Y,I,O,O,O],axis=-1),
+								np.stack([O,O,O,X,Y,I],axis=-1)],axis=1)
+		dXY = np.expand_dims(np.concatenate([dX,dY],1),-1)
+		pPert = np.linalg.lstsq(J,dXY)[:,:,0]
 	return pPert
 
 # convert warp parameter,s to matrix
 # This in Canon4Pts domain, i.e., [-1,1]
 def vec2mtrxNP(opt, p):
+	# DOESNT WORK FOR batchSize = 1
 	O = np.zeros([opt.batchSize])
 	I = np.ones([opt.batchSize])
 	if opt.warpType=="translation":
-		tx, ty = np.split(p,axis=1)
-		pMtrx = np.transpose(np.stack([[I,O,tx],[O,I,ty],[O,O,I]]), perm=[2,0,1])
+		tx, ty = np.squeeze(np.split(p, opt.warpDim, axis=1))
+		pMtrx = np.transpose(np.stack([[I,O,tx],[O,I,ty],[O,O,I]]), axes=[2,0,1])
 	if opt.warpType=="similarity":
-		pc,ps,tx,ty = np.split(p,axis=1)
-		pMtrx = np.transpose(np.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]), perm=[2,0,1])
+		pc,ps,tx,ty = np.squeeze(np.split(p, opt.warpDim, axis=1))
+		pMtrx = np.transpose(np.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]), axes=[2,0,1])
 	if opt.warpType=="affine":
-		p1,p2,p3,p4,p5,p6,p7,p8 = np.split(p,axis=1)
-		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]), perm=[2,0,1])
+		p1,p2,p3,p4,p5,p6,p7,p8 = np.squeeze(np.split(p, opt.warpDim, axis=1))
+		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]), axes=[2,0,1])
 	if opt.warpType=="homography":
-		p1,p2,p3,p4,p5,p6,p7,p8 = np.split(p,axis=1)
-		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]), perm=[2,0,1])
-	transMtrx = tf.matmul(opt.refMtrx, pMtrx)
+		p1,p2,p3,p4,p5,p6,p7,p8 = np.squeeze(np.split(p, opt.warpDim, axis=1))
+		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]), axes=[2,0,1])
+	refMtrx = np.tile(np.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
+	transMtrx = np.matmul(refMtrx, pMtrx)
 	return pMtrx, transMtrx
