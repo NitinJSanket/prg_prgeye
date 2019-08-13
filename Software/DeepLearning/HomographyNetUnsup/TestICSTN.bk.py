@@ -43,7 +43,7 @@ from scipy.spatial.transform import Rotation as Rot
 import Misc.warpICSTN as warp
 import Misc.MiscUtils as mu
 
-def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
+def RandHomographyPerturbation(I, Rho, PatchSize, pMtrx, ImageSize=None, Vis=False):
     """
     Inputs: 
     I is the input image
@@ -56,9 +56,8 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     Top Left = p1, Top Right = p2, Bottom Right = p3, Bottom Left = p4 (Clockwise from Top Left)
     Code adapted from: https://github.com/mez/deep_homography_estimation/blob/master/Dataset_Generation_Visualization.ipynb
     """
-
     if(ImageSize is None):
-        ImageSize = np.shape(I) 
+        ImageSize = np.shape(I)
     
     RandX = random.randint(Rho, ImageSize[1]-Rho-PatchSize[1])
     RandY = random.randint(Rho, ImageSize[0]-Rho-PatchSize[0])
@@ -70,6 +69,50 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
 
     AllPts = [p1, p2, p3, p4]
 
+    # Rotation Part
+    # MaxRVal = np.array([2.0, 2.0, 2.0]) # In Degrees, Using 30 fps at 60 deg/s 
+    # EulAng = 0.05*MaxRVal*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
+    # R = Rot.from_euler('zyx', EulAng, degrees=True).as_dcm()
+    # # R = np.eye(3)
+
+    # # Translation Part
+    # MaxTVal = np.array([[0.08], [0.08], [0.02]]) # In m, Using 30 fps at 2.5 m/s
+    # T = np.array(2*MaxTVal*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
+    
+    # # Normal Part
+    # N = np.array([[0.0], [0.0], [1.0]]) # Keep this fixed 
+    # N = np.divide(N, np.linalg.norm(N))
+
+    # # Camera Matrix
+    # K = np.eye(3)
+    # K[0,0] = 400.0
+    # K[1,1] = 400.0
+    # K[0,2] = ImageSize[0]/2
+    # K[1,2] = ImageSize[1]/2
+    
+    # # Compose Homography
+    # H = np.add(R, np.matmul(T, N.T))
+    # H = np.divide(H, H[2,2])
+    # H = np.matmul(K, np.matmul(H, np.linalg.inv(K)))
+
+    M = np.eye(3)
+    A = np.eye(3)
+    A[0,2] = 0.1
+    A[1,2] = 0.1
+    # M[0,0] = RandX + PatchSize[0]/2
+    # M[0,2] = RandX + PatchSize[0]/2
+    # M[1,1] = RandY + PatchSize[1]/2
+    # M[1,2] = RandY + PatchSize[1]/2
+    M[0,0] = ImageSize[0]/2
+    M[0,2] = ImageSize[0]/2
+    M[1,1] = ImageSize[1]/2
+    M[1,2] = ImageSize[1]/2
+    H = np.matmul(np.matmul(np.linalg.inv(M),A), M)
+    print(H)
+    
+    # Get Inverse Homography
+    HInv = np.linalg.inv(H)
+    
     if(Vis is True):
         IDisp = I.copy()
         cv2.imshow('org', I)
@@ -83,35 +126,18 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
 
     PerturbPts = []
     for point in AllPts:
-        PerturbPts.append((point[0] + random.randint(-Rho,Rho), point[1] + random.randint(-Rho,Rho)))
+        PtNow = np.squeeze(np.matmul(H, np.array([[point[0]], [point[1]], [1.0]])))
+        PtNow = np.ceil(np.divide(PtNow, PtNow[2]))
+        PerturbPts.append((PtNow[0], PtNow[1]))
 
     if(Vis is True):
         PertubImgDisp = I.copy()
         cv2.polylines(PertubImgDisp, np.int32([PerturbPts]), 1, (0,0,0))
         cv2.imshow('b', PertubImgDisp)
         cv2.waitKey(1)
-        
-    # Obtain Homography between the 2 images
-    H = cv2.getPerspectiveTransform(np.float32(AllPts), np.float32(PerturbPts))
-    # Get Inverse Homography
-    HInv = np.linalg.inv(H)
-
-    # Multiply by M and Minv
-    M = np.eye(3)
-    M[0,0] = PatchSize[0]/2
-    M[0,2] = PatchSize[0]/2
-    M[1,1] = PatchSize[1]/2
-    M[1,2] = PatchSize[1]/2
-    H = np.matmul(np.matmul(M, H), np.linalg.inv(M))
-    
-    # Normalize by H(2,2)
-    H = np.divide(H, H[2,2])
-
-    # Extract first 8 elements
-    H8El = np.ndarray.flatten(H)
-    H8El = H8El[0:8]
 
     WarpedI = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
+    
     if(Vis is True):
         WarpedImgDisp = WarpedI.copy()
         cv2.imshow('c', WarpedImgDisp)
@@ -122,14 +148,15 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     CroppedI = I[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :]
     CroppedWarpedI = WarpedI[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :]
     
+
     if(Vis is True):
         CroppedIDisp = np.hstack((CroppedI, CroppedWarpedI))
-        print(np.shap e(CroppedIDisp))
+        print(np.shape(CroppedIDisp))
         cv2.imshow('d', CroppedIDisp)
         cv2.waitKey(0)
 
-    # H4Pt = np.subtract(np.array(PerturbPts), np.array(AllPts))
-    # H4PtCol = np.reshape(H4Pt, (np.product(H4Pt.shape), 1))
+    H4Pt = np.subtract(np.array(PerturbPts), np.array(AllPts))
+    H4PtCol = np.reshape(H4Pt, (np.product(H4Pt.shape), 1))
 
     # I is the Original Image I1
     # WarpedI is I2
@@ -137,9 +164,10 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     # CroppedWarpeI is I1 Crop Warped (I2 Crop)
     # AllPts is the patch corners in I1
     # PerturbPts is the patch corners of I2 in I1
-    # H8El is the first 8 elements of the Homography matrix from AllPts to PerturbPts
+    # H4PtCol is the delta movement of corners between AllPts and PerturbPts
     # Mask is the active region of I1Patch in I1
-    return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask  
+    return CroppedI, CroppedWarpedI, H4PtCol, PerturbPts, AllPts, I, WarpedI, Mask
+    
 
 def main():
     BasePath = '/home/nitin/Datasets/MSCOCO/train2014/COCO_train2014_000000484344.jpg'

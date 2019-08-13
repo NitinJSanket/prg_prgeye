@@ -154,6 +154,21 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     # Get Inverse Homography
     HInv = np.linalg.inv(H)
 
+    # Multiply by M and Minv
+    M = np.eye(3)
+    M[0,0] = PatchSize[0]/2
+    M[0,2] = PatchSize[0]/2
+    M[1,1] = PatchSize[1]/2
+    M[1,2] = PatchSize[1]/2
+    H = np.matmul(np.matmul(M, H), np.linalg.inv(M))
+    
+    # Normalize by H(2,2)
+    H = np.divide(H, H[2,2])
+
+    # Extract first 8 elements
+    H8El = np.ndarray.flatten(H)
+    H8El = H8El[0:8]
+
     WarpedI = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
     if(Vis is True):
         WarpedImgDisp = WarpedI.copy()
@@ -165,15 +180,11 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     CroppedI = I[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :]
     CroppedWarpedI = WarpedI[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :]
     
-
     if(Vis is True):
         CroppedIDisp = np.hstack((CroppedI, CroppedWarpedI))
-        print(np.shape(CroppedIDisp))
+        print(np.shap e(CroppedIDisp))
         cv2.imshow('d', CroppedIDisp)
         cv2.waitKey(0)
-
-    H4Pt = np.subtract(np.array(PerturbPts), np.array(AllPts))
-    H4PtCol = np.reshape(H4Pt, (np.product(H4Pt.shape), 1))
 
     # I is the Original Image I1
     # WarpedI is I2
@@ -181,9 +192,9 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     # CroppedWarpeI is I1 Crop Warped (I2 Crop)
     # AllPts is the patch corners in I1
     # PerturbPts is the patch corners of I2 in I1
-    # H4PtCol is the delta movement of corners between AllPts and PerturbPts
+    # H8El is the first 8 elements of the Homography matrix from AllPts to PerturbPts
     # Mask is the active region of I1Patch in I1
-    return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H4PtCol, Mask
+    return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask
         
 
 def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
@@ -261,7 +272,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         ImageNum += 1
 
         # Homography and Patch generation 
-        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H4PtCol, Mask = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False)
+        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False)
 
         ICombined = np.dstack((CroppedI[:,:,0:3], CroppedWarpedI[:,:,0:3]))
         # Normalize Dataset
@@ -270,7 +281,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
 
         # Append All Images and Mask
         IBatch.append(IS)
-        LabelBatch.append(H4PtCol)
+        LabelBatch.append(H8El)
         IOrgBatch.append(I)
         AllPtsBatch.append(AllPts)
         PerturbPtsBatch.append(PerturbPts)
@@ -407,6 +418,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, Tes
     """
     
     # Predict output with forward pass
+    pInit = All zeros!
     prHVal = ICSTN(ImgPH, ImageSize, MiniBatchSize, opt, pInit)
     
     with tf.name_scope('Loss'):
@@ -598,9 +610,11 @@ def main():
             elif self.warpType == 'homography':
                 self.warpDim = 8
             self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
-	    self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
-	    self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
+	        self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
+	        self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
             self.NumBlocks = NumBlocks
+            self.pertScale = pertScale
+            self.transScale = transScale
 
     opt = Options(PatchSize=ImageSize)
     

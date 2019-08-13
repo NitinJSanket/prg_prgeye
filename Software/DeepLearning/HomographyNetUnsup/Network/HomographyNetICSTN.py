@@ -50,8 +50,8 @@ def ICSTN(Img, ImageSize, MiniBatchSize, opt, pInit):
             
         # Warp Image based on previous composite warp parameters
         pMtrxNow = warp.vec2mtrx(opt, pNow)
-	ImgWarpNow = warp.transformImage(opt, Img, pMtrxNow)
-	ImgWarpAll.append(ImgWarpNow)
+	    ImgWarpNow = warp.transformImage(opt, Img, pMtrxNow)
+	    ImgWarpAll.append(ImgWarpNow)
 
         # Compute current warp parameters
         dpNow = ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=str(count))
