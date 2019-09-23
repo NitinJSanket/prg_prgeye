@@ -66,7 +66,7 @@ def mtrx2vec(opt,pMtrx):
 # warp the image
 def transformImage(opt,image,pMtrx):
 	with tf.name_scope("transformImage"):
-                # opt.refMtrx = warp.fit(Xsrc=opt.canon4pts,Xdst=opt.image4pts)
+        # opt.refMtrx = warp.fit(Xsrc=opt.canon4pts,Xdst=opt.image4pts)
 		refMtrx = tf.tile(tf.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
 		transMtrx = tf.matmul(refMtrx,pMtrx)
 		# warp the canonical coordinates
@@ -140,8 +140,8 @@ def genPerturbationsNP(opt):
 		pPert = np.linalg.lstsq(J,dXY)[:,:,0]
 	return pPert
 
-# convert warp parameter,s to matrix
-# This in Canon4Pts domain, i.e., [-1,1]
+# convert warp parameters to matrix
+# This is in Canon4Pts domain, i.e., [-1,1]
 def vec2mtrxNP(opt, p):
 	# DOESNT WORK FOR batchSize = 1
 	O = np.zeros([opt.batchSize])

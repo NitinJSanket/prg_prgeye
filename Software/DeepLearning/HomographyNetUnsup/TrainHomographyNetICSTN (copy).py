@@ -88,14 +88,14 @@ def SetupAll(BasePath, LearningRate):
     
     # Image Input Shape
     OriginalImageSize = np.array([300, 300, 3])
-    PatchSize = np.array([128, 128, 3])
+    ImageSize = np.array([128, 128, 3])
     Rho = 25
     NumTrainSamples = len(TrainNames)
     NumValSamples = len(ValNames)
     NumTestSamples = len(TestNames)
     
     return TrainNames, ValNames, TestNames, OptimizerParams,\
-        SaveCheckPoint, PatchSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
+        SaveCheckPoint, ImageSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
         NumTestRunsPerEpoch, OriginalImageSize
 
 def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
@@ -182,7 +182,7 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     
     if(Vis is True):
         CroppedIDisp = np.hstack((CroppedI, CroppedWarpedI))
-        print(np.shape(CroppedIDisp))
+        print(np.shap e(CroppedIDisp))
         cv2.imshow('d', CroppedIDisp)
         cv2.waitKey(0)
 
@@ -316,19 +316,86 @@ def PrettyPrint(NumEpochs, DivTrain, MiniBatchSize, NumTrainSamples, NumTestSamp
         print('Loading latest checkpoint with the name ' + LatestFile)              
 
 
-def LossFunc(I1PH, I2PH, LabelPH, prHVal, MiniBatchSize, PatchSize, opt):
-    WarpI1Patch = warp.transformImage(opt, I1PH, prHVal)
+def RobustLoss(x, a, c, e=1e-2):
+	b = tf.abs(2.-a) + e
+	d = tf.where(tf.greater_equal(a, 0.), a+e, a-e)
+	return b/d*(tf.pow(tf.square(x/c)/b+1., 0.5*d)-1.)
 
-    # L2 loss between predicted and ground truth H4Pt (4 point homography)
-    prHVal = tf.reshape(prHVal, [MiniBatchSize, 9])
-    prHVal = prHVal[:, 0:8] 
-    lossPhoto = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(tf.squeeze(prHVal) - tf.squeeze(LabelPH)), axis=1)))    
+def logZ1(a):
+	ps = [1.49130350, 1.38998350, 1.32393250,
+	1.26937670, 1.21922380, 1.16928990,
+	1.11524570, 1.04887590, 0.91893853]
+
+	ms = [-1.4264522e-01, -7.7125795e-02, -5.9283373e-02,
+	-5.2147767e-02, -5.0225594e-02, -5.2624177e-02,
+	-6.1122095e-02, -8.4174540e-02, -2.5111488e-01]
+
+	x = 8. * (tf.log(a + 2.) / tf.log(2.) - 1.)
+	i0 = tf.cast(tf.clip_by_value(x, 0., tf.cast(len(ps) - 2, tf.float32)), tf.int32)
+	p0 = tf.gather(ps, i0)
+	p1 = tf.gather(ps, i0 + 1)
+	m0 = tf.gather(ms, i0)
+	m1 = tf.gather(ms, i0 + 1)
+	t = x - tf.cast(i0, tf.float32)
+	h01 = t * t * (-2. * t + 3.)
+	h00 = 1. - h01
+	h11 = t * t * (t - 1.)
+	h10 = h11 + t * (1. - t)
+	return tf.where(t < 0., ms[0] * t + ps[0],
+	tf.where(t > 1., ms[-1] * (t - 1.) + ps[-1],
+	p0 * h00 + p1 * h01 + m0 * h10 + m1 * h11))
+
+def nll(x, a, c, e=1e-2):
+	return RobustLoss(x, a, c, e) + logZ1(a) # + tf.log(c)
+
+def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize, a=None, c=1e-1, ImageSize=None):
+    prHVal = tf.reshape(prHVal, (-1, 8, 1))
+    # Warp Image using predicted Homography values
+    # Obtain 3x3 H matrix from 8x1 values
+    HMat = stn.solve_DLT(MiniBatchSize, AllPtsPH, prHVal)
     
-    return lossPhoto, WarpI1Patch
+    # Warp I1 to align with I2
+    out_size = [OriginalImageSize[0], OriginalImageSize[1]]
+    WarpI1 = stn.transform(out_size, HMat, MiniBatchSize, I1PH)
+    WarpMask = stn.transform(out_size, HMat, MiniBatchSize, MaskPH)
     
-def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSamples, PatchSize, Rho,
+    if(TrainingType == 'US'):        
+        if(LossFuncName == 'PhotoL1'):
+            WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
+            I2Patch = tf.boolean_mask(I2PH, MaskPH)
+            
+            DiffImg = WarpI1Patch - I2Patch
+            lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
+        elif(LossFuncName == 'PhotoChab'):
+            WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
+            I2Patch = tf.boolean_mask(I2PH, MaskPH)
+
+            DiffImg = WarpI1Patch - I2Patch
+            epsilon = 1e-3
+            alpha = 0.45
+            lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
+        elif(LossFuncName == 'PhotoRobust'):
+            WarpI1Patch = tf.reshape(tf.boolean_mask(WarpI1, MaskPH), [MiniBatchSize, ImageSize[0], ImageSize[1], ImageSize[2]])
+            I2Patch = tf.reshape(tf.boolean_mask(I2PH, MaskPH), [MiniBatchSize, ImageSize[0], ImageSize[1], ImageSize[2]])
+            
+            DiffImg = WarpI1Patch - I2Patch
+    	    Epsa = 1e-3
+    	    a = tf.multiply((2.0 - 2.0*Epsa), tf.math.sigmoid(a)) + Epsa
+            # a = tf.image.resize_images(a, out_size)
+    	    lossPhoto = tf.reduce_mean(nll(DiffImg, a, c))
+
+    elif(TrainingType == 'S'):
+        WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
+        I2Patch = tf.boolean_mask(I2PH, MaskPH)
+        # L2 loss between predicted and ground truth H4Pt (4 point homography)
+        lossPhoto = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(tf.squeeze(prHVal) - tf.squeeze(LabelPH)), axis=1)))
+        
+    
+    return lossPhoto, WarpI1, WarpMask, WarpI1Patch, I2Patch, a
+    
+def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize, opt):
+                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -351,11 +418,11 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSa
     """
     
     # Predict output with forward pass
-    pInit = tf.zeros([MiniBatchSize, 8])
-    prHVal, _ = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt, pInit)
+    pInit = All zeros!
+    prHVal = ICSTN(ImgPH, ImageSize, MiniBatchSize, opt, pInit)
     
     with tf.name_scope('Loss'):
-    	loss, WarpI1PatchRet = LossFunc(I1PH, I2PH, LabelPH, prHVal, MiniBatchSize, PatchSize, opt)
+    	loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize)
             
     with tf.name_scope('Adam'):
         Optimizer = tf.train.AdamOptimizer(learning_rate=OptimizerParams[0], beta1=OptimizerParams[1],
@@ -368,22 +435,22 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSa
     # Tensorboard
     # Create a summary to monitor loss tensor
     tf.summary.scalar('LossEveryIter', loss)
-    # tf.summary.image('WarpedImg', WarpI1[:,:,:,0:3])
-    # tf.summary.image('I1', I1PH[:,:,:,0:3])
-    # tf.summary.image('I2', I2PH[:,:,:,0:3])
-    # tf.summary.image('Mask', MaskPH[:,:,:,0:3])
-    # tf.summary.image('WarpMask', WarpMask[:,:,:,0:3])
+    tf.summary.image('WarpedImg', WarpI1[:,:,:,0:3])
+    tf.summary.image('I1', I1PH[:,:,:,0:3])
+    tf.summary.image('I2', I2PH[:,:,:,0:3])
+    tf.summary.image('Mask', MaskPH[:,:,:,0:3])
+    tf.summary.image('WarpMask', WarpMask[:,:,:,0:3])
     # tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3])
     # tf.summary.image('I2Patch', I2Patch[:,:,:,0:3])
     # tf.summary.image('I2Patch - WarpI1Patch', tf.abs(I2Patch[:,:,:,0:3] - WarpI1Patch[:,:,:,0:3]))
-    # tf.summary.histogram('prHVal', prHVal, collections=None, family=None)
-    # if(NetworkType == 'SmallRobust'):
-    #     tf.summary.image('Alpha1', Alpha[:,:,:,0:1])
-    #     tf.summary.image('Alpha2', Alpha[:,:,:,1:2])
-    #     tf.summary.image('Alpha3', Alpha[:,:,:,2:3])
-    #     tf.summary.histogram('Alpha1', Alpha[:,:,:,0:1], collections=None, family=None)
-    #     tf.summary.histogram('Alpha2', Alpha[:,:,:,1:2], collections=None, family=None)
-    #     tf.summary.histogram('Alpha3', Alpha[:,:,:,2:3], collections=None, family=None)
+    tf.summary.histogram('prHVal', prHVal, collections=None, family=None)
+    if(NetworkType == 'SmallRobust'):
+        tf.summary.image('Alpha1', Alpha[:,:,:,0:1])
+        tf.summary.image('Alpha2', Alpha[:,:,:,1:2])
+        tf.summary.image('Alpha3', Alpha[:,:,:,2:3])
+        tf.summary.histogram('Alpha1', Alpha[:,:,:,0:1], collections=None, family=None)
+        tf.summary.histogram('Alpha2', Alpha[:,:,:,1:2], collections=None, family=None)
+        tf.summary.histogram('Alpha3', Alpha[:,:,:,2:3], collections=None, family=None)
     # Merge all summaries into a single operation
     MergedSummaryOP = tf.summary.merge_all()
     
@@ -420,9 +487,9 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSa
                 Timer2 = tic()
 
                 IBatch, LabelBatch, I1Batch, I2Batch, I1PatchBatch, I2PatchBatch, \
-                AllPtsBatch, PerturbPtsBatch, MaskBatch = GenerateBatch(TrainNames, PatchSize, MiniBatchSize, Rho, BasePath, OriginalImageSize)
+                AllPtsBatch, PerturbPtsBatch, MaskBatch = GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalImageSize)
 
-                FeedDict = {ImgPH: IBatch, I1PH: I1PatchBatch, I2PH: I2PatchBatch, LabelPH: LabelBatch}
+                FeedDict = {ImgPH: IBatch, I1PH: I1Batch, AllPtsPH: AllPtsBatch, I2PH: I2Batch, MaskPH: MaskBatch, LabelPH: LabelBatch}
                 _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                 
                 # Tensorboard
@@ -484,7 +551,6 @@ def main():
 
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
-    # /media/nitin/d7a0a8b2-7f8e-4198-8a0a-c53f363b688c/home/nitin/Datasets/MSCOCO/train2014
     Parser.add_argument('--BasePath', default='/home/nitin/Datasets/MSCOCO/train2014', help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014')
     Parser.add_argument('--NumEpochs', type=int, default=200, help='Number of Epochs to Train for, Default:200')
     Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
@@ -522,7 +588,7 @@ def main():
 
     # Setup all needed parameters including file reading
     TrainNames, ValNames, TestNames, OptimizerParams,\
-    SaveCheckPoint, PatchSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
+    SaveCheckPoint, ImageSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize = SetupAll(BasePath, LearningRate)
 
     # If CheckPointPath doesn't exist make the path
@@ -530,10 +596,10 @@ def main():
        os.makedirs(CheckPointPath)
 
     class Options:
-        def __init__(self, PatchSize=[128,128,3], MiniBatchSize=MiniBatchSize, warpType='homography', NumBlocks=4, pertScale=0.25, transScale=0.25):
-            self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
-            self.H = PatchSize[1].astype(np.int32) 
-            self.batchSize = np.array(MiniBatchSize).astype(np.int32) 
+        def __init__(self, PatchSize=[128,128,3], MiniBatchSize=1, warpType='homography', NumBlocks=1):
+            self.W = PatchSize[0] # PatchSize is Width, Height, NumChannels
+            self.H = PatchSize[1] 
+            self.batchSize = MiniBatchSize
             self.warpType = 'homography'
             if self.warpType == 'translation':
                 self.warpDim = 2
@@ -544,13 +610,13 @@ def main():
             elif self.warpType == 'homography':
                 self.warpDim = 8
             self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
-            self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
-            self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
+	        self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
+	        self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
             self.NumBlocks = NumBlocks
             self.pertScale = pertScale
             self.transScale = transScale
 
-    opt = Options(PatchSize=PatchSize)
+    opt = Options(PatchSize=ImageSize)
     
     # Find Latest Checkpoint File
     if LoadCheckPoint==1:
@@ -562,16 +628,18 @@ def main():
     PrettyPrint(NumEpochs, DivTrain, MiniBatchSize, NumTrainSamples, NumTestSamples, LatestFile)
         
     # Define PlaceHolder variables for Input and Predicted output
-    ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], 2*PatchSize[2]), name='Input')
+    ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, ImageSize[0], ImageSize[1], 2*ImageSize[2]), name='Input')
 
     # PH for losses
-    I1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1')
-    I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I2')
-    LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 8), name='Label')  
+    I1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='I1')
+    I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='I2')
+    MaskPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='Mask')
+    AllPtsPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 4, 2), name='AllPts')
+    LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 8, 1), name='Label')  
 
-    TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSamples, PatchSize, Rho,
+    TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize, opt)
+                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize)
         
     
 if __name__ == '__main__':
