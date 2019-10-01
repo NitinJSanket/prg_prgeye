@@ -38,6 +38,8 @@ def ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=''):
 
         # fc1 
         fc1 = tf.layers.dense(flatdrop, units=128, activation=None, name='fc1'+AppendNum)
+        
+        fc1 = tf.nn.relu(flatdrop, name='relu'+AppendNum)
 
         # fc2
         fc2 = tf.layers.dense(fc1, units=8, activation=None, name='fc2'+AppendNum)
@@ -58,7 +60,7 @@ def ICSTN(Img, ImageSize, MiniBatchSize, opt, pInit):
         # ImgWarpAll.append(ImgWarpNow)
 
         # Compute current warp parameters
-        dpNow = ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=str(count))
+        dpNow = ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=str(count+1))
         pNow = warp.compose(opt, pNow, dpNow)
 
     pMtrx = warp.vec2mtrx(opt, pNow) # Final pMtrx

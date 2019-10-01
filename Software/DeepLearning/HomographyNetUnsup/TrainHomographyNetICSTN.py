@@ -155,15 +155,15 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     HInv = np.linalg.inv(H)
 
     # Multiply by M and Minv
-    M = np.eye(3)
-    M[0,0] = PatchSize[0]/2
-    M[0,2] = PatchSize[0]/2
-    M[1,1] = PatchSize[1]/2
-    M[1,2] = PatchSize[1]/2
-    H = np.matmul(np.matmul(M, H), np.linalg.inv(M))
+    # M = np.eye(3)
+    # M[0,0] = PatchSize[0]/2
+    # M[0,2] = PatchSize[0]/2
+    # M[1,1] = PatchSize[1]/2
+    # M[1,2] = PatchSize[1]/2
+    # H = np.matmul(np.matmul(M, H), np.linalg.inv(M))
     
     # Normalize by H(2,2)
-    H = np.divide(H, H[2,2])
+    # H = np.divide(H, H[2,2])
 
     # Extract first 8 elements
     H8El = np.ndarray.flatten(H)
@@ -194,7 +194,7 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     # PerturbPts is the patch corners of I2 in I1
     # H8El is the first 8 elements of the Homography matrix from AllPts to PerturbPts
     # Mask is the active region of I1Patch in I1
-    return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask
+    return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H
         
 
 def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
@@ -259,6 +259,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
     CroppedIBatch = []
     CroppedWarpedIBatch = []
     MaskBatch = []
+    HBatch = []
 
     ImageNum = 0
     while ImageNum < MiniBatchSize:
@@ -272,7 +273,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         ImageNum += 1
 
         # Homography and Patch generation 
-        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False)
+        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False)
 
         ICombined = np.dstack((CroppedI[:,:,0:3], CroppedWarpedI[:,:,0:3]))
         # Normalize Dataset
@@ -289,6 +290,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         CroppedIBatch.append(CroppedI)
         CroppedWarpedIBatch.append(CroppedWarpedI)
         MaskBatch.append(Mask)
+        HBatch.append(H)
 
         
     # IBatch is the Cropped stack of I1 and I2 Batch
@@ -300,7 +302,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
     # AllPtsBatch is the patch corners in I1 Batch
     # PerturbPtsBatch is the patch corners of I2 in I1 Batch
     # MaskBatch is the active region of I1Patch Batch in I1 Batch
-    return IBatch, LabelBatch, IOrgBatch, WarpedIBatch, CroppedIBatch, CroppedWarpedIBatch, AllPtsBatch, PerturbPtsBatch, MaskBatch
+    return IBatch, LabelBatch, IOrgBatch, WarpedIBatch, CroppedIBatch, CroppedWarpedIBatch, AllPtsBatch, PerturbPtsBatch, MaskBatch, HBatch
 
 
 def PrettyPrint(NumEpochs, DivTrain, MiniBatchSize, NumTrainSamples, NumTestSamples, LatestFile):
@@ -320,13 +322,23 @@ def LossFunc(I1PH, I2PH, LabelPH, prHVal, MiniBatchSize, PatchSize, opt):
     WarpI1Patch = warp.transformImage(opt, I1PH, prHVal)
 
     # L2 loss between predicted and ground truth H4Pt (4 point homography)
-    prHVal = tf.reshape(prHVal, [MiniBatchSize, 9])
-    prHVal = prHVal[:, 0:8] 
-    lossPhoto = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(tf.squeeze(prHVal) - tf.squeeze(LabelPH)), axis=1)))    
+    # prHVal = tf.reshape(prHVal, [MiniBatchSize, 9])
+    # prHVal = prHVal[:, 0:8] 
+    # lossPhoto = tf.reduce_mean(tf.sqrt(tf.reduce_sum(tf.square(tf.squeeze(prHVal) - tf.squeeze(LabelPH)), axis=1)))   
+
+    DiffImg = WarpI1Patch - I2PH
+
+    # Unsupervised L1 Photometric Loss
+    # lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
     
+    # Unsupervised Chabonier Photometric Loss
+    epsilon = 1e-3
+    alpha = 0.45
+    lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
+
     return lossPhoto, WarpI1Patch
     
-def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSamples, PatchSize, Rho,
+def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, HBatchPH, TrainNames, TestNames, NumTrainSamples, PatchSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
                    DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize, opt):
     """
@@ -352,7 +364,9 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSa
     
     # Predict output with forward pass
     pInit = tf.zeros([MiniBatchSize, 8])
-    prHVal, _ = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt, pInit)
+    prHVal, WarpI1Patch = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt, pInit)
+    # WarpI1Patch =  warp.transformImage(opt, I1PH, prHVal)
+    # WarpI2PatchIdeal = warp.transformImage(opt, I2PH, HBatchPH)
     
     with tf.name_scope('Loss'):
     	loss, WarpI1PatchRet = LossFunc(I1PH, I2PH, LabelPH, prHVal, MiniBatchSize, PatchSize, opt)
@@ -368,22 +382,12 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSa
     # Tensorboard
     # Create a summary to monitor loss tensor
     tf.summary.scalar('LossEveryIter', loss)
-    # tf.summary.image('WarpedImg', WarpI1[:,:,:,0:3])
-    # tf.summary.image('I1', I1PH[:,:,:,0:3])
-    # tf.summary.image('I2', I2PH[:,:,:,0:3])
-    # tf.summary.image('Mask', MaskPH[:,:,:,0:3])
-    # tf.summary.image('WarpMask', WarpMask[:,:,:,0:3])
-    # tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3])
-    # tf.summary.image('I2Patch', I2Patch[:,:,:,0:3])
-    # tf.summary.image('I2Patch - WarpI1Patch', tf.abs(I2Patch[:,:,:,0:3] - WarpI1Patch[:,:,:,0:3]))
-    # tf.summary.histogram('prHVal', prHVal, collections=None, family=None)
-    # if(NetworkType == 'SmallRobust'):
-    #     tf.summary.image('Alpha1', Alpha[:,:,:,0:1])
-    #     tf.summary.image('Alpha2', Alpha[:,:,:,1:2])
-    #     tf.summary.image('Alpha3', Alpha[:,:,:,2:3])
-    #     tf.summary.histogram('Alpha1', Alpha[:,:,:,0:1], collections=None, family=None)
-    #     tf.summary.histogram('Alpha2', Alpha[:,:,:,1:2], collections=None, family=None)
-    #     tf.summary.histogram('Alpha3', Alpha[:,:,:,2:3], collections=None, family=None)
+    tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3])
+    # tf.summary.image('WarpI2PatchIdeal', WarpI2PatchIdeal[:,:,:,0:3])
+    tf.summary.image('I1Patch', I1PH[:,:,:,0:3])
+    tf.summary.image('I2Patch', I2PH[:,:,:,0:3])
+    tf.summary.histogram('prHVal', prHVal)
+    tf.summary.histogram('HValTrue', HBatchPH)
     # Merge all summaries into a single operation
     MergedSummaryOP = tf.summary.merge_all()
     
@@ -420,9 +424,9 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSa
                 Timer2 = tic()
 
                 IBatch, LabelBatch, I1Batch, I2Batch, I1PatchBatch, I2PatchBatch, \
-                AllPtsBatch, PerturbPtsBatch, MaskBatch = GenerateBatch(TrainNames, PatchSize, MiniBatchSize, Rho, BasePath, OriginalImageSize)
+                AllPtsBatch, PerturbPtsBatch, MaskBatch, HBatch = GenerateBatch(TrainNames, PatchSize, MiniBatchSize, Rho, BasePath, OriginalImageSize)
 
-                FeedDict = {ImgPH: IBatch, I1PH: I1PatchBatch, I2PH: I2PatchBatch, LabelPH: LabelBatch}
+                FeedDict = {ImgPH: IBatch, I1PH: I1PatchBatch, I2PH: I2PatchBatch, LabelPH: LabelBatch, HBatchPH: HBatch}
                 _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                 
                 # Tensorboard
@@ -568,8 +572,9 @@ def main():
     I1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1')
     I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I2')
     LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 8), name='Label')  
+    HBatchPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3, 3), name='H')  
 
-    TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSamples, PatchSize, Rho,
+    TrainOperation(ImgPH, I1PH, I2PH, LabelPH, HBatchPH, TrainNames, TestNames, NumTrainSamples, PatchSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
                    DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize, opt)
         
