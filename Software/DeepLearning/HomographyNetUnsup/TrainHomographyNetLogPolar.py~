@@ -26,7 +26,7 @@ import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
 from Network.EVHomographyNetUnsupSmall import EVHomographyNetUnsupSmall
-from Network.EVHomographyNetUnsup import EVHomographyNetUnsup
+from Network.EVHomographyNetUnsupOnlyTranslationFlow import EVHomographyNetUnsupOnlyTranslationFlow
 from Network.EVHomographyNetUnsupSmallRobust import EVHomographyNetUnsupSmallRobust
 from Misc.MiscUtils import *
 import numpy as np
@@ -38,6 +38,7 @@ import string
 from termcolor import colored, cprint
 import math as m
 from tqdm import tqdm
+import Misc.SpecUtils as su
 import Misc.STNUtils as stn
 import Misc.TFUtils as tu
 
@@ -125,6 +126,35 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
 
     AllPts = [p1, p2, p3, p4]
 
+    # Rotation Part
+    # MaxRVal = np.array([2.0, 2.0, 2.0]) # In Degrees, Using 30 fps at 60 deg/s 
+    # EulAng = 2*MaxRVal*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
+    # R = Rot.from_euler('zyx', EulAng, degrees=True).as_dcm()
+    R = np.eye(3)
+
+    # Translation Part
+    MaxTVal = np.array([[0.16], [0.16], [0]]) # In m, Using 30 fps at 5 m/s
+    T = np.array(2*MaxTVal*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
+    
+    # Normal Part
+    N = np.array([[0.0], [0.0], [1.0]]) # Keep this fixed 
+    N = np.divide(N, np.linalg.norm(N))
+
+    # Camera Matrix
+    K = np.eye(3)
+    K[0,0] = 400.0
+    K[1,1] = 400.0
+    K[0,2] = ImageSize[0]/2
+    K[1,2] = ImageSize[1]/2
+    
+    # Compose Homography
+    H = np.add(R, np.matmul(T, N.T))
+    H = np.divide(H, H[2,2])
+    H = np.matmul(K, np.matmul(H, np.linalg.inv(K)))
+
+    # Get Inverse Homography
+    HInv = np.linalg.inv(H)
+    
     if(Vis is True):
         IDisp = I.copy()
         cv2.imshow('org', I)
@@ -138,20 +168,18 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
 
     PerturbPts = []
     for point in AllPts:
-        PerturbPts.append((point[0] + random.randint(-Rho,Rho), point[1] + random.randint(-Rho,Rho)))
+        PtNow = np.squeeze(np.matmul(H, np.array([[point[0]], [point[1]], [1.0]])))
+        PtNow = np.ceil(np.divide(PtNow, PtNow[2]))
+        PerturbPts.append((PtNow[0], PtNow[1]))
 
     if(Vis is True):
         PertubImgDisp = I.copy()
         cv2.polylines(PertubImgDisp, np.int32([PerturbPts]), 1, (0,0,0))
         cv2.imshow('b', PertubImgDisp)
         cv2.waitKey(1)
-        
-    # Obtain Homography between the 2 images
-    H = cv2.getPerspectiveTransform(np.float32(AllPts), np.float32(PerturbPts))
-    # Get Inverse Homography
-    HInv = np.linalg.inv(H)
 
     WarpedI = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
+    
     if(Vis is True):
         WarpedImgDisp = WarpedI.copy()
         cv2.imshow('c', WarpedImgDisp)
@@ -170,7 +198,8 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
         cv2.waitKey(0)
 
     H4Pt = np.subtract(np.array(PerturbPts), np.array(AllPts))
-    H4PtCol = np.reshape(H4Pt, (np.product(H4Pt.shape), 1))
+    # H4PtCol = np.reshape(H4Pt, (np.product(H4Pt.shape), 1))
+    H4PtCol = -K[0,0]*T[0:2]
 
     # I is the Original Image I1
     # WarpedI is I2
@@ -335,15 +364,23 @@ def nll(x, a, c, e=1e-2):
 	return RobustLoss(x, a, c, e) + logZ1(a) # + tf.log(c)
 
 def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize, a=None, c=1e-1, ImageSize=None):
-    prHVal = tf.reshape(prHVal, (-1, 8, 1))
+    out_size = [OriginalImageSize[0], OriginalImageSize[1]]
+    prHVal = tf.expand_dims(prHVal, 2)
+    prHVal = tf.expand_dims(prHVal, 3)
+    prHVal = tf.image.resize_bilinear(prHVal, out_size)
+
+    # prHVal = tf.reshape(prHVal, (-1, 8, 1))
     # Warp Image using predicted Homography values
     # Obtain 3x3 H matrix from 8x1 values
-    HMat = stn.solve_DLT(MiniBatchSize, AllPtsPH, prHVal)
+    # HMat = stn.solve_DLT(MiniBatchSize, AllPtsPH, prHVal)
     
     # Warp I1 to align with I2
-    out_size = [OriginalImageSize[0], OriginalImageSize[1]]
-    WarpI1 = stn.transform(out_size, HMat, MiniBatchSize, I1PH)
-    WarpMask = stn.transform(out_size, HMat, MiniBatchSize, MaskPH)
+    # WarpI1 = stn.transform(out_size, HMat, MiniBatchSize, I1PH)
+    # WarpMask = stn.transform(out_size, HMat, MiniBatchSize, MaskPH)
+    # WarpI1 = tf.contrib.image.translate(I1PH, prHVal, interpolation='BILINEAR')
+    # WarpMask = tf.contrib.image.translate(MaskPH, prHVal, interpolation='BILINEAR')
+    WarpI1 = tf.contrib.image.dense_image_warp(I1PH, prHVal)
+    WarpMask = tf.contrib.image.dense_image_warp(MaskPH, prHVal)
     
     if(TrainingType == 'US'):        
         if(LossFuncName == 'PhotoL1'):
@@ -409,9 +446,9 @@ def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, Tes
         with tf.name_scope('Loss'):
     	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize)
     elif(NetworkType == 'Large'):
-        prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
+        prHVal = EVHomographyNetUnsupOnlyTranslationFlow(ImgPH, ImageSize, MiniBatchSize)
         with tf.name_scope('Loss'):
-    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize)
+    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize, ImageSize=ImageSize)
     elif(NetworkType == 'SmallRobust'):
         prHVal, prAlpha = EVHomographyNetUnsupSmallRobust(ImgPH, ImageSize, MiniBatchSize)
         with tf.name_scope('Loss'):
@@ -545,7 +582,7 @@ def main():
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
     Parser.add_argument('--BasePath', default='/home/nitin/Datasets/MSCOCO/train2014', help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014')
-    Parser.add_argument('--NumEpochs', type=int, default=200, help='Number of Epochs to Train for, Default:200')
+    Parser.add_argument('--NumEpochs', type=int, default=100, help='Number of Epochs to Train for, Default:200')
     Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
     Parser.add_argument('--MiniBatchSize', type=int, default=32, help='Size of the MiniBatch to use, Default:32')
     Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointPath?, Default:0')
@@ -605,7 +642,7 @@ def main():
     I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='I2')
     MaskPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='Mask')
     AllPtsPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 4, 2), name='AllPts')
-    LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 8, 1), name='Label')  
+    LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 2, 1), name='Label')  
 
     TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,

@@ -38,6 +38,7 @@ import string
 from termcolor import colored, cprint
 import math as m
 from tqdm import tqdm
+import Misc.SpecUtils as su
 import Misc.STNUtils as stn
 import Misc.TFUtils as tu
 
@@ -125,6 +126,35 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
 
     AllPts = [p1, p2, p3, p4]
 
+    # Rotation Part
+    # MaxRVal = np.array([2.0, 2.0, 2.0]) # In Degrees, Using 30 fps at 60 deg/s 
+    # EulAng = 2*MaxRVal*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
+    # R = Rot.from_euler('zyx', EulAng, degrees=True).as_dcm()
+    R = np.eye(3)
+
+    # Translation Part
+    MaxTVal = np.array([[0.08], [0.08], [0]]) # In m, Using 30 fps at 2.5 m/s
+    T = np.array(2*MaxTVal*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
+    
+    # Normal Part
+    N = np.array([[0.0], [0.0], [1.0]]) # Keep this fixed 
+    N = np.divide(N, np.linalg.norm(N))
+
+    # Camera Matrix
+    K = np.eye(3)
+    K[0,0] = 400.0
+    K[1,1] = 400.0
+    K[0,2] = ImageSize[0]/2
+    K[1,2] = ImageSize[1]/2
+    
+    # Compose Homography
+    H = np.add(R, np.matmul(T, N.T))
+    H = np.divide(H, H[2,2])
+    H = np.matmul(K, np.matmul(H, np.linalg.inv(K)))
+
+    # Get Inverse Homography
+    HInv = np.linalg.inv(H)
+    
     if(Vis is True):
         IDisp = I.copy()
         cv2.imshow('org', I)
@@ -138,20 +168,18 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
 
     PerturbPts = []
     for point in AllPts:
-        PerturbPts.append((point[0] + random.randint(-Rho,Rho), point[1] + random.randint(-Rho,Rho)))
+        PtNow = np.squeeze(np.matmul(H, np.array([[point[0]], [point[1]], [1.0]])))
+        PtNow = np.ceil(np.divide(PtNow, PtNow[2]))
+        PerturbPts.append((PtNow[0], PtNow[1]))
 
     if(Vis is True):
         PertubImgDisp = I.copy()
         cv2.polylines(PertubImgDisp, np.int32([PerturbPts]), 1, (0,0,0))
         cv2.imshow('b', PertubImgDisp)
         cv2.waitKey(1)
-        
-    # Obtain Homography between the 2 images
-    H = cv2.getPerspectiveTransform(np.float32(AllPts), np.float32(PerturbPts))
-    # Get Inverse Homography
-    HInv = np.linalg.inv(H)
 
     WarpedI = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
+    
     if(Vis is True):
         WarpedImgDisp = WarpedI.copy()
         cv2.imshow('c', WarpedImgDisp)
