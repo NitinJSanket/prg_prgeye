@@ -11,7 +11,7 @@ def serial_pub():
 	# rate = rospy.Rate(10) # 10hz
 	rospy.loginfo("Reading serial data");
 	# Establish the connection on a specific port
-	ser = serial.Serial('/dev/ttyACM0', 230400)
+	ser = serial.Serial('/dev/ttyACM35', 230400)
 
 	while not rospy.is_shutdown():
 	    arduino_str = ser.readline() # Read the newest output from the Arduino
