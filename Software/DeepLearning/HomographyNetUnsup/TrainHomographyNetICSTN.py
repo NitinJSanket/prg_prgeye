@@ -96,58 +96,7 @@ def SetupAll(BasePath, LearningRate):
     
     return TrainNames, ValNames, TestNames, OptimizerParams,\
         SaveCheckPoint, PatchSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
-        NumTestRunsPerEpoch, OriginalImageSize
-
-def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
-    """
-    Inputs: 
-    I is the input image
-    Rho is the maximum perturbation in either direction on each corner, i.e., perturbation for each corner lies in [-Rho, Rho]
-    Vis when enabled, Visualizes the image and the perturbed image 
-    Outputs:
-    H is the random homography
-    Points are labeled as:
-    
-    Top Left = p1, Top Right = p2, Bottom Right = p3, Bottom Left = p4 (Clockwise from Top Left)
-    Code adapted from: https://github.com/mez/deep_homography_estimation/blob/master/Dataset_Generation_Visualization.ipynb
-    """
-
-    if(ImageSize is None):
-        ImageSize = np.shape(I) 
-    
-    RandX = random.randint(Rho, ImageSize[1]-Rho-PatchSize[1])
-    RandY = random.randint(Rho, ImageSize[0]-Rho-PatchSize[0])
-
-    p1 = (RandX, RandY)
-    p2 = (RandX, RandY + PatchSize[0])
-    p3 = (RandX + PatchSize[1], RandY + PatchSize[0])
-    p4 = (RandX + PatchSize[1], RandY)
-
-    AllPts = [p1, p2, p3, p4]
-
-    if(Vis is True):
-        IDisp = I.copy()
-        cv2.imshow('org', I)
-        cv2.waitKey(1)
-
-    if(Vis is True):
-        IDisp = I.copy()
-        cv2.polylines(IDisp, np.int32([AllPts]), 1, (0,0,0))
-        cv2.imshow('a', IDisp)
-        cv2.waitKey(1)	
-
-
-    # Change this to add translation too
-    PerturbPts = []
-    for point in AllPts:
-        PerturbPts.append((point[0] + random.randint(-Rho,Rho), point[1] + random.randint(-Rho,Rho)))
-
-    if(Vis is True):
-        PertubImgDisp = I.copy()
-        cv2.polylines(PertubImgDisp, np.int32([PerturbPts]), 1, (0,0,0))
-        cv2.imshow('b', PertubImgDisp)
-        cv2.waitKey(1)
-        
+        NumTestRunsPerEpoch, OriginalImageSize       
 
 def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     """

@@ -238,6 +238,7 @@ def GenerateBatch(IBuffer, Rho, PatchSize, CropType, Vis=False):
     return IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, HBatch, MaskBatch
 
             
+
 def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType, MiniBatchSize, opt):
     """
     Inputs: 
@@ -417,7 +418,7 @@ def main():
 
     # Setup all needed parameters including file reading
     TrainNames, ImageSize, PatchSize, NumTrainSamples = SetupAll(ReadPath)
-    
+
     class Options:
         def __init__(self, PatchSize=[128,128,3], MiniBatchSize=MiniBatchSize, warpType='homography', NumBlocks=4, pertScale=0.25, transScale=0.25):
             self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
@@ -445,13 +446,15 @@ def main():
     PatchPH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]*2), name='Input')
     I1PH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1')
     I2PH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]), name='I2')
-    prHTruePH = tf.placeholder(tf.float32, shape=(1, 4, 2), name='prHTrue')
+    HBatchPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3, 3), name='H') 
+    # prHTruePH = tf.placeholder(tf.float32, shape=(1, 4, 2), name='prHTrue')
 
     if(not os.path.exists(WritePath)):
         cprint("WARNING: %s doesnt exist, Creating it."%WritePath, 'yellow')
         os.mkdir(WritePath)
 
     TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType, MiniBatchSize, opt)
+
      
 if __name__ == '__main__':
     main()
