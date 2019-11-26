@@ -238,7 +238,7 @@ def GenerateBatch(IBuffer, Rho, PatchSize, CropType, Vis=False):
     return IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, HBatch, MaskBatch
 
             
-def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType):
+def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType, MiniBatchSize, opt):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -277,8 +277,8 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
 
     # Predict output with forward pass
     pInit = tf.zeros([MiniBatchSize, 8])
-    prHVal, WarpI1Patch = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt, pInit)
-    WarpI1Patch = warp.transformImage(opt, I1PH, prHVal)
+    prHVal, WarpI1Patch = ICSTN(PatchPH, PatchSize, MiniBatchSize, opt, pInit)
+    # WarpI1Patch = warp.transformImage(opt, I1PH, prHVal)
     
     # Setup Saver
     Saver = tf.train.Saver()
@@ -299,9 +299,20 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
             IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, H4PtColBatch, MaskBatch = GenerateBatch(INow, Rho, PatchSize, CropType, Vis=False)
             # TODO: Better way is to feed data into a MiniBatch and Extract it again
             # INow = np.hsplit(INow, 2)[0] # Imgs have a stack of 2 in this case, hence extract one
-            prHTrue = np.float32(np.reshape(H4PtColBatch[0], (-1, 4, 2)))
-            FeedDict = {PatchPH: IBatch, I1PH: I1Batch, I2PH: I2Batch, prHTruePH: prHTrue}
-            prHPredVal, HMatPredVal, HMatTrueVal = sess.run([prHVal, HMatPred, HMatTrue], FeedDict)
+            # prHTrue = np.float32(np.reshape(H4PtColBatch[0], (-1, 4, 2)))
+            FeedDict = {PatchPH: IBatch, I1PH: I1Batch, I2PH: I2Batch}# , prHTruePH: prHTrue}
+            # prHPredVal, HMatPredVal, HMatTrueVal = sess.run([prHVal, HMatPred, HMatTrue], FeedDict)
+            prHValRet, WarpI1PatchRet = sess.run([prHVal, WarpI1Patch], FeedDict)
+
+            print(prHValRet)
+            print(H4PtColBatch[0])
+            print(np.shape(WarpI1PatchRet))
+            cv2.imshow('a', np.squeeze(WarpI1PatchRet[:,:,:,0:3]))
+            cv2.imshow('b', I2Batch[0])
+            cv2.imshow('c', I1Batch[0])
+            cv2.waitKey(0)
+            input('q')
+            
             # Pixel Error in H4Pt
             ErrorNow = np.sum(np.sqrt((prHPredVal[:, 0] - prHTrue[:, 0])**2 + (prHPredVal[:, 1] - prHTrue[:, 1])**2))/4
             
@@ -399,32 +410,34 @@ def main():
     WritePath = Args.WritePath
     GPUDevice = Args.GPUDevice
     CropType = Args.CropType
+    MiniBatchSize = 1
     
     # Set GPUNum
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
     TrainNames, ImageSize, PatchSize, NumTrainSamples = SetupAll(ReadPath)
-
-    def __init__(self, PatchSize=[128,128,3], MiniBatchSize=MiniBatchSize, warpType='homography', NumBlocks=4, pertScale=0.25, transScale=0.25):
-        self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
-        self.H = PatchSize[1].astype(np.int32) 
-        self.batchSize = np.array(MiniBatchSize).astype(np.int32) 
-        self.warpType = 'homography'
-        if self.warpType == 'translation':
-            self.warpDim = 2
-        elif self.warpType == 'similarity':
-            self.warpDim = 4
-        elif self.warpType == 'affine':
-            self.warpDim = 6
-        elif self.warpType == 'homography':
-            self.warpDim = 8
-        self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
-        self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
-        self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
-        self.NumBlocks = NumBlocks
-        self.pertScale = pertScale
-        self.transScale = transScale
+    
+    class Options:
+        def __init__(self, PatchSize=[128,128,3], MiniBatchSize=MiniBatchSize, warpType='homography', NumBlocks=4, pertScale=0.25, transScale=0.25):
+            self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
+            self.H = PatchSize[1].astype(np.int32) 
+            self.batchSize = np.array(MiniBatchSize).astype(np.int32) 
+            self.warpType = 'homography'
+            if self.warpType == 'translation':
+                self.warpDim = 2
+            elif self.warpType == 'similarity':
+                self.warpDim = 4
+            elif self.warpType == 'affine':
+                self.warpDim = 6
+            elif self.warpType == 'homography':
+                self.warpDim = 8
+            self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
+            self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
+            self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
+            self.NumBlocks = NumBlocks
+            self.pertScale = pertScale
+            self.transScale = transScale
 
     opt = Options(PatchSize=PatchSize)
      
@@ -438,7 +451,7 @@ def main():
         cprint("WARNING: %s doesnt exist, Creating it."%WritePath, 'yellow')
         os.mkdir(WritePath)
 
-    TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType)
+    TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType, MiniBatchSize, opt)
      
 if __name__ == '__main__':
     main()
