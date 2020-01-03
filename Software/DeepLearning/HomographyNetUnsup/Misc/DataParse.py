@@ -15,7 +15,24 @@ import numpy as np
 from tqdm import tqdm
 import random
 import re
+import ImageUtils as iu
 
+
+def CenterCropFactorAllImgs(ReadPath, WritePath, Prefix, ImageFormat, Factor):
+    if(not os.path.exists(WritePath)):
+            os.makedirs(WritePath)
+    for dirs in tqdm(glob.glob(ReadPath + os.sep + '*' + ImageFormat)):
+        CurrReadPath = dirs
+        # Extract Image Name
+        # https://stackoverflow.com/questions/4998629/split-string-with-multiple-delimiters-in-python
+        Delimiters = ImageFormat, "_"
+        RegexPattern = '|'.join(map(re.escape, Delimiters))
+        ImgNameNow = re.split(RegexPattern, dirs)
+        ImageNum = int(ImgNameNow[-2])
+        INow, _ = iu.CenterCropFactor(cv2.imread(ReadPath + os.sep + Prefix%(ImageNum) + ImageFormat), Factor)
+        cv2.imwrite(WritePath + os.sep +  Prefix%(ImageNum) + ImageFormat, INow)
+
+    
 def MakeImgPairs(ReadPath, WritePath, Prefix, ImageFormat):
     if(not os.path.exists(WritePath)):
             os.makedirs(WritePath)
@@ -23,7 +40,6 @@ def MakeImgPairs(ReadPath, WritePath, Prefix, ImageFormat):
     DirNames = open(WritePath + os.sep + 'DirNames.txt', 'w')
     for dirs in tqdm(glob.glob(ReadPath + os.sep + '*' + ImageFormat)):
         CurrReadPath = dirs
-
         # Extract Image Name
         # https://stackoverflow.com/questions/4998629/split-string-with-multiple-delimiters-in-python
         Delimiters = ImageFormat, "_"
@@ -134,10 +150,10 @@ def main():
         cprint("WARNING: %s doesnt exist, Creating it."%WritePath, 'yellow')
         os.mkdir(WritePath)
         
-    
-    MakeImgPairs(ReadPath, WritePath, Prefix, ImageFormat)
-    Ratios = [0.9, 0.00, 0.10]
-    Train, Val, Test = SetupSplits(Ratios, WritePath)
+    CenterCropFactorAllImgs(ReadPath, WritePath, Prefix, ImageFormat, Factor=3)
+    # MakeImgPairs(ReadPath, WritePath, Prefix, ImageFormat)
+    # Ratios = [0.9, 0.00, 0.10]
+    # Train, Val, Test = SetupSplits(Ratios, WritePath)
     
 if __name__ == '__main__':
     main()

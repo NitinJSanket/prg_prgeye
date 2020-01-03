@@ -138,9 +138,11 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
 
 
     # Change this to add translation too
+    RandTranslationX = random.randint(-Rho,Rho)
+    RandTranslationY = random.randint(-Rho,Rho)
     PerturbPts = []
     for point in AllPts:
-        PerturbPts.append((point[0] + random.randint(-Rho,Rho), point[1] + random.randint(-Rho,Rho)))
+        PerturbPts.append((point[0] + random.randint(-Rho,Rho) + RandTranslationX, point[1] + random.randint(-Rho,Rho) + RandTranslationY))
 
     if(Vis is True):
         PertubImgDisp = I.copy()
