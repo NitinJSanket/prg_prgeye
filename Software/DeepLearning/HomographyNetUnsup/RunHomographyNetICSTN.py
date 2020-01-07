@@ -237,7 +237,6 @@ def GenerateBatch(IBuffer, Rho, PatchSize, CropType, Vis=False):
     # IBatch is the Original Image I1 Batch
     return IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, HBatch, MaskBatch
 
-            
 
 def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType, MiniBatchSize, opt):
     """
