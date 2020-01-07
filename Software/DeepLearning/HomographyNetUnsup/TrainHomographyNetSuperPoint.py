@@ -23,6 +23,8 @@ import os
 import glob
 import Misc.ImageUtils as iu
 import random
+import pickle
+import scipy.io as sio
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
 from Network.EVHomographyNetUnsupSmall import EVHomographyNetUnsupSmall
@@ -224,7 +226,8 @@ def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
     return DirNames, TrainNames, ValNames, TestNames
 
 def ReadSuperPointConfidence(PicklePath, Vis=False):
-    Confidence = pickle.load(open(PicklePath, 'rb'))
+    # Confidence = pickle.load(open(PicklePath, 'rb'))
+    Confidence = sio.loadmat(PicklePath)['heatmap']
     if(Vis):
         # Jet colormap for visualization.
         myjet = np.array([[0.        , 0.        , 0.5       ],
@@ -270,8 +273,11 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
     while ImageNum < MiniBatchSize:
         # Generate random image
         RandIdx = random.randint(0, len(TrainNames)-1)        
-        RandImageName = BasePath + os.sep + TrainNames[RandIdx] 
+        RandImageName = BasePath + os.sep + TrainNames[RandIdx]
+        RandPicklePath = BasePath + 'Pickle' + os.sep + TrainNames[RandIdx][:-4] + '.mat'
         I = cv2.imread(RandImageName)
+        Confidence = ReadSuperPointConfidence(RandPicklePath, Vis=True)
+        input('q')
         I = iu.RandomCrop(I, OriginalImageSize)
         if (I is None):
             continue

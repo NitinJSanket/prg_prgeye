@@ -43,6 +43,7 @@
 # --------------------------------------------------------------------*/
 # %BANNER_END%
 
+#  ./demo_superpoint.py /home/nitin/Datasets/MSCOCO/train2014Processed/  --cuda --show_extra --write_dir=./myoutput3/  --write --img_glob=*.jpg
 
 import argparse
 import glob
