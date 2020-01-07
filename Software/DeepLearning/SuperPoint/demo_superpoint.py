@@ -50,6 +50,7 @@ import glob
 import numpy as np
 import os
 import time
+import re
 
 import cv2
 import torch
@@ -499,7 +500,7 @@ class VideoStreamer(object):
     self.video_file = False
     self.listing = []
     self.sizer = [height, width]
-    self.i = 0
+    self.i = 64947
     self.skip = skip
     self.maxlen = 1000000
     # If the "basedir" string is the word camera, then use a webcam.
@@ -545,7 +546,7 @@ class VideoStreamer(object):
       raise Exception('Error reading image %s' % impath)
     # Image is resized via opencv.
     interp = cv2.INTER_AREA
-    grayim = cv2.resize(grayim, (img_size[1], img_size[0]), interpolation=interp)
+    # grayim = cv2.resize(grayim, (img_size[1], img_size[0]), interpolation=interp)
     grayim = (grayim.astype('float32') / 255.)
     return grayim
 
@@ -556,25 +557,26 @@ class VideoStreamer(object):
        status: True or False depending whether image was loaded.
     """
     if self.i == self.maxlen:
-      return (None, False)
+      return (None, False, '')
     if self.camera:
       ret, input_image = self.cap.read()
       if ret is False:
         print('VideoStreamer: Cannot get image from camera (maybe bad --camid?)')
-        return (None, False)
+        return (None, False, '')
       if self.video_file:
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.listing[self.i])
       input_image = cv2.resize(input_image, (self.sizer[1], self.sizer[0]),
                                interpolation=cv2.INTER_AREA)
       input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2GRAY)
       input_image = input_image.astype('float')/255.0
+      image_file = ''
     else:
       image_file = self.listing[self.i]
       input_image = self.read_image(image_file, self.sizer)
     # Increment internal counter.
     self.i = self.i + 1
     input_image = input_image.astype('float32')
-    return (input_image, True)
+    return (input_image, True, image_file)
 
 
 if __name__ == '__main__':
@@ -664,7 +666,9 @@ if __name__ == '__main__':
     start = time.time()
 
     # Get a new image.
-    img, status = vs.next_frame()
+    img, status, imgFileName = vs.next_frame()
+    # print(vs.listing.index('/home/nitin/Datasets/MSCOCO/train2014Processed/COCO_train2014_000000456425.jpg'))
+    # input('q')
     if status is False:
       break
 
@@ -724,10 +728,14 @@ if __name__ == '__main__':
     # Optionally write images to disk.
     if opt.write:
       # out_file = os.path.join(opt.write_dir, 'frame_%05d.png' % vs.i)
-      out_filehm = os.path.join(opt.write_dir, 'Pickle/hm_%05d.p' % vs.i)
+      out_filehm = opt.write_dir + 'Pickle' + os.sep + imgFileName.replace(opt.input, '')[:-4] + '.p' # os.path.join(opt.write_dir, 'Pickle/hm_%05d.p' % vs.i)
       print('Writing image to %s' % out_filehm)
       # cv2.imwrite(out_file, out)
-      pickle.dump(heatmap, open(out_filehm, 'wb'))
+      # pickle.dump(heatmap, open(out_filehm, 'wb'))
+      if(heatmap is None):
+        heatmap = np.ones_like(img)
+      sio.savemat(out_filehm[:-2] + '.mat', {'heatmap':heatmap})
+      # input('q')
       # cv2.imwrite(out_filehm, heatmap)#cv2.resize(out3, (opt.display_scale*opt.W, opt.display_scale*opt.H)))
 
     end = time.time()

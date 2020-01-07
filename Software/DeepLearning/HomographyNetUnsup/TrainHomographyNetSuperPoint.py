@@ -89,7 +89,7 @@ def SetupAll(BasePath, LearningRate):
     NumTestRunsPerEpoch = 5
     
     # Image Input Shape
-    OriginalImageSize = np.array([300, 300, 3])
+    OriginalImageSize = np.array([200, 200, 3])
     ImageSize = np.array([128, 128, 3])
     Rho = 25
     NumTrainSamples = len(TrainNames)
@@ -100,7 +100,7 @@ def SetupAll(BasePath, LearningRate):
         SaveCheckPoint, ImageSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
         NumTestRunsPerEpoch, OriginalImageSize
 
-def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
+def RandHomographyPerturbation(I, Rho, PatchSize, Cornerness, ImageSize=None, Vis=False):
     """
     Inputs: 
     I is the input image
@@ -174,15 +174,21 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     H4Pt = np.subtract(np.array(PerturbPts), np.array(AllPts))
     H4PtCol = np.reshape(H4Pt, (np.product(H4Pt.shape), 1))
 
+    # Cornerness
+    I1Cornerness = Cornerness.copy()
+    I2Cornerness = cv2.warpPerspective(I1Cornerness, HInv, (ImageSize[1],ImageSize[0]))    
+
     # I is the Original Image I1
     # WarpedI is I2
+    # I1Cornerness is the cornerness measure of I1
+    # I2Cornerness is the cornerness measure of I2 (obtained by warping I1Cornerness using ideal Homography)
     # CroppedI is I1 cropped to patch Size
     # CroppedWarpeI is I1 Crop Warped (I2 Crop)
     # AllPts is the patch corners in I1
     # PerturbPts is the patch corners of I2 in I1
     # H4PtCol is the delta movement of corners between AllPts and PerturbPts
     # Mask is the active region of I1Patch in I1
-    return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H4PtCol, Mask
+    return I, WarpedI, I1Cornerness, I2Cornerness, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H4PtCol, Mask
         
 
 def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
@@ -225,9 +231,13 @@ def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
 
     return DirNames, TrainNames, ValNames, TestNames
 
-def ReadSuperPointConfidence(PicklePath, Vis=False):
-    # Confidence = pickle.load(open(PicklePath, 'rb'))
-    Confidence = sio.loadmat(PicklePath)['heatmap']
+def ReadSuperPointCornerness(PicklePath, Negate=True, Vis=False):
+    # Cornerness = pickle.load(open(PicklePath, 'rb'))
+    Cornerness = sio.loadmat(PicklePath)['heatmap']
+    
+    if(Negate is True):
+        Cornerness = 1.0 - Cornerness
+        
     if(Vis):
         # Jet colormap for visualization.
         myjet = np.array([[0.        , 0.        , 0.5       ],
@@ -240,11 +250,11 @@ def ReadSuperPointConfidence(PicklePath, Vis=False):
                           [1.        , 0.48002905, 0.        ],
                           [0.99910873, 0.07334786, 0.        ],
                           [0.5       , 0.        , 0.        ]])
-        ConfidenceDisp = myjet[np.round(np.clip(ConfidenceDisp*10, 0, 9)).astype('int'), :]
-        ConfidenceDisp = (ConfidenceDisp*255).astype('uint8')
-        cv2.imshow('Confidence', ConfidenceDisp)
+        CornernessDisp = myjet[np.round(np.clip(Cornerness*10, 0, 9)).astype('int'), :]
+        CornernessDisp = (CornernessDisp*255).astype('uint8')
+        cv2.imshow('Cornerness', CornernessDisp)
         cv2.waitKey(0)
-    return Confidence
+    return Cornerness
 
 def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalImageSize):
     """
@@ -268,6 +278,8 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
     CroppedIBatch = []
     CroppedWarpedIBatch = []
     MaskBatch = []
+    I1CornernessBatch = []
+    I2CornernessBatch = []
 
     ImageNum = 0
     while ImageNum < MiniBatchSize:
@@ -276,15 +288,21 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         RandImageName = BasePath + os.sep + TrainNames[RandIdx]
         RandPicklePath = BasePath + 'Pickle' + os.sep + TrainNames[RandIdx][:-4] + '.mat'
         I = cv2.imread(RandImageName)
-        Confidence = ReadSuperPointConfidence(RandPicklePath, Vis=True)
-        input('q')
-        I = iu.RandomCrop(I, OriginalImageSize)
+        Cornerness = ReadSuperPointCornerness(RandPicklePath, Negate=True, Vis=False)
+        # Make Cornerness a 3D Array
+        Cornerness = np.tile(Cornerness[:,:,np.newaxis], (1,1,3))
+        Stack = iu.StackImages(I, Cornerness)
+        StackCrop = iu.RandomCrop(Stack, OriginalImageSize)
         if (I is None):
+            continue
+        try:
+            I, Cornerness = iu.UnstackImages(StackCrop)
+        except:
             continue
         ImageNum += 1
 
         # Homography and Patch generation 
-        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H4PtCol, Mask = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False)
+        IOriginal, WarpedI, I1Cornerness, I2Cornerness, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H4PtCol, Mask = RandHomographyPerturbation(I, Rho, ImageSize, Cornerness, Vis=False)
 
         ICombined = np.dstack((CroppedI[:,:,0:3], CroppedWarpedI[:,:,0:3]))
         # Normalize Dataset
@@ -301,10 +319,12 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         CroppedIBatch.append(CroppedI)
         CroppedWarpedIBatch.append(CroppedWarpedI)
         MaskBatch.append(Mask)
+        I1CornernessBatch.append(I1Cornerness)
+        I2CornernessBatch.append(I2Cornerness)
 
         
     # IBatch is the Cropped stack of I1 and I2 Batch
-    # LabelBatch is the Homography Ideal Batch
+    # LabelBatch is the Homography Ideal Batch 
     # IOrgBatch is I1 Batch
     # WarpedIBatch is I2 Batch
     # CroppedIBatch is I1Patch Batch
@@ -312,7 +332,10 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
     # AllPtsBatch is the patch corners in I1 Batch
     # PerturbPtsBatch is the patch corners of I2 in I1 Batch
     # MaskBatch is the active region of I1Patch Batch in I1 Batch
-    return IBatch, LabelBatch, IOrgBatch, WarpedIBatch, CroppedIBatch, CroppedWarpedIBatch, AllPtsBatch, PerturbPtsBatch, MaskBatch
+    # I1CornernessBatch is the batch of cornerness measure of I1
+    # I2CornernessBatch is the batch of cornerness measure of I2 (obtained by warping I1CornernessBatch)
+
+    return IBatch, LabelBatch, IOrgBatch, WarpedIBatch, CroppedIBatch, CroppedWarpedIBatch, AllPtsBatch, PerturbPtsBatch, MaskBatch, I1CornernessBatch, I2CornernessBatch
 
 
 def PrettyPrint(NumEpochs, DivTrain, MiniBatchSize, NumTrainSamples, NumTestSamples, LatestFile):
@@ -360,7 +383,8 @@ def logZ1(a):
 def nll(x, a, c, e=1e-2):
 	return RobustLoss(x, a, c, e) + logZ1(a) # + tf.log(c)
 
-def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize, a=None, c=1e-1, ImageSize=None):
+def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize,
+            I1CornernessPH, I2CornernessPH, a=None, c=1e-1, ImageSize=None):
     prHVal = tf.reshape(prHVal, (-1, 8, 1))
     # Warp Image using predicted Homography values
     # Obtain 3x3 H matrix from 8x1 values
@@ -370,14 +394,19 @@ def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossF
     out_size = [OriginalImageSize[0], OriginalImageSize[1]]
     WarpI1 = stn.transform(out_size, HMat, MiniBatchSize, I1PH)
     WarpMask = stn.transform(out_size, HMat, MiniBatchSize, MaskPH)
+    WarpI1Cornerness =  stn.transform(out_size, HMat, MiniBatchSize, I1CornernessPH)
     
     if(TrainingType == 'US'):        
         if(LossFuncName == 'PhotoL1'):
             WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
             I2Patch = tf.boolean_mask(I2PH, MaskPH)
+            WarpI1PatchCornerness = tf.boolean_mask(WarpI1Cornerness, MaskPH)
+            I2PatchCornerness = tf.boolean_mask(I2CornernessPH, MaskPH)
             
             DiffImg = WarpI1Patch - I2Patch
-            lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
+            Lambda = [1.0, 1.0] # Photo, CornerPhoto
+            lossCornerPhoto = tf.math.multiply(WarpI1Patch, WarpI1PatchCornerness) - tf.math.multiply(I2Patch, I2PatchCornerness)
+            lossPhoto = tf.reduce_mean(Lambda[0]*tf.abs(DiffImg) + Lambda[1]*lossCornerPhoto)
         elif(LossFuncName == 'PhotoChab'):
             WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
             I2Patch = tf.boolean_mask(I2PH, MaskPH)
@@ -405,7 +434,7 @@ def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossF
     
     return lossPhoto, WarpI1, WarpMask, WarpI1Patch, I2Patch, a
     
-def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
+def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, I1CornernessPH, I2CornernessPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
                    DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize):
     """
@@ -431,17 +460,23 @@ def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, Tes
     
     # Predict output with forward pass
     if(NetworkType == 'Small'):
-        prHVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
-        with tf.name_scope('Loss'):
-    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize)
+        print('ERROR: Not implemented yet!')
+        sys.exit(0)
+        # prHVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
+        # with tf.name_scope('Loss'):
+    	#     loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize,
+        #                                                                WarpI1PatchCornernessPH, I2PatchCornernessPH)
     elif(NetworkType == 'Large'):
         prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
         with tf.name_scope('Loss'):
-    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize)
+    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, _ = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize,
+                                                                       I1CornernessPH, I2CornernessPH)
     elif(NetworkType == 'SmallRobust'):
-        prHVal, prAlpha = EVHomographyNetUnsupSmallRobust(ImgPH, ImageSize, MiniBatchSize)
-        with tf.name_scope('Loss'):
-    	    loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, Alpha = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize, a=prAlpha, ImageSize=ImageSize)
+        print('ERROR: Not implemented yet!')
+        sys.exit(0)
+        # prHVal, prAlpha = EVHomographyNetUnsupSmallRobust(ImgPH, ImageSize, MiniBatchSize)
+        # with tf.name_scope('Loss'):
+    	#     loss, WarpI1, WarpMask, WarpI1Patch, I2Patch, Alpha = LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossFuncName, TrainingType, OriginalImageSize, a=prAlpha, ImageSize=ImageSize)
             
     with tf.name_scope('Adam'):
         Optimizer = tf.train.AdamOptimizer(learning_rate=OptimizerParams[0], beta1=OptimizerParams[1],
@@ -459,6 +494,8 @@ def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, Tes
     tf.summary.image('I2', I2PH[:,:,:,0:3])
     tf.summary.image('Mask', MaskPH[:,:,:,0:3])
     tf.summary.image('WarpMask', WarpMask[:,:,:,0:3])
+    tf.summary.image('CornernessI1', I1CornernessPH[:,:,:,0:3])
+    tf.summary.image('CornernessI2', I2CornernessPH[:,:,:,0:3])
     # tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3])
     # tf.summary.image('I2Patch', I2Patch[:,:,:,0:3])
     # tf.summary.image('I2Patch - WarpI1Patch', tf.abs(I2Patch[:,:,:,0:3] - WarpI1Patch[:,:,:,0:3]))
@@ -506,9 +543,10 @@ def TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, Tes
                 Timer2 = tic()
 
                 IBatch, LabelBatch, I1Batch, I2Batch, I1PatchBatch, I2PatchBatch, \
-                AllPtsBatch, PerturbPtsBatch, MaskBatch = GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalImageSize)
+                AllPtsBatch, PerturbPtsBatch, MaskBatch, I1CornernessBatch, I2CornernessBatch = GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalImageSize)
 
-                FeedDict = {ImgPH: IBatch, I1PH: I1Batch, AllPtsPH: AllPtsBatch, I2PH: I2Batch, MaskPH: MaskBatch, LabelPH: LabelBatch}
+                FeedDict = {ImgPH: IBatch, I1PH: I1Batch, AllPtsPH: AllPtsBatch, I2PH: I2Batch, MaskPH: MaskBatch, \
+                            LabelPH: LabelBatch, I1CornernessPH: I1CornernessBatch, I2CornernessPH: I2CornernessBatch}
                 _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                 
                 # Tensorboard
@@ -631,9 +669,11 @@ def main():
     I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='I2')
     MaskPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='Mask')
     AllPtsPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 4, 2), name='AllPts')
-    LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 8, 1), name='Label')  
+    LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 8, 1), name='Label')
+    I1CornernessPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='I1Cornerness')
+    I2CornernessPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='I2Cornerness')
 
-    TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
+    TrainOperation(ImgPH, I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, I1CornernessPH, I2CornernessPH, TrainNames, TestNames, NumTrainSamples, ImageSize, Rho,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
                    DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize)
         

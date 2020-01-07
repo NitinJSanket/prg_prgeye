@@ -280,6 +280,13 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
     pInit = tf.zeros([MiniBatchSize, 8])
     prHVal, WarpI1Patch = ICSTN(PatchPH, PatchSize, MiniBatchSize, opt, pInit)
     # WarpI1Patch = warp.transformImage(opt, I1PH, prHVal)
+
+    # Multiply by M and Minv
+    M = np.eye(3)
+    M[0,0] = PatchSize[0]/2
+    M[0,2] = PatchSize[0]/2
+    M[1,1] = PatchSize[1]/2
+    M[1,2] = PatchSize[1]/2    
     
     # Setup Saver
     Saver = tf.train.Saver()
@@ -305,7 +312,10 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
             # prHPredVal, HMatPredVal, HMatTrueVal = sess.run([prHVal, HMatPred, HMatTrue], FeedDict)
             prHValRet, WarpI1PatchRet = sess.run([prHVal, WarpI1Patch], FeedDict)
 
-            print(prHValRet)
+            prHValScaled = np.matmul(np.matmul(np.linalg.inv(M), prHValRet), M)
+            
+            print(prHValRet) # TODO: Modify this line to add Scaling and Shifting operator.
+            print(prHValScaled)
             print(H4PtColBatch[0])
             print(np.shape(WarpI1PatchRet))
             cv2.imshow('a', np.squeeze(WarpI1PatchRet[:,:,:,0:3]))
@@ -447,7 +457,7 @@ def main():
     I1PH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1')
     I2PH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]), name='I2')
     HBatchPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3, 3), name='H') 
-    # prHTruePH = tf.placeholder(tf.float32, shape=(1, 4, 2), name='prHTrue')
+    prHTruePH = tf.placeholder(tf.float32, shape=(1, 4, 2), name='prHTrue')
 
     if(not os.path.exists(WritePath)):
         cprint("WARNING: %s doesnt exist, Creating it."%WritePath, 'yellow')

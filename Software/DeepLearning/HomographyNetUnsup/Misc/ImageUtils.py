@@ -43,6 +43,13 @@ def RandomCrop(I1, OutShape):
         I1Crop = None
     return (I1Crop)
 
+def StackImages(I1, I2):
+    return np.dstack((I1, I2))
+
+def UnstackImages(I, NumChannels=3):
+    return I[:,:,:NumChannels], I[:,:,NumChannels:]
+    
+
 def GaussianNoise(I1):
     IN1 = skimage.util.random_noise(I1, mode='gaussian', var=0.01)
     IN1 = np.uint8(IN1*255)

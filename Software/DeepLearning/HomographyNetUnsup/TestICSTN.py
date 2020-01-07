@@ -124,7 +124,7 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     
     if(Vis is True):
         CroppedIDisp = np.hstack((CroppedI, CroppedWarpedI))
-        print(np.shap e(CroppedIDisp))
+        print(np.shape(CroppedIDisp))
         cv2.imshow('d', CroppedIDisp)
         cv2.waitKey(0)
 
