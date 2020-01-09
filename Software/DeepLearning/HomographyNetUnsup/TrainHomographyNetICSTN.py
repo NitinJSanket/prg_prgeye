@@ -98,7 +98,7 @@ def SetupAll(BasePath, LearningRate):
         SaveCheckPoint, PatchSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
         NumTestRunsPerEpoch, OriginalImageSize       
 
-def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
+def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False, AddTranslation=False):
     """
     Inputs: 
     I is the input image
@@ -137,10 +137,14 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
         cv2.waitKey(1)	
 
 
-    # Change this to add translation too
-    RandTranslationX = random.randint(-Rho,Rho)
-    RandTranslationY = random.randint(-Rho,Rho)
-    PerturbPts = []
+        if(AddTranslation is True):
+            RandTranslationX = random.randint(-Rho,Rho)
+            RandTranslationY = random.randint(-Rho,Rho)
+        else:
+            RandTranslationX = 0
+            RandTranslationY = 0
+            
+        PerturbPts = []
     for point in AllPts:
         PerturbPts.append((point[0] + random.randint(-Rho,Rho) + RandTranslationX, point[1] + random.randint(-Rho,Rho) + RandTranslationY))
 
@@ -238,7 +242,7 @@ def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
 
     return DirNames, TrainNames, ValNames, TestNames
     
-def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalImageSize):
+def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalImageSize, AddTranslation=False):
     """
     Inputs: 
     DirNames - Full path to all image files without extension
@@ -274,7 +278,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         ImageNum += 1
 
         # Homography and Patch generation 
-        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False)
+        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False, AddTranslation)
 
         ICombined = np.dstack((CroppedI[:,:,0:3], CroppedWarpedI[:,:,0:3]))
         # Normalize Dataset
@@ -425,7 +429,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, HBatchPH, TrainNames, TestNames, 
                 Timer2 = tic()
 
                 IBatch, LabelBatch, I1Batch, I2Batch, I1PatchBatch, I2PatchBatch, \
-                AllPtsBatch, PerturbPtsBatch, MaskBatch, HBatch = GenerateBatch(TrainNames, PatchSize, MiniBatchSize, Rho, BasePath, OriginalImageSize)
+                AllPtsBatch, PerturbPtsBatch, MaskBatch, HBatch = GenerateBatch(TrainNames, PatchSize, MiniBatchSize, Rho, BasePath, OriginalImageSize, opt.AddTranslation)
 
                 FeedDict = {ImgPH: IBatch, I1PH: I1PatchBatch, I2PH: I2PatchBatch, LabelPH: LabelBatch, HBatchPH: HBatch}
                 _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
@@ -503,6 +507,7 @@ def main():
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--LR', type=float, default=1e-4, help='Learning Rate, Default: 1e-4')
     Parser.add_argument('--TrainingType', default='S', help='Training Type, S: Supervised, US: Unsupervised, Default: US')
+    Parser.add_argument('--AddTranslation', type=int, default=0, help='Add Translation for perturbation?, 0: No, 1: Yes, Default: 0')
     
     Args = Parser.parse_args()
     NumEpochs = Args.NumEpochs
@@ -554,6 +559,7 @@ def main():
             self.NumBlocks = NumBlocks
             self.pertScale = pertScale
             self.transScale = transScale
+            self.AddTranslation = bool(Args.AddTranslation)
 
     opt = Options(PatchSize=PatchSize)
     

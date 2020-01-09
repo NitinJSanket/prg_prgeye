@@ -336,6 +336,8 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
         for ImgPath in tqdm(glob.glob(ReadPath + os.sep + '*' + ImageFormat)):
             # for StackNum in range(0, NumImgsStack):
             INow = cv2.imread(ImgPath)
+            Scale = [0.7, 0.7] # ScaleX, ScaleY
+            INow = cv2.resize(INow, (int(INow.shape[1]*Scale[1]), int(INow.shape[0]*Scale[0])))
             Rho = [25]# [10, 10]
             IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, HBatch, MaskBatch = GenerateBatch(INow, Rho, PatchSize, CropType, Vis=False)
             # TODO: Better way is to feed data into a MiniBatch and Extract it again
@@ -347,23 +349,20 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
             
             # Minv x H x M
             prHValScaled = np.matmul(opt.refMtrx, prHValRet[0])# np.matmul(np.matmul(np.linalg.inv(M), prHValRet[0]), M)
-
             PerturbPtsGT = ApplyHomography(AllPtsBatch[0], HBatch[0])
+            
             # Required due to difference in co-ordinate frames
             Offsets = np.int32([[(AllPtsBatch[0][0][0] + AllPtsBatch[0][2][0])/2 - PatchSize[0]/2], [(AllPtsBatch[0][0][1] + AllPtsBatch[0][2][1])/2 - PatchSize[1]/2]]) 
             PerturbPtsPred = ApplyHomography(AllPts1, prHValScaled, AddOffset=Offsets)
+            
+            print('PerturbPts Predicted is \n {}'.format(PerturbPtsPred))
+            print('PerturbPts GT is \n {}'.format(PerturbPtsGT))
 
-            # print(PerturbPtsGT)
-            # print(PerturbPtsPred)
-            # print('-----------')
-            # print(PerturbPtsGT)
-            # print(PerturbPtsPred)
-            # print('----------')
-            # print(prHValRet) 
-            # print(prHValScaled)
-            # print(HBatch[0])
-            # print(np.shape(WarpI1PatchRet))
-
+            # Pixel Error in H4Pt
+            ErrorNow = np.sum(np.sqrt((np.asarray(PerturbPtsPred)[:, 0] - np.asarray(PerturbPtsGT)[:, 0])**2 + (np.asarray(PerturbPtsPred)[:, 1] - np.asarray(PerturbPtsGT)[:, 1])**2))/4
+            print('Avg. Pixel Error is \n {}'.format(ErrorNow))
+            
+            # Display Outputs
             INowDisp = PlotHomographyLines(INow, AllPtsBatch[0], ColorSpec=(255,255,255), ImgTitle='HomographyLines', WaitTime=1, Disp=False)
             INowDisp = PlotHomographyLines(INowDisp, PerturbPtsGT, ColorSpec=(0,255,255), ImgTitle='HomographyLines2', WaitTime=1, Disp=False)
             INowDisp = PlotHomographyLines(INowDisp, PerturbPtsPred, ColorSpec=(0,0,255), ImgTitle='HomographyLines3', WaitTime=1, Disp=True)
@@ -375,42 +374,42 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
             cv2.imshow('WarpI1, I2, I1', IStack)
             cv2.waitKey(0)
             
-            # Pixel Error in H4Pt
-            ErrorNow = np.sum(np.sqrt((prHPredVal[:, 0] - prHTrue[:, 0])**2 + (prHPredVal[:, 1] - prHTrue[:, 1])**2))/4
             
-            # Predicted Rotation
-            HMatPredValRot = HMatPredVal[0].copy()
-            HMatPredValRot[:, 2] = np.cross(HMatPredValRot[:,0], HMatPredValRot[:,1]).transpose()
-            RotPred = mu.ClosestRotMat(HMatPredValRot)
+            # # Predicted Rotation
+            # HMatPredValRot = HMatPredVal[0].copy()
+            # HMatPredValRot[:, 2] = np.cross(HMatPredValRot[:,0], HMatPredValRot[:,1]).transpose()
+            # RotPred = mu.ClosestRotMat(HMatPredValRot)
             
-            # GT Rotation
-            HMatTrueValRot = HMatTrueVal[0].copy()
-            HMatTrueValRot[:, 2] = np.cross(HMatTrueValRot[:,0], HMatTrueValRot[:,1]).transpose()
-            RotTrue = mu.ClosestRotMat(HMatTrueValRot)
-            # Need to handle case when det becomes -1.0
+            # # GT Rotation
+            # HMatTrueValRot = HMatTrueVal[0].copy()
+            # HMatTrueValRot[:, 2] = np.cross(HMatTrueValRot[:,0], HMatTrueValRot[:,1]).transpose()
+            # RotTrue = mu.ClosestRotMat(HMatTrueValRot)
+            # # Need to handle case when det becomes -1.0
 
-            # Predicted and GT Translation
-            TransPred = HMatPredVal[0].copy()
-            TransPred = TransPred[:, 2]
-            TransTrue = HMatTrueVal[0].copy()
-            TransTrue = TransTrue[:, 2]
+            # # Predicted and GT Translation
+            # TransPred = HMatPredVal[0].copy()
+            # TransPred = TransPred[:, 2]
+            # TransTrue = HMatTrueVal[0].copy()
+            # TransTrue = TransTrue[:, 2]
 
-            print('H4Pt Avg, Error {}'.format(ErrorNow))
-            print('H4Pt Pred \n {}'.format(prHPredVal))
-            print('H4Pt True \n {}'.format(prHTrue))
-            print("HMatPred \n {}".format(HMatPredVal[0]))
-            print("HMatTrue \n {}".format(HMatTrueVal[0]))
+            # print('H4Pt Avg, Error {}'.format(ErrorNow))
+            # print('H4Pt Pred \n {}'.format(prHPredVal))
+            # print('H4Pt True \n {}'.format(prHTrue))
+            # print("HMatPred \n {}".format(HMatPredVal[0]))
+            # print("HMatTrue \n {}".format(HMatTrueVal[0]))
 
-            print('RotPred \n {}'.format(RotPred))
-            print('RotTrue \n {}'.format(RotTrue))
+            # print('RotPred \n {}'.format(RotPred))
+            # print('RotTrue \n {}'.format(RotTrue))
 
-            print('RotPred Det {} RotTrue Det {}'.format(np.linalg.det(RotPred), np.linalg.det(RotTrue)))
-            print('Rotation Error {}'.format(mu.RotMatError(RotPred, RotTrue)))
+            # print('RotPred Det {} RotTrue Det {}'.format(np.linalg.det(RotPred), np.linalg.det(RotTrue)))
+            # print('Rotation Error {}'.format(mu.RotMatError(RotPred, RotTrue)))
             
-            print('TransPred \n {}'.format(TransPred))
-            print('TransTrue \n {}'.format(TransTrue))
-            print('Translation Error {}'.format(mu.TransError(TransPred, TransTrue)))
-            input('a')
+            # print('TransPred \n {}'.format(TransPred))
+            # print('TransTrue \n {}'.format(TransTrue))
+            # print('Translation Error {}'.format(mu.TransError(TransPred, TransTrue)))
+            # input('a')
+
+            
             # Timer1 = tic()
             # WarpI1Ret = sess.run(WarpI1, FeedDict)
             # cv2.imshow('a', WarpI1Ret[0])
