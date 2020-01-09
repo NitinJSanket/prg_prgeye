@@ -41,8 +41,6 @@ import Misc.STNUtils as stn
 import Misc.TFUtils as tu
 import Misc.warpICSTN as warp
 
-
-
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
@@ -453,6 +451,7 @@ def main():
     # TODO: Make LogDir
     # TODO: Display time to end and cleanup other print statements with color
     # TODO: Make logging file a parameter
+    # Updated
 
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
