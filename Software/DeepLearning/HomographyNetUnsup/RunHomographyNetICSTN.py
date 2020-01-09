@@ -22,6 +22,7 @@ import sys
 import os
 import glob
 import Misc.ImageUtils as iu
+import Misc.MiscUtils as mu
 import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
@@ -39,6 +40,7 @@ from tqdm import tqdm
 import Misc.STNUtils as stn
 import Misc.TFUtils as tu
 import Misc.warpICSTN as warp
+
 
 
 # Don't generate pyc codes
@@ -237,6 +239,27 @@ def GenerateBatch(IBuffer, Rho, PatchSize, CropType, Vis=False):
     # IBatch is the Original Image I1 Batch
     return IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, HBatch, MaskBatch
 
+def PlotHomographyLines(I, Pts, ColorSpec=(255,255,255), ImgTitle='HomographyLines', WaitTime=0, Disp=True):
+    ImgDisp = I.copy()
+    cv2.polylines(ImgDisp, [np.int32(Pts)], 1, ColorSpec)
+    if(Disp is True):
+        cv2.imshow(ImgTitle, ImgDisp)
+        cv2.waitKey(WaitTime)
+    return ImgDisp
+
+def ApplyHomography(Pts, H, AddOffset=None):
+    PerturbPts = []
+    for pt in Pts:
+        # Apply Homography
+        PerturbPtsNow = np.matmul(H, [[pt[0]], [pt[1]], [1.0]])
+        # Normalize to be on Image Plane
+        PerturbPtsNow = np.divide(PerturbPtsNow, PerturbPtsNow[2])[:2]
+        # Add offset if needed
+        if(AddOffset is not None):
+            PerturbPtsNow = np.add(PerturbPtsNow,  AddOffset)
+        PerturbPts.append(PerturbPtsNow)
+
+    return PerturbPts
 
 def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath, WritePath, TrainNames, NumTrainSamples, CropType, MiniBatchSize, opt):
     """
@@ -257,12 +280,23 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
     CenterY = PatchSize[0]/2
     RandX = np.ceil(CenterX - PatchSize[1]/2)
     RandY = np.ceil(CenterY - PatchSize[0]/2)
+    # p1 = (RandX, RandY)
+    # p2 = (RandX, RandY + PatchSize[0])
+    # p3 = (RandX + PatchSize[1], RandY + PatchSize[0])
+    # p4 = (RandX + PatchSize[1], RandY)
+    p1 = (-1, -1)
+    p2 = (-1,  1)
+    p3 = ( 1,  1)
+    p4 = ( 1, -1)
+    
+    AllPts1 = [p1, p2, p3, p4]
+
     p1 = (RandX, RandY)
     p2 = (RandX, RandY + PatchSize[0])
     p3 = (RandX + PatchSize[1], RandY + PatchSize[0])
     p4 = (RandX + PatchSize[1], RandY)
-    
-    AllPts = [p1, p2, p3, p4]
+
+    AllPts2 = [p1, p2, p3, p4]
     
     # Predict output with forward pass, MiniBatchSize for Test is 1
     # prHVal = EVHomographyNetUnsup(PatchPH, PatchSize, 1)
@@ -285,8 +319,8 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
     M[0,0] = PatchSize[0]/2
     M[0,2] = PatchSize[0]/2
     M[1,1] = PatchSize[1]/2
-    M[1,2] = PatchSize[1]/2    
-    
+    M[1,2] = PatchSize[1]/2
+
     # Setup Saver
     Saver = tf.train.Saver()
     
@@ -303,25 +337,45 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
             # for StackNum in range(0, NumImgsStack):
             INow = cv2.imread(ImgPath)
             Rho = [25]# [10, 10]
-            IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, H4PtColBatch, MaskBatch = GenerateBatch(INow, Rho, PatchSize, CropType, Vis=False)
+            IBatch, I1Batch, I2Batch, AllPtsBatch, PerturbPtsBatch, HBatch, MaskBatch = GenerateBatch(INow, Rho, PatchSize, CropType, Vis=False)
             # TODO: Better way is to feed data into a MiniBatch and Extract it again
             # INow = np.hsplit(INow, 2)[0] # Imgs have a stack of 2 in this case, hence extract one
             # prHTrue = np.float32(np.reshape(H4PtColBatch[0], (-1, 4, 2)))
             FeedDict = {PatchPH: IBatch, I1PH: I1Batch, I2PH: I2Batch}# , prHTruePH: prHTrue}
             # prHPredVal, HMatPredVal, HMatTrueVal = sess.run([prHVal, HMatPred, HMatTrue], FeedDict)
             prHValRet, WarpI1PatchRet = sess.run([prHVal, WarpI1Patch], FeedDict)
-
-            prHValScaled = np.matmul(np.matmul(np.linalg.inv(M), prHValRet), M)
             
-            print(prHValRet) # TODO: Modify this line to add Scaling and Shifting operator.
-            print(prHValScaled)
-            print(H4PtColBatch[0])
-            print(np.shape(WarpI1PatchRet))
-            cv2.imshow('a', np.squeeze(WarpI1PatchRet[:,:,:,0:3]))
-            cv2.imshow('b', I2Batch[0])
-            cv2.imshow('c', I1Batch[0])
+            # Minv x H x M
+            prHValScaled = np.matmul(opt.refMtrx, prHValRet[0])# np.matmul(np.matmul(np.linalg.inv(M), prHValRet[0]), M)
+
+            PerturbPtsGT = ApplyHomography(AllPtsBatch[0], HBatch[0])
+            # Required due to difference in co-ordinate frames
+            Offsets = np.int32([[(AllPtsBatch[0][0][0] + AllPtsBatch[0][2][0])/2 - PatchSize[0]/2], [(AllPtsBatch[0][0][1] + AllPtsBatch[0][2][1])/2 - PatchSize[1]/2]]) 
+            PerturbPtsPred = ApplyHomography(AllPts1, prHValScaled, AddOffset=Offsets)
+
+            # print(PerturbPtsGT)
+            # print(PerturbPtsPred)
+            # print('-----------')
+            # print(PerturbPtsGT)
+            # print(PerturbPtsPred)
+            # print('----------')
+            # print(prHValRet) 
+            # print(prHValScaled)
+            # print(HBatch[0])
+            # print(np.shape(WarpI1PatchRet))
+
+            INowDisp = PlotHomographyLines(INow, AllPtsBatch[0], ColorSpec=(255,255,255), ImgTitle='HomographyLines', WaitTime=1, Disp=False)
+            INowDisp = PlotHomographyLines(INowDisp, PerturbPtsGT, ColorSpec=(0,255,255), ImgTitle='HomographyLines2', WaitTime=1, Disp=False)
+            INowDisp = PlotHomographyLines(INowDisp, PerturbPtsPred, ColorSpec=(0,0,255), ImgTitle='HomographyLines3', WaitTime=1, Disp=True)
+
+            print(I2Batch[0])
+            print(np.squeeze(WarpI1PatchRet[:,:,:,0:3]))
+            IStack = np.uint8(np.concatenate((mu.remap(np.squeeze(WarpI1PatchRet[:,:,:,0:3]), 0., 255.,  np.amin(np.squeeze(WarpI1PatchRet[:,:,:,0:3])),\
+                                                       np.amax(np.squeeze(WarpI1PatchRet[:,:,:,0:3]))), \
+                                     mu.remap(I2Batch[0], 0., 255., np.amin(I2Batch[0]), np.amax(I2Batch[0])),\
+                                     mu.remap(I1Batch[0], 0., 255., np.amin(I1Batch[0]), np.amax(I1Batch[0]))), axis=1))
+            cv2.imshow('WarpI1, I2, I1', IStack)
             cv2.waitKey(0)
-            input('q')
             
             # Pixel Error in H4Pt
             ErrorNow = np.sum(np.sqrt((prHPredVal[:, 0] - prHTrue[:, 0])**2 + (prHPredVal[:, 1] - prHTrue[:, 1])**2))/4
