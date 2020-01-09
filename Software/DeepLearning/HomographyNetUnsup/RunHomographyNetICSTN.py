@@ -368,8 +368,6 @@ def TestOperation(PatchPH, I1PH, I2PH, prHTruePH, PatchSize, ModelPath, ReadPath
             INowDisp = PlotHomographyLines(INowDisp, PerturbPtsGT, ColorSpec=(0,255,255), ImgTitle='HomographyLines2', WaitTime=1, Disp=False)
             INowDisp = PlotHomographyLines(INowDisp, PerturbPtsPred, ColorSpec=(0,0,255), ImgTitle='HomographyLines3', WaitTime=1, Disp=True)
 
-            print(I2Batch[0])
-            print(np.squeeze(WarpI1PatchRet[:,:,:,0:3]))
             IStack = np.uint8(np.concatenate((mu.remap(np.squeeze(WarpI1PatchRet[:,:,:,0:3]), 0., 255.,  np.amin(np.squeeze(WarpI1PatchRet[:,:,:,0:3])),\
                                                        np.amax(np.squeeze(WarpI1PatchRet[:,:,:,0:3]))), \
                                      mu.remap(I2Batch[0], 0., 255., np.amin(I2Batch[0]), np.amax(I2Batch[0])),\
