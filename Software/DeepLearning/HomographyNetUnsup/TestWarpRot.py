@@ -39,6 +39,10 @@ def main():
     H = np.add(R, np.matmul(T, N.T))
     H = np.divide(H, H[2,2])
     H = np.matmul(K, np.matmul(H, np.linalg.inv(K)))
+
+    # Get Homography From Class Function
+    H1 = Homography(ImaegSize)
+    H = H1.ComposeHFromRTN(R, T, N)
     
     # Get Inverse Homography
     HInv = np.linalg.inv(H)
