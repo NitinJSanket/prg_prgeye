@@ -136,7 +136,8 @@ class Homography:
         H = np.add(R, np.matmul(T, N.T)) # R + TN'
         H = np.divide(H, H[2,2]) # Nornalize by making last element 1
         if(Scale):
-            H = np.matmul(self.ScaleMtrx, H) # Scale to bring to Image Coordinates
+            H =  np.matmul(self.ScaleMtrx, np.matmul(H, np.linalg.inv( self.ScaleMtrx))) # Scale to bring to Image Coordinates
+           
         return H
 
     def DecomposeHToRTN(self):
@@ -152,15 +153,15 @@ class Homography:
     
     def WarpPtsUsingHomography(Pts, H, AddOffset=None):
         PerturbPts = []
-    for pt in Pts:
-        # Apply Homography
-        PerturbPtsNow = np.matmul(H, [[pt[0]], [pt[1]], [1.0]])
-        # Normalize to be on Image Plane
-        PerturbPtsNow = np.divide(PerturbPtsNow, PerturbPtsNow[2])[:2]
-        # Add offset if needed
-        if(AddOffset is not None):
-            PerturbPtsNow = np.add(PerturbPtsNow,  AddOffset)
-            PerturbPts.append(PerturbPtsNow)
+        for pt in Pts:
+            # Apply Homography
+            PerturbPtsNow = np.matmul(H, [[pt[0]], [pt[1]], [1.0]])
+            # Normalize to be on Image Plane
+            PerturbPtsNow = np.divide(PerturbPtsNow, PerturbPtsNow[2])[:2]
+            # Add offset if needed
+            if(AddOffset is not None):
+                PerturbPtsNow = np.add(PerturbPtsNow,  AddOffset)
+                PerturbPts.append(PerturbPtsNow)
         return PerturbPts
 
     def DispWarpLines(self, I, Pts, Disp=True,  DispName='HomographyLines', ColorSpec=(255,255,255), WaitTime=0):

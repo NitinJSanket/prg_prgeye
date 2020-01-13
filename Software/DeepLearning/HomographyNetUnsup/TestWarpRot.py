@@ -16,7 +16,7 @@ def main():
     # ImageSize = np.shape(I)
     
     # Rotation Part
-    MaxRVal = np.array([2.0, 2.0, 2.0]) # In Degrees, Using 30 fps at 60 deg/s 
+    MaxRVal = np.array([0.0, 0.0, 0.0]) # In Degrees, Using 30 fps at 60 deg/s 
     EulAng = 2*MaxRVal*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
     R = Rot.from_euler('zyx', EulAng, degrees=True).as_dcm()
 
@@ -28,21 +28,22 @@ def main():
     N = np.array([[0.0], [0.0], [1.0]]) # Keep this fixed 
     N = np.divide(N, np.linalg.norm(N))
 
-    # Camera Matrix
-    K = np.eye(3)
-    K[0,0] = 400.0
-    K[1,1] = 400.0
-    K[0,2] = ImageSize[0]/2
-    K[1,2] = ImageSize[1]/2
+    # Scaling Matrix
+    M = np.eye(3)
+    M[0,0] = ImageSize[0]/2
+    M[1,1] = ImageSize[1]/2
+    M[0,2] = ImageSize[0]/2
+    M[1,2] = ImageSize[1]/2
     
     # Compose Homography
     H = np.add(R, np.matmul(T, N.T))
     H = np.divide(H, H[2,2])
-    H = np.matmul(K, np.matmul(H, np.linalg.inv(K)))
+    H = np.matmul(M, np.matmul(H, np.linalg.inv(M)))
 
     # Get Homography From Class Function
-    H1 = Homography(ImaegSize)
-    H = H1.ComposeHFromRTN(R, T, N)
+    H1 = iu.Homography(ImageSize)
+    H = H1.ComposeHFromRTN(R, T, N, Scale=True)
+    print(H)
     
     # Get Inverse Homography
     HInv = np.linalg.inv(H)
