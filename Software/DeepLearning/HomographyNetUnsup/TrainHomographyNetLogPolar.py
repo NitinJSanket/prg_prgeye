@@ -98,7 +98,7 @@ def SetupAll(BasePath, LearningRate):
     return TrainNames, ValNames, TestNames, OptimizerParams,\
         SaveCheckPoint, ImageSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
         NumTestRunsPerEpoch, OriginalImageSize
-
+    
 def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     """
     Inputs: 

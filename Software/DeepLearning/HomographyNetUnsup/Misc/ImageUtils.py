@@ -122,3 +122,52 @@ def rgb2gray(rgb):
     gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
 
     return gray
+
+class Homography:
+    def __init__(self, ImageSize=[128., 128., 3.]):
+        self.ImageSize = ImageSize
+        self.ScaleMtrx = np.eye(3) # Scales from [-1, 1] ImageCoordinates to Actual Image Coordinates
+        self.ScaleMtrx[0,0] = ImageSize[0]/2
+        self.ScaleMtrx[0,2] = ImageSize[0]/2
+        self.ScaleMtrx[1,1] = ImageSize[1]/2
+        self.ScaleMtrx[1,2] = ImageSize[1]/2
+        
+    def ComposeHFromRTN(self, R=np.eye(3), T=np.zeros((3, 1)), N= np.array([[0.], [0.], [1.]]), Scale=False):
+        H = np.add(R, np.matmul(T, N.T)) # R + TN'
+        H = np.divide(H, H[2,2]) # Nornalize by making last element 1
+        if(Scale):
+            H = np.matmul(self.ScaleMtrx, H) # Scale to bring to Image Coordinates
+        return H
+
+    def DecomposeHToRTN(self):
+        # retval, rotations, translations, normals   =  cv.decomposeHomographyMat(H, K[, rotations[, translations[, normals]]])
+        pass
+    
+    def WarpImg(self, I, H, Disp=False, DispName='WarpedImg', WaitTime=0):
+        WarpedImg = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
+        if(Disp):
+            cv2.imshow(DispName, WarpedImg)
+            cv2.waitKey(WaitTime)
+        return WarpedImg
+    
+    def WarpPtsUsingHomography(Pts, H, AddOffset=None):
+        PerturbPts = []
+    for pt in Pts:
+        # Apply Homography
+        PerturbPtsNow = np.matmul(H, [[pt[0]], [pt[1]], [1.0]])
+        # Normalize to be on Image Plane
+        PerturbPtsNow = np.divide(PerturbPtsNow, PerturbPtsNow[2])[:2]
+        # Add offset if needed
+        if(AddOffset is not None):
+            PerturbPtsNow = np.add(PerturbPtsNow,  AddOffset)
+            PerturbPts.append(PerturbPtsNow)
+        return PerturbPts
+
+    def DispWarpLines(self, I, Pts, Disp=True,  DispName='HomographyLines', ColorSpec=(255,255,255), WaitTime=0):
+        ImgDisp = I.copy()
+        cv2.polylines(ImgDisp, [np.int32(Pts)], 1, ColorSpec)
+        if(Disp is True):
+            cv2.imshow(ImgTitle, ImgDisp)
+            cv2.waitKey(WaitTime)
+        return ImgDisp
+    
