@@ -137,14 +137,14 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False, Add
         cv2.waitKey(1)	
 
 
-        if(AddTranslation is True):
-            RandTranslationX = random.randint(-Rho,Rho)
-            RandTranslationY = random.randint(-Rho,Rho)
-        else:
-            RandTranslationX = 0
-            RandTranslationY = 0
+    if(AddTranslation is True):
+        RandTranslationX = random.randint(-Rho,Rho)
+        RandTranslationY = random.randint(-Rho,Rho)
+    else:
+        RandTranslationX = 0
+        RandTranslationY = 0
             
-        PerturbPts = []
+    PerturbPts = []
     for point in AllPts:
         PerturbPts.append((point[0] + random.randint(-Rho,Rho) + RandTranslationX, point[1] + random.randint(-Rho,Rho) + RandTranslationY))
 
@@ -278,7 +278,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         ImageNum += 1
 
         # Homography and Patch generation 
-        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False, AddTranslation)
+        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False, AddTranslation=AddTranslation)
 
         ICombined = np.dstack((CroppedI[:,:,0:3], CroppedWarpedI[:,:,0:3]))
         # Normalize Dataset
@@ -543,16 +543,29 @@ def main():
         def __init__(self, PatchSize=[128,128,3], MiniBatchSize=MiniBatchSize, warpType='homography', NumBlocks=4, pertScale=0.25, transScale=0.25):
             self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
             self.H = PatchSize[1].astype(np.int32) 
-            self.batchSize = np.array(MiniBatchSize).astype(np.int32) 
-            self.warpType = 'homography'
-            if self.warpType == 'translation':
-                self.warpDim = 2
-            elif self.warpType == 'similarity':
-                self.warpDim = 4
-            elif self.warpType == 'affine':
-                self.warpDim = 6
-            elif self.warpType == 'homography':
-                self.warpDim = 8
+            self.batchSize = np.array(MiniBatchSize).astype(np.int32)
+            self.warpType = warpType
+            if(isinstance(self.warpType, list)): # If you don't need different warps, send single string for warpType instead
+                self.warpDim = []
+                for val in self.warpType:
+                    if self.warpType == 'translation':
+                        self.warpDim.append(2)
+                    elif self.warpType == 'similarity':
+                        self.warpDim.append(4)
+                    elif self.warpType == 'affine':
+                        self.warpDim.append(6)
+                    elif self.warpType == 'homography':
+                        self.warpDim.append(8)
+            else:
+                self.warpType = warpType
+                if self.warpType == 'translation':
+                    self.warpDim = 2
+                elif self.warpType == 'similarity':
+                    self.warpDim = 4
+                elif self.warpType == 'affine':
+                    self.warpDim = 6
+                elif self.warpType == 'homography':
+                    self.warpDim = 8
             self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
             self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
             self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
@@ -560,6 +573,7 @@ def main():
             self.pertScale = pertScale
             self.transScale = transScale
             self.AddTranslation = bool(Args.AddTranslation)
+            self.currBlock = 0 # Only used if self.warpTypeMultiple is True
 
     opt = Options(PatchSize=PatchSize)
     

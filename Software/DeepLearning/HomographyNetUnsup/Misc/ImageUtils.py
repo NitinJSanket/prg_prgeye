@@ -124,7 +124,7 @@ def rgb2gray(rgb):
     return gray
 
 class Homography:
-    def __init__(self, ImageSize=[128., 128., 3.], MaxRVal = np.array([0.0, 0.0, 0.0], MaxTVal=np.array([[0.25], [0.25], [0.25]])):
+    def __init__(self, ImageSize=[128., 128., 3.], MaxRVal = np.array([0.0, 0.0, 0.0]), MaxTVal=np.array([[0.25], [0.25], [0.25]])):
         self.ImageSize = ImageSize
         self.ScaleMtrx = np.eye(3) # Scales from [-1, 1] ImageCoordinates to Actual Image Coordinates
         self.ScaleMtrx[0,0] = ImageSize[0]/2

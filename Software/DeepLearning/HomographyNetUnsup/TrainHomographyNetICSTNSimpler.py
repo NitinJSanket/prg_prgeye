@@ -137,14 +137,14 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False, Add
         cv2.waitKey(1)	
 
 
-        if(AddTranslation is True):
-            RandTranslationX = random.randint(-Rho,Rho)
-            RandTranslationY = random.randint(-Rho,Rho)
-        else:
-            RandTranslationX = 0
-            RandTranslationY = 0
+    if(AddTranslation is True):
+        RandTranslationX = random.randint(-Rho,Rho)
+        RandTranslationY = random.randint(-Rho,Rho)
+    else:
+        RandTranslationX = 0
+        RandTranslationY = 0
             
-        PerturbPts = []
+    PerturbPts = []
     for point in AllPts:
         PerturbPts.append((point[0] + random.randint(-Rho,Rho) + RandTranslationX, point[1] + random.randint(-Rho,Rho) + RandTranslationY))
 
@@ -278,7 +278,7 @@ def GenerateBatch(TrainNames, ImageSize, MiniBatchSize, Rho, BasePath, OriginalI
         ImageNum += 1
 
         # Homography and Patch generation 
-        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False, AddTranslation)
+        IOriginal, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H = RandHomographyPerturbation(I, Rho, ImageSize, Vis=False, AddTranslation=AddTranslation)
 
         ICombined = np.dstack((CroppedI[:,:,0:3], CroppedWarpedI[:,:,0:3]))
         # Normalize Dataset
@@ -544,6 +544,7 @@ def main():
             self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
             self.H = PatchSize[1].astype(np.int32) 
             self.batchSize = np.array(MiniBatchSize).astype(np.int32)
+            self.warpType = warpType
             if(isinstance(self.warpType, list)): # If you don't need different warps, send single string for warpType instead
                 self.warpDim = []
                 for val in self.warpType:
@@ -573,8 +574,8 @@ def main():
             self.transScale = transScale
             self.AddTranslation = bool(Args.AddTranslation)
             self.currBlock = 0 # Only used if self.warpTypeMultiple is True
-            
-    opt = Options(PatchSize=PatchSize)
+
+    opt = Options(PatchSize=PatchSize, warpType=['translation', 'translation'])
     
     # Find Latest Checkpoint File
     if LoadCheckPoint==1:

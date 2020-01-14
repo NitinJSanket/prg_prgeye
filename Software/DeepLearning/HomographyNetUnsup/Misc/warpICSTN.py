@@ -23,11 +23,11 @@ def compose(opt,p,dp):
                 pNew = mtrx2vec(opt,pMtrxNew)
         return pNew
 
- # compute inverse of warp parameters
- def inverse(opt,p):
-         with tf.name_scope("inverse"):
-                 pMtrx = vec2mtrx(opt,p)
-                 pInvMtrx = tf.matrix_inverse(pMtrx)
+# compute inverse of warp parameters
+def inverse(opt,p):
+        with tf.name_scope("inverse"):
+                pMtrx = vec2mtrx(opt,p)
+                pInvMtrx = tf.matrix_inverse(pMtrx)
                 pInv = mtrx2vec(opt,pInvMtrx)
         return pInv
 
@@ -47,35 +47,35 @@ def vec2mtrx(opt,p):
                 if CompareVal == "similarity":
                        pc,ps,tx,ty = tf.unstack(p,axis=1)
                        pMtrx = tf.transpose(tf.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]),perm=[2,0,1])
-               if CompareVal == "affine":
+                if CompareVal == "affine":
                        p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
                        pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]),perm=[2,0,1])
-               if CompareVal == "homography":
+                if CompareVal == "homography":
                        p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
                        pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]),perm=[2,0,1])
         return pMtrx
 
 # convert warp matrix to parameters
 def mtrx2vec(opt,pMtrx):
-       with tf.name_scope("mtrx2vec"):
-               [row0,row1,row2] = tf.unstack(pMtrx,axis=1)
-               [e00,e01,e02] = tf.unstack(row0,axis=1)
-               [e10,e11,e12] = tf.unstack(row1,axis=1)
-               [e20,e21,e22] = tf.unstack(row2,axis=1)
-               if(isinstance(opt.warpType, list)):
+        with tf.name_scope("mtrx2vec"):
+                [row0,row1,row2] = tf.unstack(pMtrx,axis=1)
+                [e00,e01,e02] = tf.unstack(row0,axis=1)
+                [e10,e11,e12] = tf.unstack(row1,axis=1)
+                [e20,e21,e22] = tf.unstack(row2,axis=1)
+                if(isinstance(opt.warpType, list)):
                         # If you don't need different warps, send single string for warpType instead
                         CompareVal = opt.warpType[opt.currBlock]
                 else:
                         CompareVal =  opt.warpType
-               if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
-               if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
-               if CompareVal == "affine": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12],axis=1)
-               if CompareVal == "homography": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12,e20,e21],axis=1)
+                if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
+                if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
+                if CompareVal == "affine": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12],axis=1)
+                if CompareVal == "homography": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12,e20,e21],axis=1)
         return p
 
 # warp the image
 def transformImage(opt,image,pMtrx):
-       with tf.name_scope("transformImage"):
+        with tf.name_scope("transformImage"):
                # opt.refMtrx = warp.fit(Xsrc=opt.canon4pts,Xdst=opt.image4pts)
                refMtrx = tf.tile(tf.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
                transMtrx = tf.matmul(refMtrx,pMtrx)
@@ -117,57 +117,57 @@ def transformImage(opt,image,pMtrx):
                imageWarp = imageUL+imageUR+imageBL+imageBR
         return imageWarp
 
-# generate training batch
-def genPerturbationsNP(opt):
-	# DOESNT WORK FOR batchSize = 1
-	X = np.tile(opt.canon4pts[:,0],[opt.batchSize,1]) # opt.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32) BS x 4
-	Y = np.tile(opt.canon4pts[:,1],[opt.batchSize,1]) # BS x 4
-	dX = np.random.normal(size=[opt.batchSize,4])*opt.pertScale + \
-		np.random.normal(size=[opt.batchSize,1])*opt.transScale # transScale = 0.25, pertScale = 0.25 BS x 4
-	dY = np.random.normal(size=[opt.batchSize,4])*opt.pertScale + \
-		np.random.normal(size=[opt.batchSize,1])*opt.transScale # transScale = 0.25, pertScale = 0.25 BS x 4
-	O = np.zeros([opt.batchSize,4],dtype=np.float32)
-	I = np.ones([opt.batchSize,4],dtype=np.float32)
+# # generate training batch
+# def genPerturbationsNP(opt):
+# 	# DOESNT WORK FOR batchSize = 1
+# 	X = np.tile(opt.canon4pts[:,0],[opt.batchSize,1]) # opt.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32) BS x 4
+# 	Y = np.tile(opt.canon4pts[:,1],[opt.batchSize,1]) # BS x 4
+# 	dX = np.random.normal(size=[opt.batchSize,4])*opt.pertScale + \
+# 		np.random.normal(size=[opt.batchSize,1])*opt.transScale # transScale = 0.25, pertScale = 0.25 BS x 4
+# 	dY = np.random.normal(size=[opt.batchSize,4])*opt.pertScale + \
+# 		np.random.normal(size=[opt.batchSize,1])*opt.transScale # transScale = 0.25, pertScale = 0.25 BS x 4
+# 	O = np.zeros([opt.batchSize,4],dtype=np.float32)
+# 	I = np.ones([opt.batchSize,4],dtype=np.float32)
         
-	# fit warp parameters to generated displacements
-	if opt.warpType=="homography":
-		A = np.concatenate([np.stack([X,Y,I,O,O,O,-X*(X+dX),-Y*(X+dX)],axis=-1),
-				    np.stack([O,O,O,X,Y,I,-X*(Y+dY),-Y*(Y+dY)],axis=-1)],1) # Normal Ax = b (8 parameters) 
-		b = np.expand_dims(np.concatenate([X+dX,Y+dY],1),-1)
-		pPert = np.linalg.solve(A,b)[:,:,0]  # Homography matrix as a vector
-		pPert -= np.asarray([[1,0,0,0,1,0,0,0]]).astype(float) # 1 is subtracted for homogeneous transformation
-	else:
-		if opt.warpType=="translation":
-			J = np.concatenate([np.stack([I,O],axis=-1),
-					    np.stack([O,I],axis=-1)],axis=1)
-		if opt.warpType=="similarity":
-			J = np.concatenate([np.stack([X,Y,I,O],axis=-1),
-					    np.stack([-Y,X,O,I],axis=-1)],axis=1)
-		if opt.warpType=="affine":
-			J = np.concatenate([np.stack([X,Y,I,O,O,O],axis=-1),
-					    np.stack([O,O,O,X,Y,I],axis=-1)],axis=1)
-		        dXY = np.expand_dims(np.concatenate([dX,dY],1),-1)
-		        pPert = np.linalg.lstsq(J,dXY)[:,:,0]
-	return pPert
+# 	# fit warp parameters to generated displacements
+# 	if opt.warpType=="homography":
+# 		A = np.concatenate([np.stack([X,Y,I,O,O,O,-X*(X+dX),-Y*(X+dX)],axis=-1),
+# 				    np.stack([O,O,O,X,Y,I,-X*(Y+dY),-Y*(Y+dY)],axis=-1)],1) # Normal Ax = b (8 parameters) 
+# 		b = np.expand_dims(np.concatenate([X+dX,Y+dY],1),-1)
+# 		pPert = np.linalg.solve(A,b)[:,:,0]  # Homography matrix as a vector
+# 		pPert -= np.asarray([[1,0,0,0,1,0,0,0]]).astype(float) # 1 is subtracted for homogeneous transformation
+# 	else:
+# 		if opt.warpType=="translation":
+# 			J = np.concatenate([np.stack([I,O],axis=-1),
+# 					    np.stack([O,I],axis=-1)],axis=1)
+# 		if opt.warpType=="similarity":
+# 			J = np.concatenate([np.stack([X,Y,I,O],axis=-1),
+# 					    np.stack([-Y,X,O,I],axis=-1)],axis=1)
+# 		if opt.warpType=="affine":
+# 			J = np.concatenate([np.stack([X,Y,I,O,O,O],axis=-1),
+# 					    np.stack([O,O,O,X,Y,I],axis=-1)],axis=1)
+# 		        dXY = np.expand_dims(np.concatenate([dX,dY],1),-1)
+# 		        pPert = np.linalg.lstsq(J,dXY)[:,:,0]
+# 	return pPert
 
-# convert warp parameters to matrix
-# This is in Canon4Pts domain, i.e., [-1,1]
-def vec2mtrxNP(opt, p):
-	# DOESNT WORK FOR batchSize = 1
-	O = np.zeros([opt.batchSize])
-	I = np.ones([opt.batchSize])
-	if opt.warpType=="translation":
-		tx, ty = np.squeeze(np.split(p, opt.warpDim, axis=1))
-		pMtrx = np.transpose(np.stack([[I,O,tx],[O,I,ty],[O,O,I]]), axes=[2,0,1])
-	if opt.warpType=="similarity":
-		pc,ps,tx,ty = np.squeeze(np.split(p, opt.warpDim, axis=1))
-		pMtrx = np.transpose(np.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]), axes=[2,0,1])
-	if opt.warpType=="affine":
-		p1,p2,p3,p4,p5,p6,p7,p8 = np.squeeze(np.split(p, opt.warpDim, axis=1))
-		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]), axes=[2,0,1])
-	if opt.warpType=="homography":
-		p1,p2,p3,p4,p5,p6,p7,p8 = np.squeeze(np.split(p, opt.warpDim, axis=1))
-		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]), axes=[2,0,1])
-	        refMtrx = np.tile(np.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
-	        transMtrx = np.matmul(refMtrx, pMtrx)
-	return pMtrx, transMtrx
+# # convert warp parameters to matrix
+# # This is in Canon4Pts domain, i.e., [-1,1]
+# def vec2mtrxNP(opt, p):
+# 	# DOESNT WORK FOR batchSize = 1
+# 	O = np.zeros([opt.batchSize])
+# 	I = np.ones([opt.batchSize])
+# 	if opt.warpType=="translation":
+# 		tx, ty = np.squeeze(np.split(p, opt.warpDim, axis=1))
+# 		pMtrx = np.transpose(np.stack([[I,O,tx],[O,I,ty],[O,O,I]]), axes=[2,0,1])
+# 	if opt.warpType=="similarity":
+# 		pc,ps,tx,ty = np.squeeze(np.split(p, opt.warpDim, axis=1))
+# 		pMtrx = np.transpose(np.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]), axes=[2,0,1])
+# 	if opt.warpType=="affine":
+# 		p1,p2,p3,p4,p5,p6,p7,p8 = np.squeeze(np.split(p, opt.warpDim, axis=1))
+# 		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]), axes=[2,0,1])
+# 	if opt.warpType=="homography":
+# 		p1,p2,p3,p4,p5,p6,p7,p8 = np.squeeze(np.split(p, opt.warpDim, axis=1))
+# 		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]), axes=[2,0,1])
+# 	        refMtrx = np.tile(np.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
+# 	        transMtrx = np.matmul(refMtrx, pMtrx)
+# 	return pMtrx, transMtrx
