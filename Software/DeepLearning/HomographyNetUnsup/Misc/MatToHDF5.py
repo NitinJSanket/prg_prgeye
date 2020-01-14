@@ -18,16 +18,23 @@ import random
 import re
 import h5py
 import ImageUtils as iu
+import MiscUtils as mu
 
 
-def Mat2HDF5(ReadPath):
+def Mat2HDF5(ReadPath, WritePath):
     for dirs in tqdm(glob.glob(ReadPath + os.sep + '*' + '.mat')):
-        Heatmap = sio.loadmat(PicklePath)['heatmap']
-        print(dirs)
-        input('q')
-        Hf = h5py.File(dirs[:-4]+'.h5', 'w')
+        Timer1 = mu.tic()
+        Heatmap = sio.loadmat(dirs)['heatmap']
+        print(mu.toc(Timer1))
+        Delimiters = '.mat', os.sep
+        RegexPattern = '|'.join(map(re.escape, Delimiters))
+        WriteName = WritePath + os.sep + re.split(RegexPattern, dirs)[-2] + '.h5'
+        Hf = h5py.File(WriteName, 'w')
         Hf.create_dataset('heatmap', data=Heatmap)
         Hf.close()
+        Timer2 = mu.tic()
+        hf = np.array(h5py.File(WriteName, 'r').get('heatmap')) # SLOWER by a factor of 10, 0.000406980514526 and 0.0044801235199 s respectively
+        print(mu.toc(Timer2))
         input('q')       
 
 def main():
@@ -38,6 +45,7 @@ def main():
     Parser.add_argument('--WritePath', default='/media/analogicalnexus/00EA777C1E864BA9/2018/EVDodge/processed',
                         help='Base path of images, Default:/media/analogicalnexus/00EA777C1E864BA9/2018/EVDodge/processed')
     
+    
     Args = Parser.parse_args()
     ReadPath = Args.ReadPath
     WritePath = Args.WritePath
@@ -45,7 +53,8 @@ def main():
     if(not os.path.exists(WritePath)):
         cprint("WARNING: %s doesnt exist, Creating it."%WritePath, 'yellow')
         os.mkdir(WritePath)
-
+        
+    Mat2HDF5(ReadPath, WritePath)
     
 if __name__ == '__main__':
     main()
