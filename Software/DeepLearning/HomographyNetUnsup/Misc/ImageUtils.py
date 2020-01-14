@@ -124,13 +124,15 @@ def rgb2gray(rgb):
     return gray
 
 class Homography:
-    def __init__(self, ImageSize=[128., 128., 3.]):
+    def __init__(self, ImageSize=[128., 128., 3.], MaxRVal = np.array([0.0, 0.0, 0.0], MaxTVal=np.array([[0.25], [0.25], [0.25]])):
         self.ImageSize = ImageSize
         self.ScaleMtrx = np.eye(3) # Scales from [-1, 1] ImageCoordinates to Actual Image Coordinates
         self.ScaleMtrx[0,0] = ImageSize[0]/2
         self.ScaleMtrx[0,2] = ImageSize[0]/2
         self.ScaleMtrx[1,1] = ImageSize[1]/2
         self.ScaleMtrx[1,2] = ImageSize[1]/2
+        self.MaxRVal = MaxRVal
+        self.MaxTVal = MaxTVal
         
     def ComposeHFromRTN(self, R=np.eye(3), T=np.zeros((3, 1)), N= np.array([[0.], [0.], [1.]]), Scale=False):
         H = np.add(R, np.matmul(T, N.T)) # R + TN'
@@ -171,4 +173,26 @@ class Homography:
             cv2.imshow(ImgTitle, ImgDisp)
             cv2.waitKey(WaitTime)
         return ImgDisp
+
+    def GetRandR(self, MaxRVal = None, EulOrder='zyx'):
+        # MaxRVal is given in Degrees
+        if MaxRVal  is not None:
+            # Overwrite value
+            self.MaxRVal = MaxRVal
+        # Generate random value of euler angles
+        EulAng = 2*self.MaxRVal*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
+        R = Rot.from_euler(EulOrder, EulAng, degrees=True).as_dcm()
+        return R, EulAng
+
+    def GetRandT(self, MaxTVal = None):
+        # MaxTVal is given in Percentage of focal length (0.1 means 0.1f)
+        if MaxTVal  is not None:
+            # Overwrite value
+            self.MaxTVal = MaxTVal
+        # Generate random value of translation
+        return  np.array(2*self.MaxTVal*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
+
+            
+        
+        
     
