@@ -63,9 +63,6 @@ def ICSTN(Img, ImageSize, MiniBatchSize, opt, pInit):
         dpNow = ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=str(count+1))
         pNow = warp.compose(opt, pNow, dpNow)
 
-        # Update counter used for looping over warpType
-        opt.currBlock += 1
-
     pMtrx = warp.vec2mtrx(opt, pNow) # Final pMtrx
     ImgWarp = warp.transformImage(opt, Img, pMtrx) # Final Image Warp
     # ImgWarpAll.append(ImgWarp)

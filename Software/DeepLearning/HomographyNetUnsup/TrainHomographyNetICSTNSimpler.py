@@ -575,7 +575,7 @@ def main():
             self.AddTranslation = bool(Args.AddTranslation)
             self.currBlock = 0 # Only used if self.warpTypeMultiple is True
 
-    opt = Options(PatchSize=PatchSize, warpType=['translation', 'translation'])
+    opt = Options(PatchSize=PatchSize, warpType=['translation', 'translation'], NumBlocks=2)
     
     # Find Latest Checkpoint File
     if LoadCheckPoint==1:
