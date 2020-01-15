@@ -41,6 +41,14 @@ def vec2mtrx(opt,p):
                         CompareVal = opt.warpType[opt.currBlock]
                 else:
                         CompareVal =  opt.warpType
+                if CompareVal == "yaw":
+                       # value of cospsi is regressed directly
+                       cospsi = tf.unstack(p,axis=1)
+                       sinpsi = np.sqrt(1.0 - cospsi**2)
+                       pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,tx],[cospsi,sinpsi,ty],[O,O,I]]),perm=[2,0,1])
+                if CompareVal == "scale":
+                       scale = tf.unstack(p,axis=1)
+                       pMtrx = tf.transpose(tf.stack([[scale,O,tx],[O,scale,ty],[O,O,I]]),perm=[2,0,1])
                 if CompareVal == "translation":
                        tx,ty = tf.unstack(p,axis=1)
                        pMtrx = tf.transpose(tf.stack([[I,O,tx],[O,I,ty],[O,O,I]]),perm=[2,0,1])
@@ -67,6 +75,9 @@ def mtrx2vec(opt,pMtrx):
                         CompareVal = opt.warpType[opt.currBlock]
                 else:
                         CompareVal =  opt.warpType
+
+                if CompareVal == "yaw": p = tf.stack([e00],axis=1) # value of cospsi is regressed directly, this might make sinpsi unconstrained?
+                if CompareVal == "scale": p = tf.stack([e00],axis=1) # this might make e00 != e11?
                 if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
                 if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
                 if CompareVal == "affine": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12],axis=1)
