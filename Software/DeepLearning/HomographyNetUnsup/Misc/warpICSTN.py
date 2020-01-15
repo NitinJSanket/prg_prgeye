@@ -43,12 +43,12 @@ def vec2mtrx(opt,p):
                         CompareVal =  opt.warpType
                 if CompareVal == "yaw":
                        # value of cospsi is regressed directly
-                       cospsi = tf.unstack(p,axis=1)
-                       sinpsi = np.sqrt(1.0 - cospsi**2)
-                       pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,tx],[cospsi,sinpsi,ty],[O,O,I]]),perm=[2,0,1])
+                       cospsi = p # tf.unstack(p,axis=1)
+                       sinpsi = tf.math.sqrt(tf.math.subtract(1.0, tf.math.pow(cospsi,2)))
+                       pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,O],[cospsi,sinpsi,O],[O,O,I]]),perm=[2,0,1])
                 if CompareVal == "scale":
-                       scale = tf.unstack(p,axis=1)
-                       pMtrx = tf.transpose(tf.stack([[scale,O,tx],[O,scale,ty],[O,O,I]]),perm=[2,0,1])
+                       scale = p # tf.unstack(p,axis=1)
+                       pMtrx = tf.transpose(tf.stack([[scale,O,O],[O,scale,O],[O,O,I]]),perm=[2,0,1])
                 if CompareVal == "translation":
                        tx,ty = tf.unstack(p,axis=1)
                        pMtrx = tf.transpose(tf.stack([[I,O,tx],[O,I,ty],[O,O,I]]),perm=[2,0,1])

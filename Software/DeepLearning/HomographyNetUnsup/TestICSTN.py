@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 # Dependencies:
@@ -43,6 +42,8 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as Rot
 import Misc.warpICSTN as warp
 import Misc.MiscUtils as mu
+import Misc.TFUtils as tu
+
 
 def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     """
@@ -143,19 +144,32 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False):
     return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask  
 
 def main():
+    
+    # Parse Command Line arguments
+    Parser = argparse.ArgumentParser()
+    Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
+    
+    Args = Parser.parse_args()
+    GPUDevice = Args.GPUDevice
+
+    
+    # Set GPUDevice
+    tu.SetGPU(GPUDevice)
+    
     BasePath = '/home/nitin/Datasets/MSCOCO/train2014/COCO_train2014_000000484344.jpg'
     I = cv2.imread(BasePath)
+
     
     PatchSize = [128, 128, 3]
     Rho = 20
     MiniBatchSize = 16
     
     class Options:
-        def __init__(self, PatchSize=[128,128,3], MiniBatchSize=16, warpType='homography', pertScale=0.25, transScale=0.25):
+        def __init__(self, PatchSize=[128,128,3], MiniBatchSize=1, warpType='homography', pertScale=0.25, transScale=0.25):
             self.W = PatchSize[0] # PatchSize is Width, Height, NumChannels
             self.H = PatchSize[1] 
             self.batchSize = MiniBatchSize
-            self.warpType = 'homography'
+            self.warpType = warpType
             if self.warpType == 'translation':
                 self.warpDim = 2
             elif self.warpType == 'similarity':
@@ -170,23 +184,35 @@ def main():
             self.pertScale = pertScale
             self.transScale = transScale
 
-    opt = Options()
+    
 
-    pRand = warp.genPerturbationsNP(opt)
-    pMtrx, transMtrx = warp.vec2mtrxNP(opt, pRand)
+    # pRand = warp.genPerturbationsNP(opt)
+    # pMtrx, transMtrx = warp.vec2mtrxNP(opt, pRand)
 
-    I, IPerturb, H4Pt, PerturbPts, AllPts, IOrg, WarpedI, Mask = RandHomographyPerturbation(I, Rho, PatchSize, pMtrx, Vis=True)
-    input('q')
+    # I, IPerturb, H4Pt, PerturbPts, AllPts, IOrg, WarpedI, Mask = RandHomographyPerturbation(I, Rho, PatchSize, pMtrx, Vis=True)
+    # input('q')
 
+    # Crop I
+    I = iu.CenterCrop(I, PatchSize)
     ITensor = tf.convert_to_tensor(np.float32(I), dtype='float')
-    p = tf.to_float([[0,0,0.1,0,0,0.1,0,0]]) 
+    # p = tf.to_float([[0,0,0.1,0,0,0.1,0,0]])
+    
+    # For Testing Yaw
+    # opt = Options(warpType='yaw')
+    # Ang = np.pi/4.0 # 45 degrees
+    # p = tf.to_float([np.cos(Ang)])
+
+    # For Testing Scale
+    opt = Options(warpType='scale')
+    Scale = 1.2
+    p = tf.to_float([Scale])
     pMtrx = warp.vec2mtrx(opt,p)
     imageWarp = warp.transformImage(opt, ITensor, pMtrx)
 
     with tf.Session() as sess:
         A = imageWarp.eval()
-    cv2.imshow('IOrg', I)
-    cv2.imshow('a', np.uint8(mu.remap(A[0], 0.0, 255.0, np.amin(A[0]), np.amax(A[0]))))
+    # cv2.imshow('IOrg', I)
+    cv2.imshow('IOrg, INew', np.hstack((I, np.uint8(mu.remap(A[0], 0.0, 255.0, np.amin(A[0]), np.amax(A[0]))))))
     cv2.waitKey(0)
     
 if __name__ == '__main__':
