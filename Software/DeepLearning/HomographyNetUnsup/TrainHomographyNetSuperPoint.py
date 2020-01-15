@@ -404,7 +404,7 @@ def LossFunc(I1PH, I2PH, MaskPH, AllPtsPH, LabelPH, prHVal, MiniBatchSize, LossF
             I2PatchCornerness = tf.boolean_mask(I2CornernessPH, MaskPH)
             
             DiffImg = WarpI1Patch - I2Patch
-            Lambda = [1.0, 1.0] # Photo, CornerPhoto
+            Lambda = [0.1, 1.0] # Photo, CornerPhoto
             lossCornerPhoto = tf.math.multiply(WarpI1Patch, WarpI1PatchCornerness) - tf.math.multiply(I2Patch, I2PatchCornerness)
             lossPhoto = tf.reduce_mean(Lambda[0]*tf.abs(DiffImg) + Lambda[1]*lossCornerPhoto)
         elif(LossFuncName == 'PhotoChab'):
