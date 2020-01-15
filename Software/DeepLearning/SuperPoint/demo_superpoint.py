@@ -96,6 +96,7 @@ class SuperPointNet(torch.nn.Module):
     self.convDa = torch.nn.Conv2d(c4, c5, kernel_size=3, stride=1, padding=1)
     self.convDb = torch.nn.Conv2d(c5, d1, kernel_size=1, stride=1, padding=0)
 
+
   def forward(self, x):
     """ Forward pass that jointly computes unprocessed point and descriptor
     tensors.
@@ -142,6 +143,10 @@ class SuperPointFrontend(object):
 
     # Load the network in inference mode.
     self.net = SuperPointNet()
+    model_parameters = filter(lambda p: p.requires_grad, self.net.parameters())
+    params = sum([np.prod(p.size()) for p in model_parameters])
+    # print(params)
+    # input('q')
     if cuda:
       # Train on GPU, deploy on GPU.
       self.net.load_state_dict(torch.load(weights_path))
