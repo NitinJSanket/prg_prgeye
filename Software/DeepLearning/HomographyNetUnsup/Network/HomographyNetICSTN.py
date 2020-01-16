@@ -46,13 +46,13 @@ def ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=''):
 
     return fc2
 
-def ICSTN(Img, ImageSize, MiniBatchSize, opt, pInit):
+def ICSTN(Img, ImageSize, MiniBatchSize, opt):
     # ImgWarpAll = []
 
     for count in range(opt.NumBlocks):
         # print(count)
         if(count == 0):
-            pNow = pInit
+            pNow = opt.pInit
             
         # Warp Image based on previous composite warp parameters
         pMtrxNow = warp.vec2mtrx(opt, pNow)

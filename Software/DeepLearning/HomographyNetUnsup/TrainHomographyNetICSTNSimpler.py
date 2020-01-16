@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 # Dependencies:
@@ -369,8 +368,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, HBatchPH, TrainNames, TestNames, 
     """
     
     # Predict output with forward pass
-    pInit = tf.zeros([MiniBatchSize, 8])
-    prHVal, WarpI1Patch = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt, pInit)
+    prHVal, WarpI1Patch = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt)
     # WarpI1Patch =  warp.transformImage(opt, I1PH, prHVal)
     # WarpI2PatchIdeal = warp.transformImage(opt, I2PH, HBatchPH)
     
@@ -524,6 +522,7 @@ def main():
     GPUDevice = Args.GPUDevice
     LearningRate = Args.LR
     TrainingType = Args.TrainingType
+    AddTranslation = bool(Args.AddTranslation)
     
     # Set GPUDevice
     tu.SetGPU(GPUDevice)
@@ -540,45 +539,7 @@ def main():
     if(not (os.path.isdir(CheckPointPath))):
        os.makedirs(CheckPointPath)
 
-    class Options:
-        def __init__(self, PatchSize=[128,128,3], MiniBatchSize=MiniBatchSize, warpType='homography', NumBlocks=4, pertScale=0.25, transScale=0.25):
-            self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
-            self.H = PatchSize[1].astype(np.int32) 
-            self.batchSize = np.array(MiniBatchSize).astype(np.int32)
-            self.NumBlocks = NumBlocks
-            self.warpType = warpType
-            if(isinstance(self.warpType, list)): # If you don't need different warps, send single string for warpType instead
-                # Also update NumBlocks here
-                self.NumBlocks = len(self.warpType)
-                self.warpDim = []
-                for val in self.warpType:
-                    if self.warpType == 'translation':
-                        self.warpDim.append(2)
-                    elif self.warpType == 'similarity':
-                        self.warpDim.append(4)
-                    elif self.warpType == 'affine':
-                        self.warpDim.append(6)
-                    elif self.warpType == 'homography':
-                        self.warpDim.append(8)
-            else:
-                self.warpType = warpType
-                if self.warpType == 'translation':
-                    self.warpDim = 2
-                elif self.warpType == 'similarity':
-                    self.warpDim = 4
-                elif self.warpType == 'affine':
-                    self.warpDim = 6
-                elif self.warpType == 'homography':
-                    self.warpDim = 8
-            self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
-            self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
-            self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
-            self.pertScale = pertScale
-            self.transScale = transScale
-            self.AddTranslation = bool(Args.AddTranslation)
-            self.currBlock = 0 # Only used if self.warpTypeMultiple is True
-
-    opt = Options(PatchSize=PatchSize, warpType=['yaw', 'scale', 'translation'])
+    opt = warp.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType=['yaw', 'scale', 'translation'], AddTranslation=AddTranslation)
     
     # Find Latest Checkpoint File
     if LoadCheckPoint==1:

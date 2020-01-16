@@ -15,7 +15,7 @@ def ConvBlock(Input, Filters, KerSize, Strides, Padding, AppendNum):
 
     return bn
 
-def ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=''):
+def ICSTNBlock(Img, ImageSize, MiniBatchSize, opt, AppendNum=''):
     """
     Inputs: 
     Img is a MiniBatch of the current image
@@ -42,29 +42,35 @@ def ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=''):
         fc1 = tf.nn.relu(flatdrop, name='relu'+AppendNum)
 
         # fc2
-        fc2 = tf.layers.dense(fc1, units=8, activation=None, name='fc2'+AppendNum)
-
+        if(isinstance(opt.warpType, list)):
+            NumOutUnits = opt.warpDim[opt.currBlock]
+        else:
+            NumOutUnits = opt.warpDim
+        fc2 = tf.layers.dense(fc1, units=NumOutUnits, activation=None, name='fc2'+AppendNum)
+            
     return fc2
 
-def ICSTN(Img, ImageSize, MiniBatchSize, opt, pInit):
+def ICSTN(Img, ImageSize, MiniBatchSize, opt):
     # ImgWarpAll = []
 
     for count in range(opt.NumBlocks):
         # print(count)
         if(count == 0):
-            pNow = pInit
+            pNow = opt.pInit
             
         # Warp Image based on previous composite warp parameters
-        pMtrxNow = warp.vec2mtrx(opt, pNow)
+        PrevBlock = max(0, opt.currBlock-1)
+        pMtrxNow = warp.vec2mtrx(opt, pNow, CurrBlock=PrevBlock)
         ImgWarpNow = warp.transformImage(opt, Img, pMtrxNow)
         # ImgWarpAll.append(ImgWarpNow)
 
         # Compute current warp parameters
-        dpNow = ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=str(count+1))
-        pNow = warp.compose(opt, pNow, dpNow)
+        dpNow = ICSTNBlock(Img, ImageSize, MiniBatchSize, opt, AppendNum=str(count+1)) 
+        pNow = warp.compose(opt, pNow, dpNow, CurrBlock=PrevBlock)
 
         # Update counter used for looping over warpType
         opt.currBlock += 1
+
 
     pMtrx = warp.vec2mtrx(opt, pNow) # Final pMtrx
     ImgWarp = warp.transformImage(opt, Img, pMtrx) # Final Image Warp
@@ -75,8 +81,8 @@ def ICSTN(Img, ImageSize, MiniBatchSize, opt, pInit):
         
         
 
-
-
+# count = 0: pNow = pInit, pMtrxNow = pNow = pInit, ImgWarp is done using pMtrxNow, dpNow = Pred Yaw, pNow = pNow*dpNow
+# count = 1: pNow = pInit*pYaw, pMtrxNow = 
 
 
 

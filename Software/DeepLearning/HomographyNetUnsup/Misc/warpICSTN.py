@@ -2,6 +2,55 @@ import numpy as np
 import scipy.linalg
 import tensorflow as tf
 
+
+class Options:
+    def __init__(self, PatchSize=[128,128,3], MiniBatchSize=32, warpType='homography', NumBlocks=4, pertScale=0.25, transScale=0.25, AddTranslation=False):
+        self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
+        self.H = PatchSize[1].astype(np.int32) 
+        self.batchSize = np.array(MiniBatchSize).astype(np.int32)
+        self.NumBlocks = NumBlocks
+        self.warpType = warpType
+        if(isinstance(self.warpType, list)): # If you don't need different warps, send single string for warpType instead
+            # Also update NumBlocks here
+            self.NumBlocks = len(self.warpType)
+            self.warpDim = []
+            for val in self.warpType:
+                if val == 'yaw':
+                    self.warpDim.append(1)
+                if val == 'scale':
+                    self.warpDim.append(1)
+                if val == 'translation':
+                    self.warpDim.append(2)
+                elif val == 'similarity':
+                    self.warpDim.append(4)
+                elif val == 'affine':
+                    self.warpDim.append(6)
+                elif val == 'homography':
+                    self.warpDim.append(8)
+            self.pInit = tf.zeros([MiniBatchSize, self.warpDim[0]])
+        else:
+            self.warpType = warpType
+            if self.warpType == 'yaw':
+                self.warpDim = 1
+            if self.warpType == 'scale':
+                self.warpDim = 1
+            if self.warpType == 'translation':
+                self.warpDim = 2
+            elif self.warpType == 'similarity':
+                self.warpDim = 4
+            elif self.warpType == 'affine':
+                self.warpDim = 6
+            elif self.warpType == 'homography':
+                self.warpDim = 8
+            self.pInit = tf.zeros([MiniBatchSize, self.warpDim])
+        self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
+        self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
+        self.refMtrx = fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
+        self.pertScale = pertScale
+        self.transScale = transScale
+        self.AddTranslation = bool(AddTranslation)
+        self.currBlock = 0 # Only used if self.warpTypeMultiple is True
+
 # fit (affine) warp between two sets of points 
 def fit(Xsrc,Xdst):
         ptsN = len(Xsrc)
@@ -14,40 +63,40 @@ def fit(Xsrc,Xdst):
         return pMtrx
 
 # compute composition of warp parameters
-def compose(opt,p,dp):
+def compose(opt,p,dp,CurrBlock):
         with tf.name_scope("compose"):
-                pMtrx = vec2mtrx(opt,p)
-                dpMtrx = vec2mtrx(opt,dp)
+                pMtrx = vec2mtrx(opt,p,CurrBlock)
+                dpMtrx = vec2mtrx(opt,dp,CurrBlock)
                 pMtrxNew = tf.matmul(dpMtrx,pMtrx)
                 pMtrxNew /= pMtrxNew[:,2:3,2:3]
-                pNew = mtrx2vec(opt,pMtrxNew)
+                pNew = mtrx2vec(opt,pMtrxNew,CurrBlock)
         return pNew
 
 # compute inverse of warp parameters
-def inverse(opt,p):
+def inverse(opt,p,CurrBlock):
         with tf.name_scope("inverse"):
-                pMtrx = vec2mtrx(opt,p)
+                pMtrx = vec2mtrx(opt,p,CurrBlock)
                 pInvMtrx = tf.matrix_inverse(pMtrx)
-                pInv = mtrx2vec(opt,pInvMtrx)
+                pInv = mtrx2vec(opt,pInvMtrx,CurrBlock)
         return pInv
 
 # convert warp parameters to matrix
-def vec2mtrx(opt,p):
+def vec2mtrx(opt,p,CurrBlock):
         with tf.name_scope("vec2mtrx"):
                 O = tf.zeros([opt.batchSize])
                 I = tf.ones([opt.batchSize])
                 if(isinstance(opt.warpType, list)):
                         # If you don't need different warps, send single string for warpType instead
-                        CompareVal = opt.warpType[opt.currBlock]
+                        CompareVal = opt.warpType[CurrBlock]
                 else:
                         CompareVal =  opt.warpType
                 if CompareVal == "yaw":
-                       # value of cospsi is regressed directly
-                       cospsi = p # tf.unstack(p,axis=1)
-                       sinpsi = tf.math.sqrt(tf.math.subtract(1.0, tf.math.pow(cospsi,2)))
+                       # value of sinpsi is regressed directly
+                       sinpsi = tf.squeeze(p) # tf.unstack(p,axis=1)
+                       cospsi = tf.math.sqrt(tf.math.subtract(1.0, tf.math.pow(sinpsi,2)))
                        pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,O],[cospsi,sinpsi,O],[O,O,I]]),perm=[2,0,1])
                 if CompareVal == "scale":
-                       scale = p # tf.unstack(p,axis=1)
+                       scale = tf.squeeze(p) # tf.unstack(p,axis=1)
                        pMtrx = tf.transpose(tf.stack([[scale,O,O],[O,scale,O],[O,O,I]]),perm=[2,0,1])
                 if CompareVal == "translation":
                        tx,ty = tf.unstack(p,axis=1)
@@ -64,7 +113,7 @@ def vec2mtrx(opt,p):
         return pMtrx
 
 # convert warp matrix to parameters
-def mtrx2vec(opt,pMtrx):
+def mtrx2vec(opt,pMtrx,CurrBlock):
         with tf.name_scope("mtrx2vec"):
                 [row0,row1,row2] = tf.unstack(pMtrx,axis=1)
                 [e00,e01,e02] = tf.unstack(row0,axis=1)
@@ -72,12 +121,12 @@ def mtrx2vec(opt,pMtrx):
                 [e20,e21,e22] = tf.unstack(row2,axis=1)
                 if(isinstance(opt.warpType, list)):
                         # If you don't need different warps, send single string for warpType instead
-                        CompareVal = opt.warpType[opt.currBlock]
+                        CompareVal = opt.warpType[CurrBlock]
                 else:
                         CompareVal =  opt.warpType
 
-                if CompareVal == "yaw": p = tf.stack([e00],axis=1) # value of cospsi is regressed directly, this might make sinpsi unconstrained?
-                if CompareVal == "scale": p = tf.stack([e00],axis=1) # this might make e00 != e11?
+                if CompareVal == "yaw": p = [[e11]] # value of sinpsi is regressed directly, this might make cospsi unconstrained?
+                if CompareVal == "scale": p = [[e00]] # this might make e00 != e11?
                 if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
                 if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
                 if CompareVal == "affine": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12],axis=1)
