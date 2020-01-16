@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 # Dependencies:
@@ -544,8 +545,11 @@ def main():
             self.W = PatchSize[0].astype(np.int32) # PatchSize is Width, Height, NumChannels
             self.H = PatchSize[1].astype(np.int32) 
             self.batchSize = np.array(MiniBatchSize).astype(np.int32)
+            self.NumBlocks = NumBlocks
             self.warpType = warpType
             if(isinstance(self.warpType, list)): # If you don't need different warps, send single string for warpType instead
+                # Also update NumBlocks here
+                self.NumBlocks = len(self.warpType)
                 self.warpDim = []
                 for val in self.warpType:
                     if self.warpType == 'translation':
@@ -569,13 +573,12 @@ def main():
             self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
             self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
             self.refMtrx = warp.fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
-            self.NumBlocks = NumBlocks
             self.pertScale = pertScale
             self.transScale = transScale
             self.AddTranslation = bool(Args.AddTranslation)
             self.currBlock = 0 # Only used if self.warpTypeMultiple is True
 
-    opt = Options(PatchSize=PatchSize, warpType=['translation', 'translation'], NumBlocks=2)
+    opt = Options(PatchSize=PatchSize, warpType=['yaw', 'scale', 'translation'])
     
     # Find Latest Checkpoint File
     if LoadCheckPoint==1:
