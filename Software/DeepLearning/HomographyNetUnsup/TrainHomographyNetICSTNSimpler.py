@@ -39,6 +39,7 @@ from tqdm import tqdm
 import Misc.STNUtils as stn
 import Misc.TFUtils as tu
 import Misc.warpICSTN as warp
+import Misc.warpICSTN2 as warp2
 
 
 # Don't generate pyc codes
@@ -324,7 +325,7 @@ def PrettyPrint(NumEpochs, DivTrain, MiniBatchSize, NumTrainSamples, NumTestSamp
 
 
 def LossFunc(I1PH, I2PH, LabelPH, prHVal, MiniBatchSize, PatchSize, opt):
-    WarpI1Patch = warp.transformImage(opt, I1PH, prHVal)
+    WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
 
     # L2 loss between predicted and ground truth H4Pt (4 point homography)
     # prHVal = tf.reshape(prHVal, [MiniBatchSize, 9])
@@ -369,8 +370,8 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, HBatchPH, TrainNames, TestNames, 
     
     # Predict output with forward pass
     prHVal, WarpI1Patch = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt)
-    # WarpI1Patch =  warp.transformImage(opt, I1PH, prHVal)
-    # WarpI2PatchIdeal = warp.transformImage(opt, I2PH, HBatchPH)
+    # WarpI1Patch =  warp2.transformImage(opt, I1PH, prHVal)
+    # WarpI2PatchIdeal = warp2.transformImage(opt, I2PH, HBatchPH)
     
     with tf.name_scope('Loss'):
     	loss, WarpI1PatchRet = LossFunc(I1PH, I2PH, LabelPH, prHVal, MiniBatchSize, PatchSize, opt)
@@ -539,7 +540,7 @@ def main():
     if(not (os.path.isdir(CheckPointPath))):
        os.makedirs(CheckPointPath)
 
-    opt = warp.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType=['yaw', 'scale', 'translation'], AddTranslation=AddTranslation)
+    opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType= ['homography', 'homography'], AddTranslation=AddTranslation) # ['homography', 'yaw', 'scale', 'translation']
     
     # Find Latest Checkpoint File
     if LoadCheckPoint==1:

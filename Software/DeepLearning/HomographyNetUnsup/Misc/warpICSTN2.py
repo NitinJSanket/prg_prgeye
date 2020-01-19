@@ -63,14 +63,14 @@ def fit(Xsrc,Xdst):
         return pMtrx
 
 # compute composition of warp parameters
-def compose(opt,p,dp):
+def compose(opt,pMtrx,dpMtrx):
         with tf.name_scope("compose"):
-                pMtrx = vec2mtrx(opt,p)
-                dpMtrx = vec2mtrx(opt,dp)
+                # pMtrx = vec2mtrx(opt,p)
+                # dpMtrx = vec2mtrx(opt,dp)
                 pMtrxNew = tf.matmul(dpMtrx,pMtrx)
                 pMtrxNew /= pMtrxNew[:,2:3,2:3]
-                pNew = mtrx2vec(opt,pMtrxNew)
-        return pNew
+                # pNew = mtrx2vec(opt,pMtrxNew)
+        return pMtrxNew
 
 # compute inverse of warp parameters
 def inverse(opt,p):

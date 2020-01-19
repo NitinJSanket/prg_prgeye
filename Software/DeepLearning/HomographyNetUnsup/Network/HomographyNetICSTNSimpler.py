@@ -1,7 +1,7 @@
 import tensorflow as tf
 import sys
 import numpy as np
-import Misc.warpICSTN as warp
+import Misc.warpICSTN2 as warp2
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -57,36 +57,28 @@ def ICSTN(Img, ImageSize, MiniBatchSize, opt):
         # print(count)
         if(count == 0):
             pNow = opt.pInit
+            pMtrxNow = warp2.vec2mtrx(opt, pNow)
             
         # Warp Image based on previous composite warp parameters
-        PrevBlock = max(0, opt.currBlock-1)
-        pMtrxNow = warp.vec2mtrx(opt, pNow, CurrBlock=PrevBlock)
-        ImgWarpNow = warp.transformImage(opt, Img, pMtrxNow)
+        # PrevBlock = max(0, opt.currBlock-1)
+        # pMtrxNow = warp2.vec2mtrx(opt, pNow)
+        ImgWarpNow = warp2.transformImage(opt, Img, pMtrxNow)
         # ImgWarpAll.append(ImgWarpNow)
 
         # Compute current warp parameters
-        dpNow = ICSTNBlock(Img, ImageSize, MiniBatchSize, opt, AppendNum=str(count+1)) 
-        pNow = warp.compose(opt, pNow, dpNow, CurrBlock=PrevBlock)
+        dpNow = ICSTNBlock(Img, ImageSize, MiniBatchSize, opt, AppendNum=str(count+1))
+        dpMtrxNow = warp2.vec2mtrx(opt, dpNow)
+        pMtrxNow = warp2.compose(opt, pMtrxNow, dpMtrxNow)
 
         # Update counter used for looping over warpType
         opt.currBlock += 1
 
 
-    pMtrx = warp.vec2mtrx(opt, pNow) # Final pMtrx
-    ImgWarp = warp.transformImage(opt, Img, pMtrx) # Final Image Warp
+    # Decrement counter so you use last warp Type
+    opt.currBlock -= 1
+    # pMtrx = warp2.vec2mtrx(opt, pMtrxNow) # Final pMtrx
+    ImgWarp = warp2.transformImage(opt, Img, pMtrxNow) # Final Image Warp
     # ImgWarpAll.append(ImgWarp)
 
-    return pMtrx, ImgWarp
-
-        
-        
-
-# count = 0: pNow = pInit, pMtrxNow = pNow = pInit, ImgWarp is done using pMtrxNow, dpNow = Pred Yaw, pNow = pNow*dpNow
-# count = 1: pNow = pInit*pYaw, pMtrxNow = 
-
-
-
-
-
-
+    return pMtrxNow, ImgWarp
 

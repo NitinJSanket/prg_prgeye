@@ -1,3 +1,5 @@
+# TODO: Test ComposeReducedH function
+
 import cv2
 import numpy as np
 import random
@@ -134,14 +136,71 @@ class Homography:
         self.MaxRVal = MaxRVal
         self.MaxTVal = MaxTVal
         
-    def ComposeHFromRTN(self, R=np.eye(3), T=np.zeros((3, 1)), N= np.array([[0.], [0.], [1.]]), Scale=False):
+    def ComposeHFromRTN(self, R = np.eye(3), T = np.zeros((3, 1)), N = np.array([[0.], [0.], [1.]]), ScaleToPx = False):
         H = np.add(R, np.matmul(T, N.T)) # R + TN'
         H = np.divide(H, H[2,2]) # Nornalize by making last element 1
-        if(Scale):
+        if(ScaleToPx):
             H =  np.matmul(self.ScaleMtrx, np.matmul(H, np.linalg.inv( self.ScaleMtrx))) # Scale to bring to Image Coordinates
            
         return H
 
+    def ComposeReducedH(self, TransformType = 'Affine', T2D = np.zeros((2, 1)), Yaw = 0.0, Scale =  np.ones((2, 1)), Shear = np.zeros((2, 1))):
+        # T2D is in px.
+        # Yaw is in degrees
+        # Scale is percentage of f, 1.0 gives original scale
+        # Transformation order is always Yaw -> Scale -> Shear -> Translation
+        # Notes from here: https://courses.cs.washington.edu/courses/csep576/11sp/pdf/Transformations.pdf
+        def HFromYaw(Yaw):
+            Yawr = np.radians(Yaw)
+            cosYaw = np.cos(Yawr)
+            sinYaw = np.sin(Yawr)
+            HNow = np.eye(3)
+            HNow[0,0] = cosYaw
+            HNow[0,1] = -sinYaw
+            HNow[1,0] = sinYaw
+            HNow[1,1] = cosYaw
+            return HNow
+       
+        def HFromScale(Scale):
+            HNow = np.eye(3)
+            HNow[0,0] = Scale[0]
+            HNow[1,1] = Scale[1]
+            return HNow
+
+        def HFromShear(Shear):
+            HNow = np.eye(3)
+            HNow[0,1] = Shear[0]
+            HNow[1,0] = Shear[1]
+            return HNow
+
+        def HFromTranslation2D(T2D):
+            HNow = np.eye(3)
+            HNow[0,2] = T2D[0]
+            HNow[1,2] = T2D[1]
+            return HNow
+
+        # If TranformType is not list, make it into a list
+        if(not isinstance(TransformType, list)):
+            TransformType = list(TransformType)
+            
+        # Any combination composition is possible, list order does not matter
+        H = np.eye(3)
+        for count in len(TransformType):
+            if 'Yaw' in TransformType:
+                HNow = HFromYaw(Yaw)
+                H = np.matmul(H, HNow)
+            if 'Scale' in TransformType:
+                HNow = HFromScale(Scale)
+                H = np.matmul(H, HNow)
+            if 'Shear' in TransformType:
+                HNow = HFromShear(Shear)
+                H = np.matmul(H, HNow)
+            if 'Translation' in TranformType:
+                HNow = HFromTranslation2D(T2D)
+                H = np.matmul(H, HNow)
+            
+        return H 
+        
     def DecomposeHToRTN(self):
         # retval, rotations, translations, normals   =  cv.decomposeHomographyMat(H, K[, rotations[, translations[, normals]]])
         pass
@@ -191,6 +250,7 @@ class Homography:
             self.MaxTVal = MaxTVal
         # Generate random value of translation
         return  np.array(2*self.MaxTVal*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
+    
 
             
         

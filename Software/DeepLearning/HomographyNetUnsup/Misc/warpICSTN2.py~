@@ -63,31 +63,31 @@ def fit(Xsrc,Xdst):
         return pMtrx
 
 # compute composition of warp parameters
-def compose(opt,p,dp):
+def compose(opt,p,dp,CurrBlock):
         with tf.name_scope("compose"):
-                pMtrx = vec2mtrx(opt,p)
-                dpMtrx = vec2mtrx(opt,dp)
+                pMtrx = vec2mtrx(opt,p,CurrBlock)
+                dpMtrx = vec2mtrx(opt,dp,CurrBlock)
                 pMtrxNew = tf.matmul(dpMtrx,pMtrx)
                 pMtrxNew /= pMtrxNew[:,2:3,2:3]
-                pNew = mtrx2vec(opt,pMtrxNew)
+                pNew = mtrx2vec(opt,pMtrxNew,CurrBlock)
         return pNew
 
 # compute inverse of warp parameters
-def inverse(opt,p):
+def inverse(opt,p,CurrBlock):
         with tf.name_scope("inverse"):
-                pMtrx = vec2mtrx(opt,p)
+                pMtrx = vec2mtrx(opt,p,CurrBlock)
                 pInvMtrx = tf.matrix_inverse(pMtrx)
-                pInv = mtrx2vec(opt,pInvMtrx)
+                pInv = mtrx2vec(opt,pInvMtrx,CurrBlock)
         return pInv
 
 # convert warp parameters to matrix
-def vec2mtrx(opt,p):
+def vec2mtrx(opt,p,CurrBlock):
         with tf.name_scope("vec2mtrx"):
                 O = tf.zeros([opt.batchSize])
                 I = tf.ones([opt.batchSize])
                 if(isinstance(opt.warpType, list)):
                         # If you don't need different warps, send single string for warpType instead
-                        CompareVal = opt.warpType[opt.currBlock]
+                        CompareVal = opt.warpType[CurrBlock]
                 else:
                         CompareVal =  opt.warpType
                 if CompareVal == "yaw":
@@ -113,7 +113,7 @@ def vec2mtrx(opt,p):
         return pMtrx
 
 # convert warp matrix to parameters
-def mtrx2vec(opt,pMtrx):
+def mtrx2vec(opt,pMtrx,CurrBlock):
         with tf.name_scope("mtrx2vec"):
                 [row0,row1,row2] = tf.unstack(pMtrx,axis=1)
                 [e00,e01,e02] = tf.unstack(row0,axis=1)
@@ -121,7 +121,7 @@ def mtrx2vec(opt,pMtrx):
                 [e20,e21,e22] = tf.unstack(row2,axis=1)
                 if(isinstance(opt.warpType, list)):
                         # If you don't need different warps, send single string for warpType instead
-                        CompareVal = opt.warpType[opt.currBlock]
+                        CompareVal = opt.warpType[CurrBlock]
                 else:
                         CompareVal =  opt.warpType
 
