@@ -13,8 +13,8 @@ def main():
     I = cv2.imread(BasePath)
     ImageSize = np.shape(I) 
 
-    HObj = iu.Homography(MaxT = np.array([[0.5], [0.5], [0.5]]))
-    H = HObj.GetRandReducedH(TransformType = ['T2D'], ScaleToPx = True) # ['Yaw', 'Scale', 'T2D']
+    HObj = iu.Homography(MaxT = np.array([[0.2], [0.2], [0.2]]), MaxYaw = 30.0)
+    H = HObj.GetRandReducedH(TransformType = ['T2D', 'Yaw', 'Scale'], ScaleToPx = True) # ['Yaw', 'Scale', 'T2D']
     print(H)
 
     
