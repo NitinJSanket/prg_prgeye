@@ -98,7 +98,7 @@ def SetupAll(BasePath, LearningRate):
     return TrainNames, ValNames, TestNames, OptimizerParams,\
         SaveCheckPoint, PatchSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
         NumTestRunsPerEpoch, OriginalImageSize       
-
+    
 def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False, AddTranslation=False):
     """
     Inputs: 
@@ -201,7 +201,41 @@ def RandHomographyPerturbation(I, Rho, PatchSize, ImageSize=None, Vis=False, Add
     # PerturbPts is the patch corners of I2 in I1
     # H8El is the first 8 elements of the Homography matrix from AllPts to PerturbPts
     # Mask is the active region of I1Patch in I1
-    return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H        
+    return I, WarpedI, CroppedI, CroppedWarpedI, AllPts, PerturbPts, H8El, Mask, H
+
+
+def RandHomographyPerturbation2(I, HObj):
+    # Get RandHomography
+    
+    
+    # Get Inverse Homography
+    HInv = np.linalg.inv(H)
+
+    # Multiply by M and Minv
+    # M = np.eye(3)
+    # M[0,0] = PatchSize[0]/2
+    # M[0,2] = PatchSize[0]/2
+    # M[1,1] = PatchSize[1]/2
+    # M[1,2] = PatchSize[1]/2
+    # H = np.matmul(np.matmul(M, H), np.linalg.inv(M))
+    
+    # Normalize by H(2,2)
+    # H = np.divide(H, H[2,2])
+
+    # Extract first 8 elements
+    H8El = np.ndarray.flatten(H)
+    H8El = H8El[0:8]
+
+    WarpedI = cv2.warpPerspective(I, HInv, (ImageSize[1],ImageSize[0]))
+    if(Vis is True):
+        WarpedImgDisp = WarpedI.copy()
+        cv2.imshow('c', WarpedImgDisp)
+        cv2.waitKey(1)
+
+    Mask = np.zeros(np.shape(I))
+    Mask[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :] = 1
+    CroppedI = I[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :]
+    CroppedWarpedI = WarpedI[RandY:RandY + PatchSize[0], RandX:RandX + PatchSize[1], :]
 
 def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
     """

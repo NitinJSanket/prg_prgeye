@@ -126,15 +126,17 @@ def rgb2gray(rgb):
     return gray
 
 class Homography:
-    def __init__(self, ImageSize=[128., 128., 3.], MaxRVal = np.array([0.0, 0.0, 0.0]), MaxTVal=np.array([[0.25], [0.25], [0.25]])):
+    def __init__(self, ImageSize=[128., 128., 3.], MaxR = np.zeros((1,3)), MaxT = np.array([[0.25], [0.25], [0.25]]), MaxYaw = 45.0, MaxMinScale = np.array([0.7, 1.4])):
         self.ImageSize = ImageSize
         self.ScaleMtrx = np.eye(3) # Scales from [-1, 1] ImageCoordinates to Actual Image Coordinates
         self.ScaleMtrx[0,0] = ImageSize[0]/2
         self.ScaleMtrx[0,2] = ImageSize[0]/2
         self.ScaleMtrx[1,1] = ImageSize[1]/2
         self.ScaleMtrx[1,2] = ImageSize[1]/2
-        self.MaxRVal = MaxRVal
-        self.MaxTVal = MaxTVal
+        self.MaxR = MaxR # +- Degrees Euler Angles ZYX
+        self.MaxT = MaxT # +- T in f units or px. if using 2D
+        self.MaxYaw = MaxYaw # +- Degrees
+        self.MaxMinScale = MaxMinScale # [Min, Max]        
         
     def ComposeHFromRTN(self, R = np.eye(3), T = np.zeros((3, 1)), N = np.array([[0.], [0.], [1.]]), ScaleToPx = False):
         H = np.add(R, np.matmul(T, N.T)) # R + TN'
@@ -144,7 +146,7 @@ class Homography:
            
         return H
 
-    def ComposeReducedH(self, TransformType = 'Affine', T2D = np.zeros((2, 1)), Yaw = 0.0, Scale =  np.ones((2, 1)), Shear = np.zeros((2, 1))):
+    def ComposeReducedH(self, TransformType = ['Yaw', 'Scale', 'T2D'], T2D = np.zeros((2, 1)), Yaw = 0.0, Scale =  np.ones((2, 1)), Shear = np.zeros((2, 1))):
         # T2D is in px.
         # Yaw is in degrees
         # Scale is percentage of f, 1.0 gives original scale
@@ -179,13 +181,14 @@ class Homography:
             HNow[1,2] = T2D[1]
             return HNow
 
+
         # If TranformType is not list, make it into a list
         if(not isinstance(TransformType, list)):
             TransformType = list(TransformType)
             
         # Any combination composition is possible, list order does not matter
         H = np.eye(3)
-        for count in len(TransformType):
+        for count in TransformType:
             if 'Yaw' in TransformType:
                 HNow = HFromYaw(Yaw)
                 H = np.matmul(H, HNow)
@@ -195,7 +198,7 @@ class Homography:
             if 'Shear' in TransformType:
                 HNow = HFromShear(Shear)
                 H = np.matmul(H, HNow)
-            if 'Translation' in TranformType:
+            if 'Translation' in TransformType:
                 HNow = HFromTranslation2D(T2D)
                 H = np.matmul(H, HNow)
             
@@ -233,23 +236,52 @@ class Homography:
             cv2.waitKey(WaitTime)
         return ImgDisp
 
-    def GetRandR(self, MaxRVal = None, EulOrder='zyx'):
-        # MaxRVal is given in Degrees
-        if MaxRVal  is not None:
+    def GetRandR(self, MaxR = None, EulOrder='zyx'):
+        # MaxR is given in Degrees
+        if MaxR is not None:
             # Overwrite value
-            self.MaxRVal = MaxRVal
+            self.MaxR = np.radians(MaxR)
         # Generate random value of euler angles
-        EulAng = 2*self.MaxRVal*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
+        EulAng = 2*self.MaxR*([np.random.rand() - 0.5, np.random.rand() - 0.5, np.random.rand() - 0.5])
         R = Rot.from_euler(EulOrder, EulAng, degrees=True).as_dcm()
         return R, EulAng
 
-    def GetRandT(self, MaxTVal = None):
-        # MaxTVal is given in Percentage of focal length (0.1 means 0.1f)
-        if MaxTVal  is not None:
+    def GetRandT(self, MaxT = None, Flag2D = False):
+        # MaxT is given in Percentage of focal length (0.1 means 0.1f)
+        if MaxT is not None:
             # Overwrite value
-            self.MaxTVal = MaxTVal
+            self.MaxT = MaxT
         # Generate random value of translation
-        return  np.array(2*self.MaxTVal*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
+        if(not Flag2D):
+            T = np.array(2*self.MaxT*([[np.random.rand() - 0.5],[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))  
+        else:
+            self.MaxT = self.MaxT[0:2] # Extract first two elements if three are given
+            T = np.array(2*self.MaxT*([[np.random.rand() - 0.5],[np.random.rand() - 0.5]]))
+        return T
+
+    def GetRandYaw(self, MaxYaw = None):
+        if MaxYaw is not None:
+            # Overwrite value
+            self.MaxYaw = MaxYaw
+        return 2*self.MaxYaw*(np.random.rand() - 0.5)
+
+    def GetRandScale(self, MaxMinScale = None, Uniform = True):
+        if MaxMinScale is not None:
+            # Overwrite value
+            self.MaxMinScale = MaxMinScale
+        if Uniform:
+            Scale = (self.MaxMinScale[1] - self.MaxMinScale[0])*np.random.rand() + self.MaxMinScale[0]
+            Scale = np.tile(Scale, [2,1])
+        else:
+            Scale = [[(self.MaxMinScale[1] - self.MaxMinScale[0])*np.random.rand() + self.MaxMinScale[0]],\
+                     [(self.MaxMinScale[1] - self.MaxMinScale[0])*np.random.rand() + self.MaxMinScale[0]]]
+        return Scale
+
+    def GetRandReducedH(self, TransformType = ['Yaw', 'Scale', 'T2D'], MaxT = None, MaxYaw = None, MaxMinScale = None):
+        H = self.ComposeReducedH(TransformType, T2D = self.GetRandT(MaxT, True), Yaw = self.GetRandYaw(MaxYaw), Scale = self.GetRandScale(MaxMinScale, True))
+        return H
+                            
+        
     
 
             
