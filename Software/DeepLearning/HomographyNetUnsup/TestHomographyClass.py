@@ -24,7 +24,6 @@ def main():
     # ScaleMtrx[1,1] = ImageSize[1]/2
     # ScaleMtrx[1,2] = ImageSize[1]/2
     # H =  np.matmul(ScaleMtrx, np.matmul(H, np.linalg.inv(ScaleMtrx)))
-    
 
     WarpedI = cv2.warpPerspective(I, H, (ImageSize[1],ImageSize[0]))
 
