@@ -128,7 +128,7 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
                 FeedDict = {ImgPH: RandImgBatch}
                 _ = sess.run([prHVal], FeedDict)
 
-        Time = toc(Timer1)/NumTest
+        Time = mu.toc(Timer1)/NumTest
         FPS = 1/Time*MiniBatchSizeNow
         LogFile.write('{}, {}, {}\n'.format(MiniBatchSizeNow, Time, FPS))
         print('Testing MiniBatchSize {} Complete....'.format(MiniBatchSizeNow))
