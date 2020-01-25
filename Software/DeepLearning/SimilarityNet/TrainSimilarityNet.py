@@ -50,10 +50,17 @@ def RandSimilarityPerturbation(I1, HObj, PatchSize, ImageSize=None, Vis=False):
     if(ImageSize is None):
         ImageSize = np.shape(I1)
 
-    H, Compositions = HObj.GetRandReducedH(TransformType = ['Yaw', 'Scale', 'T2D'], ScaleToPx = True)
+    H, Compositions = HObj.GetRandReducedH(TransformType = ['Yaw', 'Scale', 'T2D'], ScaleToPx = False)
+    # ScaleMtrx = np.eye(3) # Scales from [-1, 1] ImageCoordinates to Actual Image Coordinates
+    # ScaleMtrx[0,0] = PatchSize[1]/2
+    # ScaleMtrx[0,2] = PatchSize[1]/2
+    # ScaleMtrx[1,1] = PatchSize[0]/2
+    # ScaleMtrx[1,2] = PatchSize[0]/2
+    # H = np.matmul(H, np.linalg.inv(ScaleMtrx))
 
+    # I2 = cv2.warpPerspective(I1, np.matmul(ScaleMtrx, H), (ImageSize[1], ImageSize[0])) 
     I2 = cv2.warpPerspective(I1, H, (ImageSize[1], ImageSize[0])) 
-
+    
     # Crop in center for PatchSize
     P1 = iu.CenterCrop(I1, PatchSize)
     P2 = iu.CenterCrop(I2, PatchSize)
@@ -104,7 +111,7 @@ def GenerateBatch(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, Original
         # Similarity and Patch generation 
         I1, I2, P1, P2, H, Compositions = RandSimilarityPerturbation(I, HObj, PatchSize, ImageSize=None, Vis=False)
         # [Scale, Yaw, Shear, T2D]
-        CompositionsExtracted = np.array([Compositions[0][0], Compositions[3][0], Compositions[3][0]]) # Neglect the stuff you don't need
+        CompositionsExtracted = np.array([Compositions[0][0]-1, Compositions[3][0], Compositions[3][0]]) # Neglect the stuff you don't need
         
         ICombined = np.dstack((P1[:,:,0:3], P2[:,:,0:3]))
         # Normalize Dataset
@@ -127,7 +134,11 @@ def LossFunc(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
     # L2 loss between predicted and ground truth parameters
     # DiffImg = WarpI1Patch - I2PH
-    lossPhoto = tf.reduce_mean(tf.abs(prVal - LabelPH))
+    # Label = warp2.mtrx2vec(opt, LabelPH)
+    lossPhoto = tf.reduce_mean(tf.square(prVal - LabelPH))
+
+    # TODO: Use stop gradient to calculate loss of individual components
+    # TODO: Try using Normal STN
 
     # Unsupervised L1 Photometric Loss
     # lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
@@ -187,6 +198,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, TrainNames, TestNames, NumTrainSa
     tf.summary.image('I2Patch', I2PH[:,:,:,0:3])
     tf.summary.image('WarpI1PatchIdeal', WarpI2PatchIdeal[:,:,:,0:3])
     tf.summary.histogram('prHVal', prHVal)
+    tf.summary.histogram('Label', LabelPH)
     # Merge all summaries into a single operation
     MergedSummaryOP = tf.summary.merge_all()
     

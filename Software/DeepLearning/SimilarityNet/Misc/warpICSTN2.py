@@ -101,13 +101,13 @@ def vec2mtrx(opt,p):
             pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,O],[cospsi,sinpsi,O],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "scale":
             scale = tf.squeeze(p) # tf.unstack(p,axis=1)
-            pMtrx = tf.transpose(tf.stack([[scale+I,O,O],[O,scale+I,O],[O,O,I]]),perm=[2,0,1])
+            pMtrx = tf.transpose(tf.stack([[scale,O,O],[O,scale,O],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "translation":
             tx,ty = tf.unstack(p,axis=1)
             pMtrx = tf.transpose(tf.stack([[I,O,tx],[O,I,ty],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "pseudosimilarity":
             scale,tx,ty = tf.unstack(p,axis=1)
-            pMtrx = tf.transpose(tf.stack([[scale+I,O,tx],[O,scale+I,ty],[O,O,I]]),perm=[2,0,1])
+            pMtrx = tf.transpose(tf.stack([[scale,O,tx],[O,scale,ty],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "similarity":
             pc,ps,tx,ty = tf.unstack(p,axis=1)
             pMtrx = tf.transpose(tf.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]),perm=[2,0,1])
@@ -133,9 +133,9 @@ def mtrx2vec(opt,pMtrx):
                         CompareVal =  opt.warpType
 
                 if CompareVal == "yaw": p = [[e11]] # value of sinpsi is regressed directly, this might make cospsi unconstrained?
-                if CompareVal == "scale": p = [[e00-1]] # this might make e00 != e11?
+                if CompareVal == "scale": p = [[e00]] # this might make e00 != e11?
                 if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
-                if CompareVal == "pseudosimilarity": p = tf.stack([e00-1,e02,e12],axis=1)
+                if CompareVal == "pseudosimilarity": p = tf.stack([e00,e02,e12],axis=1)
                 if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
                 if CompareVal == "affine": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12],axis=1)
                 if CompareVal == "homography": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12,e20,e21],axis=1)
@@ -146,7 +146,7 @@ def transformImage(opt,image,pMtrx):
         with tf.name_scope("transformImage"):
                # opt.refMtrx = warp.fit(Xsrc=opt.canon4pts,Xdst=opt.image4pts)
                refMtrx = tf.tile(tf.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
-               transMtrx = tf.matmul(refMtrx,pMtrx)
+               transMtrx = tf.matmul(refMtrx, tf.matmul(pMtrx, tf.linalg.inv(refMtrx)))
                # warp the canonical coordinates
                X,Y = np.meshgrid(np.linspace(-1,1,opt.W),np.linspace(-1,1,opt.H))
                X,Y = X.flatten(),Y.flatten()
