@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.linalg
 import tensorflow as tf
+import cv2
 
 
 class Options:
@@ -50,6 +51,11 @@ class Options:
         self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
         self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
         self.refMtrx = fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
+        
+        # self.refMtrx[0,0] = self.W/2
+        # self.refMtrx[0,2] = self.W/2
+        # self.refMtrx[1,1] = self.H/2
+        # self.refMtrx[1,2] = self.H/2
         self.pertScale = pertScale
         self.transScale = transScale
         self.AddTranslation = bool(AddTranslation)
@@ -107,7 +113,7 @@ def vec2mtrx(opt,p):
             pMtrx = tf.transpose(tf.stack([[I,O,tx],[O,I,ty],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "pseudosimilarity":
             scale,tx,ty = tf.unstack(p,axis=1)
-            pMtrx = tf.transpose(tf.stack([[scale,O,tx],[O,scale,ty],[O,O,I]]),perm=[2,0,1])
+            pMtrx = tf.transpose(tf.stack([[I+scale,O,tx],[O,I+scale,ty],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "similarity":
             pc,ps,tx,ty = tf.unstack(p,axis=1)
             pMtrx = tf.transpose(tf.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]),perm=[2,0,1])
@@ -135,7 +141,7 @@ def mtrx2vec(opt,pMtrx):
                 if CompareVal == "yaw": p = [[e11]] # value of sinpsi is regressed directly, this might make cospsi unconstrained?
                 if CompareVal == "scale": p = [[e00]] # this might make e00 != e11?
                 if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
-                if CompareVal == "pseudosimilarity": p = tf.stack([e00,e02,e12],axis=1)
+                if CompareVal == "pseudosimilarity": p = tf.stack([e00-1,e02,e12],axis=1)
                 if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
                 if CompareVal == "affine": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12],axis=1)
                 if CompareVal == "homography": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12,e20,e21],axis=1)
@@ -146,7 +152,7 @@ def transformImage(opt,image,pMtrx):
         with tf.name_scope("transformImage"):
                # opt.refMtrx = warp.fit(Xsrc=opt.canon4pts,Xdst=opt.image4pts)
                refMtrx = tf.tile(tf.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
-               transMtrx = tf.matmul(refMtrx, tf.matmul(pMtrx, tf.linalg.inv(refMtrx)))
+               transMtrx = tf.matmul(refMtrx, pMtrx) # tf.matmul(refMtrx, tf.matmul(pMtrx, tf.linalg.inv(refMtrx)))
                # warp the canonical coordinates
                X,Y = np.meshgrid(np.linspace(-1,1,opt.W),np.linspace(-1,1,opt.H))
                X,Y = X.flatten(),Y.flatten()
@@ -183,4 +189,50 @@ def transformImage(opt,image,pMtrx):
                imageBL = tf.to_float(tf.gather(imageVecOut,idxBL))*(1-Xratio)*(Yratio)
                imageBR = tf.to_float(tf.gather(imageVecOut,idxBR))*(Xratio)*(Yratio)
                imageWarp = imageUL+imageUR+imageBL+imageBR
-        return imageWarp
+        return imageWarp, ZwarpHom
+
+def transformImageNP(opt,image,pMtrx):
+    refMtrx = np.tile(np.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
+    transMtrx = np.matmul(refMtrx, pMtrx) # tf.matmul(refMtrx, tf.matmul(pMtrx, tf.linalg.inv(refMtrx)))
+    # warp the canonical coordinates
+    X,Y = np.meshgrid(np.linspace(-1,1,opt.W),np.linspace(-1,1,opt.H))
+    X,Y = X.flatten(),Y.flatten()
+    XYhom = np.stack([X,Y,np.ones_like(X)],axis=1).T
+    XYhom = np.tile(XYhom,[opt.batchSize,1,1]).astype(np.float32)
+    XYwarpHom = np.matmul(transMtrx,XYhom)
+    XwarpHom,YwarpHom,ZwarpHom = np.squeeze(np.split(XYwarpHom, 3, axis=1))
+    Xwarp = np.reshape(XwarpHom/(ZwarpHom+1e-8),[opt.batchSize,opt.H,opt.W])
+    Ywarp = np.reshape(YwarpHom/(ZwarpHom+1e-8),[opt.batchSize,opt.H,opt.W])
+    # get the integer sampling coordinates
+    Xfloor,Xceil = np.floor(Xwarp),np.ceil(Xwarp)
+    Yfloor,Yceil = np.floor(Ywarp),np.ceil(Ywarp)
+    XfloorInt,XceilInt = np.int32(Xfloor),np.int32(Xceil)
+    YfloorInt,YceilInt = np.int32(Yfloor),np.int32(Yceil)
+    imageIdx = np.tile(np.arange(opt.batchSize).reshape([opt.batchSize,1,1]),[1,opt.H,opt.W])
+    imageVec = np.reshape(image,[-1,int(image.shape[-1])])
+    imageVecOut = np.concatenate([imageVec,np.zeros([1,int(image.shape[-1])])],axis=0)
+    idxUL = (imageIdx*opt.H+YfloorInt)*opt.W+XfloorInt
+    idxUR = (imageIdx*opt.H+YfloorInt)*opt.W+XceilInt
+    idxBL = (imageIdx*opt.H+YceilInt)*opt.W+XfloorInt
+    idxBR = (imageIdx*opt.H+YceilInt)*opt.W+XceilInt
+    idxOutside = np.ones([opt.batchSize,opt.H,opt.W])*opt.batchSize*opt.H*opt.W
+    def insideImage(Xint,Yint):
+            return np.array(Xint>=0) & np.array(Xint<opt.W) & np.array(Yint>=0) & np.array(Yint<opt.H)
+    def gather(params, indexes):
+        # Taken from https://stackoverflow.com/questions/53578484/tf-gather-with-indices-of-higher-dimention-than-input-data
+        return np.take(params, indexes.astype(int), axis=0)
+    # print(np.shape(insideImage(XfloorInt,YfloorInt)))
+    idxUL = np.where(insideImage(XfloorInt,YfloorInt).astype(float),idxUL,idxOutside).astype(float)
+    idxUR = np.where(insideImage(XceilInt,YfloorInt).astype(float),idxUR,idxOutside).astype(float)
+    idxBL = np.where(insideImage(XfloorInt,YceilInt).astype(float),idxBL,idxOutside).astype(float)
+    idxBR = np.where(insideImage(XceilInt,YceilInt).astype(float),idxBR,idxOutside).astype(float)
+    # bilinear interpolation
+    Xratio = np.reshape(Xwarp-Xfloor,[opt.batchSize,opt.H,opt.W,1])
+    Yratio = np.reshape(Ywarp-Yfloor,[opt.batchSize,opt.H,opt.W,1])
+    imageUL = gather(imageVecOut,idxUL).astype(float)*(1-Xratio)*(1-Yratio)
+    imageUR = gather(imageVecOut,idxUR).astype(float)*(Xratio)*(1-Yratio)
+    imageBL = gather(imageVecOut,idxBL).astype(float)*(1-Xratio)*(Yratio)
+    imageBR = gather(imageVecOut,idxBR).astype(float)*(Xratio)*(Yratio)
+    imageWarp = imageUL+imageUR+imageBL+imageBR
+    return imageWarp
+

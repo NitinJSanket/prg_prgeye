@@ -156,7 +156,7 @@ class Homography:
         # Transformation order is always Scale -> Yaw -> Shear -> Translation
         # Notes from here: https://courses.cs.washington.edu/courses/csep576/11sp/pdf/Transformations.pdf
         def HFromYaw(Yaw):
-            Yawr = np.radians(Yaw)
+            Yawr = np.radians(Yaw, ScaleToPx)
             cosYaw = np.cos(Yawr)
             sinYaw = np.sin(Yawr)
             HNow = np.eye(3)
@@ -164,24 +164,32 @@ class Homography:
             HNow[0,1] = -sinYaw
             HNow[1,0] = sinYaw
             HNow[1,1] = cosYaw
+            if(ScaleToPx):
+                HNow =  np.matmul(self.ScaleMtrx, np.matmul(HNow, np.linalg.inv(self.ScaleMtrx))) # Scale to bring to Image Coordinates
             return HNow
        
-        def HFromScale(Scale):
+        def HFromScale(Scale, ScaleToPx):
             HNow = np.eye(3)
             HNow[0,0] = Scale[0]
-            HNow[1,1] = Scale[1] 
+            HNow[1,1] = Scale[1]
+            if(ScaleToPx):
+                HNow =  np.matmul(self.ScaleMtrx, np.matmul(HNow, np.linalg.inv(self.ScaleMtrx))) # Scale to bring to Image Coordinates
             return HNow
 
-        def HFromShear(Shear):
+        def HFromShear(Shear, ScaleToPx):
             HNow = np.eye(3)
             HNow[0,1] = Shear[0]
             HNow[1,0] = Shear[1]
+            if(ScaleToPx):
+                HNow =  np.matmul(self.ScaleMtrx, np.matmul(HNow, np.linalg.inv(self.ScaleMtrx))) # Scale to bring to Image Coordinates
             return HNow
 
-        def HFromTranslation2D(T2D):
+        def HFromTranslation2D(T2D, ScaleToPx):
             HNow = np.eye(3)
             HNow[0,2] = T2D[0]
             HNow[1,2] = T2D[1]
+            if(ScaleToPx):
+                HNow =  np.matmul(self.ScaleMtrx, np.matmul(HNow, np.linalg.inv(self.ScaleMtrx))) # Scale to bring to Image Coordinates
             return HNow
 
 
@@ -193,20 +201,19 @@ class Homography:
         H = np.eye(3)
         for count in TransformType:
             if 'Scale' in TransformType:
-                HNow = HFromScale(Scale)
+                HNow = HFromScale(Scale, ScaleToPx)
                 H = np.matmul(H, HNow)
             if 'Yaw' in TransformType:
-                HNow = HFromYaw(Yaw)
+                HNow = HFromYaw(Yaw, ScaleToPx)
                 H = np.matmul(H, HNow)
             if 'Shear' in TransformType:
-                HNow = HFromShear(Shear)
+                HNow = HFromShear(Shear, ScaleToPx)
                 H = np.matmul(H, HNow)
             if 'T2D' in TransformType:
-                HNow = HFromTranslation2D(T2D)
+                HNow = HFromTranslation2D(T2D, ScaleToPx)
                 H = np.matmul(H, HNow)
 
-        if(ScaleToPx):
-            H =  np.matmul(self.ScaleMtrx, np.matmul(H, np.linalg.inv(self.ScaleMtrx))) # Scale to bring to Image Coordinates
+
             
         return H 
         
