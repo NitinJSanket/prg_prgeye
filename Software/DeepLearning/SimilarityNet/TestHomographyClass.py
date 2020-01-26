@@ -122,9 +122,9 @@ def main():
     # Hcv = np.matmul(A, Hcv)
 
     H = np.eye(3)
-    pc = 0.5
-    tx = 0.1
-    ty = 0.1
+    pc = 1.0
+    tx = 1.0
+    ty = 1.0
     H[0,0] = 1. + pc
     H[1,1] = 1. + pc
     H[0,2] = tx
@@ -155,7 +155,7 @@ def main():
          WarpI1IdealRet = WarpI1PatchIdeal.eval()
          transMtrxRet = transMtrx.eval()
 
-    print(transMtrxRet[0])
+    # print(transMtrxRet[0])
 
     # cv2.imshow('b', np.uint8(transMtrxRet[0]))
     # cv2.waitKey(0)
