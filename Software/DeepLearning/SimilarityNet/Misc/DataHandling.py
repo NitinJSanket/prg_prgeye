@@ -51,9 +51,10 @@ def SetupAll(BasePath, LearningRate):
     NumValSamples = len(ValNames)
     NumTestSamples = len(TestNames)
     # Homography Perturbation Parameters
-    HObj = iu.Homography(ImageSize = OriginalImageSize, MaxT = np.array([[0.025], [0.025], [0.025]]), MaxYaw = 1.2, MaxMinScale = np.array([0.97, 1.03]))
+    # HObj = iu.Homography(ImageSize = OriginalImageSize, MaxT = np.array([[0.025], [0.025], [0.025]]), MaxYaw = 1.2, MaxMinScale = np.array([0.97, 1.03]))
+    MaxParams = np.array([0.5, 0.2, 0.2])
+    HObj = iu.HomographyICTSN(MaxParams = MaxParams)
 
-    
     return TrainNames, ValNames, TestNames, OptimizerParams,\
         SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
         NumTestRunsPerEpoch, OriginalImageSize, HObj      

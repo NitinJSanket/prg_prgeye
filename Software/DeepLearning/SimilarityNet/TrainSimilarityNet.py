@@ -48,19 +48,14 @@ sys.dont_write_bytecode = True
 
 def RandSimilarityPerturbation(I1, HObj, PatchSize, ImageSize=None, Vis=False):
     if(ImageSize is None):
-        ImageSize = np.shape(I1)
+        ImageSize = np.array(np.shape(I1))
 
-    H, Compositions = HObj.GetRandReducedH(TransformType = ['Yaw', 'Scale', 'T2D'], ScaleToPx = False)
-    # ScaleMtrx = np.eye(3) # Scales from [-1, 1] ImageCoordinates to Actual Image Coordinates
-    # ScaleMtrx[0,0] = PatchSize[1]/2
-    # ScaleMtrx[0,2] = PatchSize[1]/2
-    # ScaleMtrx[1,1] = PatchSize[0]/2
-    # ScaleMtrx[1,2] = PatchSize[0]/2
-    # H = np.matmul(H, np.linalg.inv(ScaleMtrx))
+    H, Params = HObj.GetRandReducedHICSTN(TransformType = 'psuedosimilarity')
+    opt = warp2.Options(PatchSize=ImageSize, MiniBatchSize=1, warpType= ['pseudosimilarity'])
 
-    # I2 = cv2.warpPerspective(I1, np.matmul(ScaleMtrx, H), (ImageSize[1], ImageSize[0])) 
-    I2 = cv2.warpPerspective(I1, H, (ImageSize[1], ImageSize[0])) 
-    
+    # Numpy based Warping
+    I2 = warp2.transformImageNP(opt, I1[np.newaxis,:,:,:], H[np.newaxis,:,:])[0]
+
     # Crop in center for PatchSize
     P1 = iu.CenterCrop(I1, PatchSize)
     P2 = iu.CenterCrop(I2, PatchSize)
@@ -74,8 +69,8 @@ def RandSimilarityPerturbation(I1, HObj, PatchSize, ImageSize=None, Vis=False):
     # P1 is I1 cropped to patch Size
     # P2 is I1 Crop Warped (I2 Crop)
     # H is Homography
-    # Compositions is the stuff H is made from 
-    return I1, I2, P1, P2, H, Compositions
+    # Params is the stuff H is made from 
+    return I1, I2, P1, P2, H, Params
 
     
 def GenerateBatch(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize):
@@ -95,7 +90,7 @@ def GenerateBatch(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, Original
     I1Batch = []
     I2Batch = []
     HBatch = []
-    CompositionsBatch = []
+    ParamsBatch = []
 
     ImageNum = 0
     while ImageNum < MiniBatchSize:
@@ -109,9 +104,9 @@ def GenerateBatch(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, Original
         ImageNum += 1
 
         # Similarity and Patch generation 
-        I1, I2, P1, P2, H, Compositions = RandSimilarityPerturbation(I, HObj, PatchSize, ImageSize=None, Vis=False)
+        I1, I2, P1, P2, H, Params = RandSimilarityPerturbation(I, HObj, PatchSize, ImageSize=None, Vis=False)
         # [Scale, Yaw, Shear, T2D]
-        CompositionsExtracted = np.array([Compositions[0][0]-1, Compositions[3][0], Compositions[3][0]]) # Neglect the stuff you don't need
+        # CompositionsExtracted = np.array([Compositions[0][0]-1, Compositions[3][0], Compositions[3][0]]) # Neglect the stuff you don't need
         
         ICombined = np.dstack((P1[:,:,0:3], P2[:,:,0:3]))
         # Normalize Dataset
@@ -123,10 +118,10 @@ def GenerateBatch(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, Original
         I1Batch.append(P1)
         I2Batch.append(P2)
         HBatch.append(H)
-        CompositionsBatch.append(CompositionsExtracted)
+        ParamsBatch.append(Params)
 
-    CompositionsBatch = np.squeeze(CompositionsBatch)
-    return IBatch, I1Batch, I2Batch, HBatch, CompositionsBatch              
+    # CompositionsBatch = np.squeeze(CompositionsBatch)
+    return IBatch, I1Batch, I2Batch, HBatch, ParamsBatch              
 
 
 def LossFunc(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):

@@ -128,6 +128,92 @@ def rgb2gray(rgb):
 
     return gray
 
+class HomographyICTSN:
+    def __init__(self, MaxParams = np.zeros((3,1))):
+        self.MaxParams = MaxParams
+
+    def ComposedReducedHICSTN(self, TransformType = 'psuedosimilarity', Params = np.zeros((3,1))):
+        if(not isinstance(TransformType, str)):
+            print('ERROR: TransformType as to be a string')
+            sys.exit(0)
+        H = np.eye(3)
+        if(TransformType == 'psuedosimilarity'):
+            H[0,0] = 1. + Params[0] # 1 + pc
+            H[1,1] = 1. + Params[0] # 1 + pc
+            H[0,2] = Params[1] # tx
+            H[1,2] = Params[2] # ty
+        elif(TransformType == 'similarity'):
+            H[0,0] = 1. + Params[0] # 1 + pc
+            H[1,1] = 1. + Params[0] # 1 + pc
+            H[0,1] = Params[1] # ps
+            H[1,0] = Params[1] # ps
+            H[0,2] = Params[2] # tx
+            H[1,2] = Params[3] # ty
+        elif(TransformType == 'translation'):
+            H[0,2] = Params[0] # tx
+            H[1,2] = Params[1] # ty
+        elif(TransformType == 'affine'):
+            H[0,0] = 1. + Params[0] # 1 + p1
+            H[0,1] = Params[0] # p2
+            H[0,2] = Params[2] # p3
+            H[1,0] = Params[3] # p4
+            H[1,1] = 1. + Params[4] # 1 + p5
+            H[1,2] = Params[5] # p6
+        elif(TransformType == 'homography'):
+            H[0,0] = 1. + Params[0] # 1 + p1
+            H[0,1] = Params[0] # p2
+            H[0,2] = Params[2] # p3
+            H[1,0] = Params[3] # p4
+            H[1,1] = 1. + Params[4] # 1 + p5
+            H[1,2] = Params[5] # p6
+            H[2,0] = Params[6] # p7
+            H[2,1] = Params[7] # p8
+        elif(TransformType == 'yaw'):
+            print('ERROR: Not implemented yet')
+            sys.exit(0)
+        elif(TransformType == 'scale'):
+            print('ERROR: Not implemented yet')
+            sys.exit(0)
+        return H
+
+    def GetRandParamsICSTN(self, TransformType = 'psuedosimilarity', MaxParams = None):
+        if MaxParams is not None:
+            # Overwrite value
+            self.MaxParams = MaxParams
+        def RandSample(Max, Min = None):
+            if(Min is None):
+                Min = -Max
+            return (Max - Min)*(np.random.rand()) + Min
+        # TODO: Cleanup by defining self.warpDim
+        if(TransformType == 'psuedosimilarity'):
+            Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2])])
+        elif(TransformType == 'similarity'):
+            Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
+                               RandSample(self.MaxParams[3])])
+        elif(TransformType == 'translation'):
+            Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1])])
+        elif(TransformType == 'affine'):
+           Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
+                              RandSample(self.MaxParams[3]), RandSample(self.MaxParams[4]), RandSample(self.MaxParams[5])])
+        elif(TransformType == 'homography'):
+            Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
+                               RandSample(self.MaxParams[3]), RandSample(self.MaxParams[4]), RandSample(self.MaxParams[5]),\
+                               RandSample(self.MaxParams[6]), RandSample(self.MaxParams[7])])
+        elif(TransformType == 'yaw'):
+            print('ERROR: Not implemented yet')
+            sys.exit(0)
+        elif(TransformType == 'scale'):
+            print('ERROR: Not implemented yet')
+            sys.exit(0)
+        return Params
+
+    def GetRandReducedHICSTN(self, TransformType = 'psuedosimilarity', MaxParams = None):
+        Params = self.GetRandParamsICSTN(TransformType = TransformType, MaxParams = MaxParams)
+        H = self.ComposedReducedHICSTN(TransformType = TransformType, Params = Params)
+        return H, Params
+
+
+
 class Homography:
     def __init__(self, ImageSize=[128., 128., 3.], MaxR = np.zeros((1,3)), MaxT = np.array([[0.25], [0.25], [0.25]]), MaxYaw = 45.0, MaxMinScale = np.array([0.7, 1.4])):
         self.ImageSize = ImageSize
@@ -139,7 +225,7 @@ class Homography:
         self.MaxR = MaxR # +- Degrees Euler Angles ZYX
         self.MaxT = MaxT # +- T in f units or px. if using 2D
         self.MaxYaw = MaxYaw # +- Degrees
-        self.MaxMinScale = MaxMinScale # [Min, Max]        
+        self.MaxMinScale = MaxMinScale # [Min, Max]
         
     def ComposeHFromRTN(self, R = np.eye(3), T = np.zeros((3, 1)), N = np.array([[0.], [0.], [1.]]), ScaleToPx = False):
         H = np.add(R, np.matmul(T, N.T)) # R + TN'
@@ -211,10 +297,7 @@ class Homography:
                 H = np.matmul(H, HNow)
             if 'T2D' in TransformType:
                 HNow = HFromTranslation2D(T2D, ScaleToPx)
-                H = np.matmul(H, HNow)
-
-
-            
+                H = np.matmul(H, HNow)            
         return H 
         
     def DecomposeHToRTN(self):

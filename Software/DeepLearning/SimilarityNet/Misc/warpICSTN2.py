@@ -189,7 +189,7 @@ def transformImage(opt,image,pMtrx):
                imageBL = tf.to_float(tf.gather(imageVecOut,idxBL))*(1-Xratio)*(Yratio)
                imageBR = tf.to_float(tf.gather(imageVecOut,idxBR))*(Xratio)*(Yratio)
                imageWarp = imageUL+imageUR+imageBL+imageBR
-        return imageWarp, ZwarpHom
+        return imageWarp
 
 def transformImageNP(opt,image,pMtrx):
     refMtrx = np.tile(np.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
@@ -233,6 +233,7 @@ def transformImageNP(opt,image,pMtrx):
     imageUR = gather(imageVecOut,idxUR).astype(float)*(Xratio)*(1-Yratio)
     imageBL = gather(imageVecOut,idxBL).astype(float)*(1-Xratio)*(Yratio)
     imageBR = gather(imageVecOut,idxBR).astype(float)*(Xratio)*(Yratio)
-    imageWarp = imageUL+imageUR+imageBL+imageBR
+    imageWarp = np.uint8(np.round(imageUL+imageUR+imageBL+imageBR))
+
     return imageWarp
 
