@@ -11,42 +11,63 @@ import tensorflow as tf
 sys.dont_write_bytecode = True
 
 def CenterCrop(I, OutShape):
+    AppendFlag = False
+    if(len(np.shape(I)) == 3):
+        I = I[np.newaxis, :, :, :] # Append Batch Dim
+        AppendFlag = True
     ImageSize = np.shape(I)
-    CenterX = ImageSize[0]/2
-    CenterY = ImageSize[1]/2
+    CenterX = ImageSize[1]/2
+    CenterY = ImageSize[2]/2
     try:
-        ICrop = I[int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
+        ICrop = I[:, int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
                   int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
+        if(AppendFlag): # Remove Batch Dim
+            ICrop = np.squeeze(ICrop, axis=0)
     except:
         ICrop = None
-    if (OutShape[0] > ImageSize[0]) or  (OutShape[1] > ImageSize[1]):
+    if (OutShape[0] > ImageSize[1]) or (OutShape[1] > ImageSize[2]):
         ICrop = None
         
     return ICrop
 
 def CenterCropFactor(I, Factor):
+    AppendFlag = False
+    if(len(np.shape(I)) == 3):
+        I = I[np.newaxis, :, :, :] # Append Batch Dim
+        AppendFlag = True
     ImageSize = np.shape(I)
-    CenterX = ImageSize[0]/2
-    CenterY = ImageSize[1]/2
+    CenterX = ImageSize[1]/2
+    CenterY = ImageSize[2]/2
     OutShape = ImageSize - (np.mod(ImageSize,2**Factor))
-    OutShape[2] = ImageSize[2]
+    OutShape[2] = ImageSize[3]
     try:
-        ICrop = I[int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
+        ICrop = I[:, int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
                   int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
+        if(AppendFlag): # Remove Batch Dim
+            ICrop = np.squeeze(ICrop, axis=0)
     except:
+        ICrop = None
+        OutShape = None
+    if (OutShape[0] > ImageSize[1]) or (OutShape[1] > ImageSize[2]):
         ICrop = None
         OutShape = None
     return (ICrop, OutShape)
 
-def RandomCrop(I1, OutShape):
-    ImageSize = np.shape(I1)
+def RandomCrop(I, OutShape):
+    AppendFlag = False
+    if(len(np.shape(I)) == 3):
+        I = I[np.newaxis, :, :, :] # Append Batch Dim
+        AppendFlag = True
+    ImageSize = np.shape(I)
     try:
-        RandX = random.randint(0, ImageSize[0]-OutShape[0])
-        RandY = random.randint(0, ImageSize[1]-OutShape[1])
-        I1Crop = I1[RandX:RandX+OutShape[0], RandY:RandY+OutShape[1], :]
+        RandX = random.randint(0, ImageSize[1]-OutShape[0])
+        RandY = random.randint(0, ImageSize[2]-OutShape[1])
+        ICrop = I[:, RandX:RandX+OutShape[0], RandY:RandY+OutShape[1], :]
+        if(AppendFlag): # Remove Batch Dim
+            ICrop = np.squeeze(ICrop, axis=0)
     except:
-        I1Crop = None
-    return (I1Crop)
+        ICrop = None
+    return (ICrop)
 
 def StackImages(I1, I2):
     return np.dstack((I1, I2))
@@ -132,51 +153,67 @@ class HomographyICTSN:
     def __init__(self, MaxParams = np.zeros((3,1))):
         self.MaxParams = MaxParams
 
-    def ComposedReducedHICSTN(self, TransformType = 'psuedosimilarity', Params = np.zeros((3,1))):
+    @staticmethod
+    def ComposedReducedHICSTN(TransformType = 'translation', Params = np.zeros((1,3)), MiniBatchSize = None):
         if(not isinstance(TransformType, str)):
             print('ERROR: TransformType as to be a string')
             sys.exit(0)
-        H = np.eye(3)
-        if(TransformType == 'psuedosimilarity'):
-            H[0,0] = 1. + Params[0] # 1 + pc
-            H[1,1] = 1. + Params[0] # 1 + pc
-            H[0,2] = Params[1] # tx
-            H[1,2] = Params[2] # ty
-        elif(TransformType == 'similarity'):
-            H[0,0] = 1. + Params[0] # 1 + pc
-            H[1,1] = 1. + Params[0] # 1 + pc
-            H[0,1] = Params[1] # ps
-            H[1,0] = Params[1] # ps
-            H[0,2] = Params[2] # tx
-            H[1,2] = Params[3] # ty
-        elif(TransformType == 'translation'):
-            H[0,2] = Params[0] # tx
-            H[1,2] = Params[1] # ty
-        elif(TransformType == 'affine'):
-            H[0,0] = 1. + Params[0] # 1 + p1
-            H[0,1] = Params[0] # p2
-            H[0,2] = Params[2] # p3
-            H[1,0] = Params[3] # p4
-            H[1,1] = 1. + Params[4] # 1 + p5
-            H[1,2] = Params[5] # p6
-        elif(TransformType == 'homography'):
-            H[0,0] = 1. + Params[0] # 1 + p1
-            H[0,1] = Params[0] # p2
-            H[0,2] = Params[2] # p3
-            H[1,0] = Params[3] # p4
-            H[1,1] = 1. + Params[4] # 1 + p5
-            H[1,2] = Params[5] # p6
-            H[2,0] = Params[6] # p7
-            H[2,1] = Params[7] # p8
-        elif(TransformType == 'yaw'):
-            print('ERROR: Not implemented yet')
-            sys.exit(0)
-        elif(TransformType == 'scale'):
-            print('ERROR: Not implemented yet')
-            sys.exit(0)
-        return H
 
-    def GetRandParamsICSTN(self, TransformType = 'psuedosimilarity', MaxParams = None):
+        def ComposedReducedHICSTNSingle(TransformType = TransformType, Params = Params):
+            H = np.eye(3)
+            if(TransformType == 'psuedosimilarity'):
+                H[0,0] = 1. + Params[0] # 1 + pc
+                H[1,1] = 1. + Params[0] # 1 + pc
+                H[0,2] = Params[1] # tx
+                H[1,2] = Params[2] # ty
+            elif(TransformType == 'similarity'):
+                H[0,0] = 1. + Params[0] # 1 + pc
+                H[1,1] = 1. + Params[0] # 1 + pc
+                H[0,1] = Params[1] # ps
+                H[1,0] = Params[1] # ps
+                H[0,2] = Params[2] # tx
+                H[1,2] = Params[3] # ty
+            elif(TransformType == 'translation'):
+                H[0,2] = Params[0] # tx
+                H[1,2] = Params[1] # ty
+            elif(TransformType == 'affine'):
+                H[0,0] = 1. + Params[0] # 1 + p1
+                H[0,1] = Params[0] # p2
+                H[0,2] = Params[2] # p3
+                H[1,0] = Params[3] # p4
+                H[1,1] = 1. + Params[4] # 1 + p5
+                H[1,2] = Params[5] # p6
+            elif(TransformType == 'homography'):
+                H[0,0] = 1. + Params[0] # 1 + p1
+                H[0,1] = Params[0] # p2
+                H[0,2] = Params[2] # p3
+                H[1,0] = Params[3] # p4
+                H[1,1] = 1. + Params[4] # 1 + p5
+                H[1,2] = Params[5] # p6
+                H[2,0] = Params[6] # p7
+                H[2,1] = Params[7] # p8
+            elif(TransformType == 'yaw'):
+                print('ERROR: Not implemented yet')
+                sys.exit(0)
+            elif(TransformType == 'scale'):
+                print('ERROR: Not implemented yet')
+                sys.exit(0)
+            return H[np.newaxis, :, :]
+
+        if(MiniBatchSize is None):
+            # Runs once
+            H = ComposedReducedHICSTNSingle(TransformType = TransformType, Params = np.squeeze(Params))
+            return H[np.newaxis, :, :]
+        else:
+            for count in range(MiniBatchSize):
+                H = ComposedReducedHICSTNSingle(TransformType = TransformType, Params = Params[count])
+                if(count == 0):
+                    HAppend = H
+                else:
+                    HAppend = np.append(HAppend, H, axis=0)
+            return HAppend
+
+    def GetRandParamsICSTN(self, TransformType = 'translation', MaxParams = None, MiniBatchSize = None):
         if MaxParams is not None:
             # Overwrite value
             self.MaxParams = MaxParams
@@ -184,32 +221,48 @@ class HomographyICTSN:
             if(Min is None):
                 Min = -Max
             return (Max - Min)*(np.random.rand()) + Min
-        # TODO: Cleanup by defining self.warpDim
-        if(TransformType == 'psuedosimilarity'):
-            Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2])])
-        elif(TransformType == 'similarity'):
-            Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
-                               RandSample(self.MaxParams[3])])
-        elif(TransformType == 'translation'):
-            Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1])])
-        elif(TransformType == 'affine'):
-           Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
-                              RandSample(self.MaxParams[3]), RandSample(self.MaxParams[4]), RandSample(self.MaxParams[5])])
-        elif(TransformType == 'homography'):
-            Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
-                               RandSample(self.MaxParams[3]), RandSample(self.MaxParams[4]), RandSample(self.MaxParams[5]),\
-                               RandSample(self.MaxParams[6]), RandSample(self.MaxParams[7])])
-        elif(TransformType == 'yaw'):
-            print('ERROR: Not implemented yet')
-            sys.exit(0)
-        elif(TransformType == 'scale'):
-            print('ERROR: Not implemented yet')
-            sys.exit(0)
-        return Params
+        
+        def GetRandParamsICSTNSingle(self, TransformType = TransformType):
+            # TODO: Cleanup by defining self.warpDim
+            if(TransformType == 'psuedosimilarity'):
+                Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2])])
+            elif(TransformType == 'similarity'):
+                Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
+                                   RandSample(self.MaxParams[3])])
+            elif(TransformType == 'translation'):
+                Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1])])
+            elif(TransformType == 'affine'):
+               Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
+                                  RandSample(self.MaxParams[3]), RandSample(self.MaxParams[4]), RandSample(self.MaxParams[5])])
+            elif(TransformType == 'homography'):
+                Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
+                                   RandSample(self.MaxParams[3]), RandSample(self.MaxParams[4]), RandSample(self.MaxParams[5]),\
+                                   RandSample(self.MaxParams[6]), RandSample(self.MaxParams[7])])
+            elif(TransformType == 'yaw'):
+                print('ERROR: Not implemented yet')
+                sys.exit(0)
+            elif(TransformType == 'scale'):
+                print('ERROR: Not implemented yet')
+                sys.exit(0)
+            return Params[np.newaxis,:]
+        
+        if(MiniBatchSize is None):
+            # Runs once
+            Params = GetRandParamsICSTNSingle(self, TransformType = TransformType)
+            return Params[np.newaxis,:]
+        else:
+            for count in range(MiniBatchSize):
+                Params = GetRandParamsICSTNSingle(self, TransformType = TransformType)
+                if(count == 0):
+                    ParamsAppend = Params
+                else:
+                    ParamsAppend = np.append(ParamsAppend, Params, axis=0)
+            return ParamsAppend        
+        
 
-    def GetRandReducedHICSTN(self, TransformType = 'psuedosimilarity', MaxParams = None):
-        Params = self.GetRandParamsICSTN(TransformType = TransformType, MaxParams = MaxParams)
-        H = self.ComposedReducedHICSTN(TransformType = TransformType, Params = Params)
+    def GetRandReducedHICSTN(self, TransformType = 'psuedosimilarity', MaxParams = None, MiniBatchSize = None):
+        Params = self.GetRandParamsICSTN(TransformType = TransformType, MaxParams = MaxParams, MiniBatchSize = MiniBatchSize) # Get Params Batch
+        H = self.ComposedReducedHICSTN(TransformType = TransformType, Params = Params, MiniBatchSize = MiniBatchSize)
         return H, Params
 
 
