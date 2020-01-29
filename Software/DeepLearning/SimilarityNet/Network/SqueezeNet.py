@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import tensorflow as tf
 import sys
 import numpy as np
@@ -5,27 +7,9 @@ import inspect
 from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
-
-# Don't generate pyc codes
-sys.dont_write_bytecode = True
+from ..Misc.Decorators import *
 
 # TODO: Add training flag
-
-def Count(func):
-    @wraps(func)
-    def wrapped(self, *args, **kwargs):
-        self.CurrBlock += 1
-        return func(self, *args, **kwargs)
-    return wrapped
-
-def CountAndScope(func):
-    @wraps(func)
-    def wrapped(self, *args, **kwargs):
-        with tf.variable_scope(func.__name__ + str(self.CurrBlock)):
-            self.CurrBlock += 1
-            return func(self, *args, **kwargs)
-    return wrapped
-
     
 class BaseLayers(object):
     def __init__(self):
@@ -92,19 +76,19 @@ class SqueezeNet(BaseLayers):
     @add_arg_scope
     def FireModule(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, Bypass = False):
         expandfilter = int(4.0*filters)
-        squeeze = self.Conv(inputs = inputs, filters = filters, kernel_size = (1,1), padding = padding, strides=(1,1), activation=tf.nn.relu)
-        expand1x1 = self.Conv(inputs = squeeze, filters = expandfilter, kernel_size = (1,1), padding = padding, strides=(1,1), activation=tf.nn.relu)
-        expand3x3 = self.Conv(inputs = squeeze, filters = expandfilter, kernel_size = (3,3), padding = padding, strides=(1,1), activation=tf.nn.relu)
+        squeeze = self.Conv(inputs = inputs, filters = filters, kernel_size = (1,1), padding = padding, strides=(1,1), activation=tf.nn.relu, name='squeeze')
+        expand1x1 = self.Conv(inputs = squeeze, filters = expandfilter, kernel_size = (1,1), padding = padding, strides=(1,1), activation=tf.nn.relu, name='expand1x1')
+        expand3x3 = self.Conv(inputs = squeeze, filters = expandfilter, kernel_size = (3,3), padding = padding, strides=(1,1), activation=tf.nn.relu, name='expand3x3')
         concat = self.Concat(inputs = [expand1x1, expand3x3])
         if(Bypass):
-            concat = tf.math.add(inputs, concat)
+            concat = tf.math.add(inputs, concat, name='add')
         return concat
 
     @CountAndScope
     @add_arg_scope
     def OutputLayer(self, inputs = None, padding = None):
-        conv = self.Conv(inputs = inputs, filters = self.NumOut, kernel_size = (1,1), strides = (1,1), padding = padding)
-        dense = self.Dense(inputs = conv, filters = self.NumOut, activation=None)
+        conv = self.Conv(inputs = inputs, filters = self.NumOut, kernel_size = (1,1), strides = (1,1), padding = padding, name='conv')
+        dense = self.Dense(inputs = conv, filters = self.NumOut, activation=None, name='dense')
         return dense
 
     def _arg_scope(self):
@@ -137,19 +121,14 @@ class SqueezeNet(BaseLayers):
             # TODO: Add DropOut here
             self.Net = self.OutputLayer(inputs = self.Net, padding = 'same')
             
+def main():
+     # Test functionality of code
+     InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
+     SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
+     print(SN.CurrBlock)
+     Z = SN.MakeNet()
+     print(SN.CurrBlock)
+     Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())        
 
-## Main Code
-InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
-SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
-print(SN.CurrBlock)
-Z = SN.MakeNet()
-print(SN.CurrBlock)
-Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())        
-
-
-# def main():
-#     SN = SqueezeNet()
-
-
-# if __name__=="__main__":
-#     main()
+if __name__=="__main__":
+    main()
