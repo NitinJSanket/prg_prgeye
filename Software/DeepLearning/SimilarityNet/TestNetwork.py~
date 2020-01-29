@@ -120,7 +120,9 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
     tf.summary.histogram('Label', LabelPH)
     # Merge all summaries into a single operation
     MergedSummaryOP = tf.summary.merge_all()
- 
+    
+    AllEpochLoss = [0.0]
+    EachIterLoss = [0.0]
     # Setup Saver
     Saver = tf.train.Saver()
     
