@@ -65,6 +65,8 @@ Tri-camera module with IMU and dual/triple Cortex M7
   - [ ] Odometry Data for 5 sequences using Vicon
   - [ ] KF for fusion for odom
 
+- How are Model Sizes Computed? (From Num. params or file size)?
+
 
 ## Hardware
 
