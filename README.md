@@ -3,76 +3,78 @@ Tri-camera module with IMU and dual/triple Cortex M7
 
 ## TODO
 - [ ] Architectures
-  - [ ] Vanilla Net Arch
-  - [ ] SqueezeNet or SqueezeNext
-  - [ ] ResNet or ResNeXt
-  - [ ] DenseNet
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Vanilla Net Arch
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) SqueezeNet or SqueezeNext
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) ResNet or ResNeXt
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) DenseNet
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ShuffleNet
 - [ ] Num ICSTN Blocks and which warping function to use (Choose best Arch)
-  - [ ] 2 psudo-similarity
-  - [ ] 1 scale 1 translation 1 scale 1 translation (half size each) 
-  - [ ] 4 psudo-similarity (half size each)
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 1 scale 1 translation 1 scale 1 translation (half size each) 
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 4 psudo-similarity (half size each)
 - [ ] Loss Functions (Choose best ICSTN combination on best Arch)
-   - [ ] Supervised ICSTN 
-   - [ ] Unsupervised L1 
-   - [ ] Unsupervised L1 with Cornerness
-   - [ ] Unsupervised L1 with HP
-   - [ ] Unsupervised L1 with HP + Cornerness
-   - [ ] Unsupervised Chab
-   - [ ] Unsupervised Barron
-   - [ ] Unsupervised Barron with best of Cornerness, HP, HP + Cornerness
-   - [ ] Supervised Events DB + Chab
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Supervised ICSTN 
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Unsupervised L1 
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Unsupervised L1 with Cornerness
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Unsupervised L1 with HP
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Unsupervised L1 with HP + Cornerness
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Unsupervised Chab
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Unsupervised Barron
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Unsupervised Barron with best of Cornerness, HP, HP + Cornerness
+   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Supervised Events DB + Chab
 - [ ] Compression (Bigger Network <= 25 MB, Smaller Network <= 2.5 MB)
-  - [ ] Student Teacher on best Arch + ICSTN Num + Loss Func
-  - [ ] Weight Pruning (tflite) on best Arch + ICSTN Num + Loss Func
-  - [ ] Quantization (tflite) on best Arch + ICSTN Num + Loss Func
-  - [ ] Model Distillation: Student Teacher with Projection Loss
-  - [ ] Direct dropping number of weights
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Student Teacher on best Arch + ICSTN Num + Loss Func
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Weight Pruning (tflite) on best Arch + ICSTN Num + Loss Func
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Quantization (tflite) on best Arch + ICSTN Num + Loss Func
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Model Distillation: Student Teacher with Projection Loss
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Direct dropping number of weights
 - [ ] Speed Tests
   - [ ] Desktop PC (CPU + GPU) on bigger and smaller network (most accurate from above), Batch Size of 1
-      - [ ] TF (CPU) Smaller Network
-      - [ ] TF (CPU) Bigger Network
-      - [ ] TF-Lite (CPU) Smaller Network
-      - [ ] TF-Lite (CPU) Bigger Network
-      - [ ] TF (GPU) Smaller Network
-      - [ ] TF (GPU) Bigger Network
-      - [ ] TF-Lite (GPU) Smaller Network
-      - [ ] TF-Lite (GPU) Bigger Network
+      - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) TF (CPU) Smaller Network
+      - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) TF (CPU) Bigger Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Smaller Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Bigger Network
+      - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) TF (GPU) Smaller Network
+      - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) TF (GPU) Bigger Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (GPU) Smaller Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (GPU) Bigger Network
   - [ ] NanoPi Neo Core 2 on bigger and smaller network (most accurate from above), Batch Size of 1
-      - [ ] TF (CPU) Smaller Network
-      - [ ] TF (CPU) Bigger Network
-      - [ ] TF-Lite (CPU) Smaller Network
-      - [ ] TF-Lite (CPU) Bigger Network
-      - [ ] NCS v1/v2 Smaller Network
-      - [ ] NCS v1/v2 Bigger Network
-  - [ ] Sipeed Maix on smaller network (most accurate from above), Batch Size of 1
-  - [ ] Google Coral Dev Board bigger and smaller network (most accurate from above), Batch Size of 1
-    - [ ] TF-Lite Smaller Network
-    - [ ] TF-Lite Bigger Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Smaller Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Bigger Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Smaller Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Bigger Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Coral USB Stick Smaller Network
+      - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Coral USB Stick Bigger Network
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Sipeed Maix on smaller network (most accurate from above), Batch Size of 1
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Google Coral Dev Board bigger and smaller network (most accurate from above), Batch Size of 1
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite Smaller Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite Bigger Network
   - [ ] Intel Up Board on bigger and smaller network (most accurate from above), Batch Size of 1
-    - [ ] TF (CPU) Smaller Network
-    - [ ] TF (CPU) Bigger Network
-    - [ ] TF-Lite (CPU) Smaller Network
-    - [ ] TF-Lite (CPU) Bigger Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Smaller Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Bigger Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Smaller Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Bigger Network
   - [ ] NVIDIA Jetson TX2 on bigger and smaller network (most accurate from above), Batch Size of 1
-    - [ ] TF (CPU) Smaller Network
-    - [ ] TF (CPU) Bigger Network
-    - [ ] TF-Lite (CPU) Smaller Network
-    - [ ] TF-Lite (CPU) Bigger Network
-    - [ ] TF (GPU) Smaller Network
-    - [ ] TF (GPU) Bigger Network
-    - [ ] TF-Lite (GPU) Smaller Network
-    - [ ] TF-Lite (GPU) Bigger Network
-  - [ ] Odometry Data for 5 sequences using Vicon
-  - [ ] KF for fusion for odom
-  - [ ] Grayscale vs RGB (Minor difference)
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Smaller Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Bigger Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Smaller Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Bigger Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (GPU) Smaller Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (GPU) Bigger Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (GPU) Smaller Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (GPU) Bigger Network
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Odometry Data for 5 sequences using Vicon
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) KF for fusion for odom
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Grayscale vs RGB (Minor difference)
   - [ ] Comparisons With normal images, error induced due to augmentation
-    - [ ] Correlation Flow
-    - [ ] Chatterjee Flow
-    - [ ] SIFT
-    - [ ] ORB
-    - [ ] klt
+    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Correlation Flow
+    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)Chatterjee Flow
+    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) SIFT
+    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ORB
+    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) KLT 
 
-
+- ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Nitin
+- ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Chahat
 - How are Model Sizes Computed? (From Num. params or file size)?
 
 
