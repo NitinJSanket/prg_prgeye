@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Run as python -m SimilarityNet.Network.SqueezeNet from DeepLearning folder
+
 import tensorflow as tf
 import sys
 import numpy as np
@@ -7,7 +9,11 @@ import inspect
 from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
+# Required to import ..Misc so you don't have to run as package with -m flag
+# sys.path.insert(0, '../Misc/')
+from ..Misc import TFUtils as tu
 from ..Misc.Decorators import *
+
 
 # TODO: Add training flag
     
@@ -29,9 +35,9 @@ class BaseLayers(object):
 
     @CountAndScope
     @add_arg_scope
-    def Conv(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, activation=None):
+    def Conv(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, activation=None, name=None):
         Output = tf.layers.conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size,\
-                                  strides = strides, padding = padding, activation=activation) 
+                                  strides = strides, padding = padding, activation=activation, name=name) 
         return Output
 
     @CountAndScope
@@ -54,8 +60,8 @@ class BaseLayers(object):
 
     @CountAndScope
     @add_arg_scope
-    def Dense(self, inputs = None, filters = None, activation=None):
-        Output = tf.layers.dense(inputs, units = filters, activation=activation)
+    def Dense(self, inputs = None, filters = None, activation=None, name=None):
+        Output = tf.layers.dense(inputs, units = filters, activation=activation, name=name)
         return Output
 
 class SqueezeNet(BaseLayers):
@@ -87,7 +93,7 @@ class SqueezeNet(BaseLayers):
     @CountAndScope
     @add_arg_scope
     def OutputLayer(self, inputs = None, padding = None):
-        conv = self.Conv(inputs = inputs, filters = self.NumOut, kernel_size = (1,1), strides = (1,1), padding = padding, name='conv')
+        conv = self.Conv(inputs = inputs, filters = self.NumOut, kernel_size = (1,1), strides = (1,1), padding = padding)
         dense = self.Dense(inputs = conv, filters = self.NumOut, activation=None, name='dense')
         return dense
 
@@ -122,13 +128,14 @@ class SqueezeNet(BaseLayers):
             self.Net = self.OutputLayer(inputs = self.Net, padding = 'same')
             
 def main():
-     # Test functionality of code
-     InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
-     SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
-     print(SN.CurrBlock)
-     Z = SN.MakeNet()
-     print(SN.CurrBlock)
-     Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())        
+    tu.SetGPU(1)
+    # Test functionality of code
+    InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
+    SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
+    print(SN.CurrBlock)
+    Z = SN.MakeNet()
+    print(SN.CurrBlock)
+    Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())        
 
 if __name__=="__main__":
     main()
