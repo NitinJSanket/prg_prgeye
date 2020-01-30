@@ -64,6 +64,14 @@ Tri-camera module with IMU and dual/triple Cortex M7
     - [ ] TF-Lite (GPU) Bigger Network
   - [ ] Odometry Data for 5 sequences using Vicon
   - [ ] KF for fusion for odom
+  - [ ] Grayscale vs RGB (Minor difference)
+  - [ ] Comparisons With normal images, error induced due to augmentation
+    - [ ] Correlation Flow
+    - [ ] Chatterjee Flow
+    - [ ] SIFT
+    - [ ] ORB
+    - [ ] klt
+
 
 - How are Model Sizes Computed? (From Num. params or file size)?
 
