@@ -99,6 +99,9 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
             sess.run(tf.global_variables_initializer())
             print('Model initialized....')
 
+            # Predict Model Size
+            ModelSize = tu.CalculateModelSize(sess, PrintFlag=1)
+
             # Write this the first time only
             if((count2 == StartIdx) and (not Append)):
                 # Print Number of parameters in the network    
@@ -107,7 +110,7 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
                 NumFLOPs = tu.FindNumFlops(sess, 1)
 
                 # Write values to file
-                LogFile.write('NumParams {}, NumFLOPs {}\n'.format(NumParams, NumFLOPs))
+                LogFile.write('NumParams {}, NumFLOPs {}, Model Size (MB) {}\n'.format(NumParams, NumFLOPs, ModelSize))
                 LogFile.write('MiniBatchSize, Avg. time (s), Eff. Frame Rate (fps) \n')
             
             # Load model

@@ -68,7 +68,7 @@ Tri-camera module with IMU and dual/triple Cortex M7
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Grayscale vs RGB (Minor difference)
   - [ ] Comparisons With normal images, error induced due to augmentation
     - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Correlation Flow
-    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)Chatterjee Flow
+    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Chatterjee Flow
     - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) SIFT
     - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ORB
     - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) KLT 
