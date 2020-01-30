@@ -10,12 +10,11 @@ from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
 # Required to import ..Misc so you don't have to run as package with -m flag
-sys.path.insert(0, '../Misc/')
-# from ..Misc import TFUtils as tu
-# from ..Misc.Decorators import *
-import TFUtils as tu
-from Decorators import *
-
+# sys.path.insert(0, '../Misc/')
+# import TFUtils as tu
+# from Decorators import *
+from ..Misc import TFUtils as tu
+from ..Misc.Decorators import *
 
 # TODO: Add training flag
     
@@ -129,30 +128,20 @@ class SqueezeNet(BaseLayers):
             self.Net = self.OutputLayer(inputs = self.Net, padding = 'same')
         return self.Net
 
-tu.SetGPU(1)
-# Test functionality of code
-InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
-SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
-# prHVal, prVal, WarpI1Patch = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt)
-Network = SN.Network()
-with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
-    FeedDict = {SN.InputPH: np.random.rand(32,100,100,3)}
-    RetVal = sess.run([Network], feed_dict=FeedDict) 
-Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())
-# def main():
-#     tu.SetGPU(1)
-#     # Test functionality of code
-#     InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
-#     SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
-#     print(SN.CurrBlock)
-#     with tf.Session() as sess:
-#         sess.run(tf.global_variables_initializer())
-#         FeedDict = {SN.InputPH: np.random.rand(32,100,100,3)}
-#         RetVal = sess.run([SN.Network()], feed_dict=FeedDict)
-#     print(Z)
-#     Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())
-#     print(SN)
+def main():
+   tu.SetGPU(1)
+   # Test functionality of code
+   InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
+   # Create network class variable
+   SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
+   # Build the atual network
+   Network = SN.Network()
+   with tf.Session() as sess:
+       # Initialize Weights
+       sess.run(tf.global_variables_initializer())
+       FeedDict = {SN.InputPH: np.random.rand(32,100,100,3)}
+       RetVal = sess.run([Network], feed_dict=FeedDict) 
+   Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())
 
-# if __name__=="__main__":
-#     main()
+if __name__=="__main__":
+    main()
