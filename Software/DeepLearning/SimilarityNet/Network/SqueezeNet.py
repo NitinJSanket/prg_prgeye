@@ -10,9 +10,11 @@ from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
 # Required to import ..Misc so you don't have to run as package with -m flag
-# sys.path.insert(0, '../Misc/')
-from ..Misc import TFUtils as tu
-from ..Misc.Decorators import *
+sys.path.insert(0, '../Misc/')
+# from ..Misc import TFUtils as tu
+# from ..Misc.Decorators import *
+import TFUtils as tu
+from Decorators import *
 
 
 # TODO: Add training flag
@@ -75,7 +77,6 @@ class SqueezeNet(BaseLayers):
         self.InputPH = InputPH
         self.ExpansionFactor = 2.0 # Factor by which number of output neurons grow at every stage
         self.InitNeurons = 32
-        self.Net = self.InputPH
         self.Training = Training
 
     @CountAndScope
@@ -101,10 +102,10 @@ class SqueezeNet(BaseLayers):
         with arg_scope([self.ConvBNReLUBlock, self.Conv, self.BN, self.ReLU, self.FireModule], kernel_size = (3,3), strides = (2,2), padding = 'same') as sc: 
             return sc
         
-    def MakeNet(self):
+    def Network(self):
         with arg_scope(self._arg_scope()):
             # Conv
-            self.Net = self.Conv(inputs = self.Net, filters = self.InitNeurons, kernel_size = (7,7))
+            self.Net = self.Conv(inputs = self.InputPH, filters = self.InitNeurons, kernel_size = (7,7))
             # Conv
             self.Net = self.Conv(inputs = self.Net, filters = int(self.InitNeurons*self.ExpansionFactor), kernel_size = (5,5))
             # 2 x Fire
@@ -126,16 +127,32 @@ class SqueezeNet(BaseLayers):
             # conv = self.Conv(filters = self.NumOut, kernel_size = (1,1), strides = (1,1))
             # TODO: Add DropOut here
             self.Net = self.OutputLayer(inputs = self.Net, padding = 'same')
-            
-def main():
-    tu.SetGPU(1)
-    # Test functionality of code
-    InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
-    SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
-    print(SN.CurrBlock)
-    Z = SN.MakeNet()
-    print(SN.CurrBlock)
-    Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())        
+        return self.Net
 
-if __name__=="__main__":
-    main()
+tu.SetGPU(1)
+# Test functionality of code
+InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
+SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
+# prHVal, prVal, WarpI1Patch = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt)
+Network = SN.Network()
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    FeedDict = {SN.InputPH: np.random.rand(32,100,100,3)}
+    RetVal = sess.run([Network], feed_dict=FeedDict) 
+Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())
+# def main():
+#     tu.SetGPU(1)
+#     # Test functionality of code
+#     InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
+#     SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
+#     print(SN.CurrBlock)
+#     with tf.Session() as sess:
+#         sess.run(tf.global_variables_initializer())
+#         FeedDict = {SN.InputPH: np.random.rand(32,100,100,3)}
+#         RetVal = sess.run([SN.Network()], feed_dict=FeedDict)
+#     print(Z)
+#     Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())
+#     print(SN)
+
+# if __name__=="__main__":
+#     main()
