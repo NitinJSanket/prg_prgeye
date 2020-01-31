@@ -149,7 +149,7 @@ def main():
         cprint("WARNING: %s doesnt exist, Creating it."%WritePath, 'yellow')
         os.mkdir(WritePath)
         
-    CenterCropFactorAllImgs(ReadPath, WritePath, Prefix, ImageFormat, Factor=3)
+    # CenterCropFactorAllImgs(ReadPath, WritePath, Prefix, ImageFormat, Factor=3)
     # MakeImgPairs(ReadPath, WritePath, Prefix, ImageFormat)
     # Ratios = [0.9, 0.00, 0.10]
     # Train, Val, Test = SetupSplits(Ratios, WritePath)

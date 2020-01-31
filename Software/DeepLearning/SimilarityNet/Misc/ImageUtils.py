@@ -19,8 +19,8 @@ def CenterCrop(I, OutShape):
     CenterX = ImageSize[1]/2
     CenterY = ImageSize[2]/2
     try:
-        ICrop = I[:, int(np.ceil(CenterX-OutShape[1]/2)):int(np.ceil(CenterX+OutShape[1]/2)),\
-                  int(np.ceil(CenterY-OutShape[2]/2)):int(np.ceil(CenterY+OutShape[2]/2)), :]
+        ICrop = I[:, int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
+                  int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
         if(AppendFlag): # Remove Batch Dim
             ICrop = np.squeeze(ICrop, axis=0)
     except:
@@ -150,18 +150,19 @@ def rgb2gray(rgb):
     return gray
 
 class HomographyICTSN:
-    def __init__(self, MaxParams = np.zeros((3,1))):
+    def __init__(self, MaxParams = np.zeros((3,1)), TransformType = 'translation', MiniBatchSize = None):
         self.MaxParams = MaxParams
+        self.TransformType = TransformType
+        self.MiniBatchSize = MiniBatchSize
 
-    @staticmethod
-    def ComposedReducedHICSTN(TransformType = 'translation', Params = np.zeros((1,3)), MiniBatchSize = None):
-        if(not isinstance(TransformType, str)):
+    def ComposedReducedHICSTN(self, Params = np.zeros((1,3))):
+        if(not isinstance(self.TransformType, str)):
             print('ERROR: TransformType as to be a string')
             sys.exit(0)
 
-        def ComposedReducedHICSTNSingle(TransformType = TransformType, Params = Params):
+        def ComposedReducedHICSTNSingle(TransformType = self.TransformType, Params = Params):
             H = np.eye(3)
-            if(TransformType == 'psuedosimilarity'):
+            if(TransformType == 'pseudosimilarity'):
                 H[0,0] = 1. + Params[0] # 1 + pc
                 H[1,1] = 1. + Params[0] # 1 + pc
                 H[0,2] = Params[1] # tx
@@ -200,20 +201,20 @@ class HomographyICTSN:
                 sys.exit(0)
             return H[np.newaxis, :, :]
 
-        if(MiniBatchSize is None):
+        if(self.MiniBatchSize is None):
             # Runs once
-            H = ComposedReducedHICSTNSingle(TransformType = TransformType, Params = np.squeeze(Params))
-            return H[np.newaxis, :, :]
+            H = ComposedReducedHICSTNSingle(TransformType = self.TransformType, Params = np.squeeze(Params))
+            return H
         else:
-            for count in range(MiniBatchSize):
-                H = ComposedReducedHICSTNSingle(TransformType = TransformType, Params = Params[count])
+            for count in range(self.MiniBatchSize):
+                H = ComposedReducedHICSTNSingle(TransformType = self.TransformType[count], Params = Params[count])
                 if(count == 0):
                     HAppend = H
                 else:
                     HAppend = np.append(HAppend, H, axis=0)
             return HAppend
 
-    def GetRandParamsICSTN(self, TransformType = 'translation', MaxParams = None, MiniBatchSize = None):
+    def GetRandParamsICSTN(self, MaxParams = None):
         if MaxParams is not None:
             # Overwrite value
             self.MaxParams = MaxParams
@@ -222,9 +223,9 @@ class HomographyICTSN:
                 Min = -Max
             return (Max - Min)*(np.random.rand()) + Min
         
-        def GetRandParamsICSTNSingle(self, TransformType = TransformType):
+        def GetRandParamsICSTNSingle(self, TransformType = 'yaw'):
             # TODO: Cleanup by defining self.warpDim
-            if(TransformType == 'psuedosimilarity'):
+            if(TransformType == 'pseudosimilarity'):
                 Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2])])
             elif(TransformType == 'similarity'):
                 Params = np.array([RandSample(self.MaxParams[0]), RandSample(self.MaxParams[1]), RandSample(self.MaxParams[2]),\
@@ -246,13 +247,13 @@ class HomographyICTSN:
                 sys.exit(0)
             return Params[np.newaxis,:]
         
-        if(MiniBatchSize is None):
+        if(self.MiniBatchSize is None):
             # Runs once
-            Params = GetRandParamsICSTNSingle(self, TransformType = TransformType)
-            return Params[np.newaxis,:]
+            Params = GetRandParamsICSTNSingle(self, TransformType = self.TransformType)
+            return Params
         else:
-            for count in range(MiniBatchSize):
-                Params = GetRandParamsICSTNSingle(self, TransformType = TransformType)
+            for count in range(self.MiniBatchSize):
+                Params = GetRandParamsICSTNSingle(self, TransformType = self.ransformType[count])
                 if(count == 0):
                     ParamsAppend = Params
                 else:
@@ -260,9 +261,9 @@ class HomographyICTSN:
             return ParamsAppend        
         
 
-    def GetRandReducedHICSTN(self, TransformType = 'psuedosimilarity', MaxParams = None, MiniBatchSize = None):
-        Params = self.GetRandParamsICSTN(TransformType = TransformType, MaxParams = MaxParams, MiniBatchSize = MiniBatchSize) # Get Params Batch
-        H = self.ComposedReducedHICSTN(TransformType = TransformType, Params = Params, MiniBatchSize = MiniBatchSize)
+    def GetRandReducedHICSTN(self, MaxParams = None):
+        Params = self.GetRandParamsICSTN(MaxParams = MaxParams) # Get Params Batch
+        H = self.ComposedReducedHICSTN(Params = Params)
         return H, Params
 
 
