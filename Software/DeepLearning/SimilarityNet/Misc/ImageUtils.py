@@ -19,8 +19,8 @@ def CenterCrop(I, OutShape):
     CenterX = ImageSize[1]/2
     CenterY = ImageSize[2]/2
     try:
-        ICrop = I[:, int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
-                  int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
+        ICrop = I[:, int(np.ceil(CenterX-OutShape[1]/2)):int(np.ceil(CenterX+OutShape[1]/2)),\
+                  int(np.ceil(CenterY-OutShape[2]/2)):int(np.ceil(CenterY+OutShape[2]/2)), :]
         if(AppendFlag): # Remove Batch Dim
             ICrop = np.squeeze(ICrop, axis=0)
     except:
@@ -35,20 +35,20 @@ def CenterCropFactor(I, Factor):
     if(len(np.shape(I)) == 3):
         I = I[np.newaxis, :, :, :] # Append Batch Dim
         AppendFlag = True
-    ImageSize = np.shape(I)
+    ImageSize = np.array(np.shape(I))
     CenterX = ImageSize[1]/2
     CenterY = ImageSize[2]/2
     OutShape = ImageSize - (np.mod(ImageSize,2**Factor))
-    OutShape[2] = ImageSize[3]
+    OutShape[3] = ImageSize[3]
     try:
-        ICrop = I[:, int(np.ceil(CenterX-OutShape[0]/2)):int(np.ceil(CenterX+OutShape[0]/2)),\
-                  int(np.ceil(CenterY-OutShape[1]/2)):int(np.ceil(CenterY+OutShape[1]/2)), :]
+        ICrop = I[:, int(np.ceil(CenterX-OutShape[1]/2)):int(np.ceil(CenterX+OutShape[1]/2)),\
+                  int(np.ceil(CenterY-OutShape[2]/2)):int(np.ceil(CenterY+OutShape[2]/2)), :]
         if(AppendFlag): # Remove Batch Dim
             ICrop = np.squeeze(ICrop, axis=0)
     except:
         ICrop = None
         OutShape = None
-    if (OutShape[0] > ImageSize[1]) or (OutShape[1] > ImageSize[2]):
+    if (OutShape[1] > ImageSize[1]) or (OutShape[2] > ImageSize[2]):
         ICrop = None
         OutShape = None
     return (ICrop, OutShape)

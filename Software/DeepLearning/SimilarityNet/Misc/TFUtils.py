@@ -15,9 +15,24 @@ def FindNumParams(PrintFlag=None):
         print('Number of parameters in this model are %d ' % np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
     return np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()])
 
+def FindNumFlops(sess, PrintFlag=None):
+    opts = tf.profiler.ProfileOptionBuilder.float_operation()    
+    flops = tf.profiler.profile(sess.graph, run_meta=tf.RunMetadata(), cmd='op', options=opts)
+    if(PrintFlag is not None):
+        print('Number of Flops in this model are %d' % flops.total_float_ops)
+    return flops.total_float_ops
+
 def SetGPU(GPUNum=-1):
     os.environ["CUDA_VISIBLE_DEVICES"]= str(GPUNum)
 
+def CalculateModelSize(PrintFlag=None):
+    var_sizes = [np.product(list(map(int, v.shape))) * v.dtype.size
+                 for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]
+    SizeMB = sum(var_sizes) / (1024 ** 2)
+    if(PrintFlag is not None):
+        print('Expected Model Size is %f' % SizeMB)
+    return SizeMB
+            
 def Rename(CheckPointPath, ReplaceSource=None, ReplaceDestination=None, AddPrefix=None):
     # Help!
     # https://github.com/tensorflow/models/issues/974

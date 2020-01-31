@@ -136,9 +136,19 @@ def main():
    SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
    # Build the atual network
    Network = SN.Network()
+   # Setup Saver
+   Saver = tf.train.Saver()
    with tf.Session() as sess:
        # Initialize Weights
        sess.run(tf.global_variables_initializer())
+       tu.FindNumParams(1)
+       tu.CalculateModelSize(1)
+       tu.FindNumFlops(sess, 1)
+       # Save model every epoch
+       SaveName = '/home/nitin/PRGEye/CheckPoints/SpeedTests/TestSqueezeNet/model.ckpt'
+       Saver.save(sess, save_path=SaveName)
+       print(SaveName + ' Model Saved...') 
+       input('q')
        FeedDict = {SN.InputPH: np.random.rand(32,100,100,3)}
        RetVal = sess.run([Network], feed_dict=FeedDict) 
    Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())

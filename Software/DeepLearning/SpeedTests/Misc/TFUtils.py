@@ -25,7 +25,7 @@ def FindNumFlops(sess, PrintFlag=None):
 def SetGPU(GPUNum=-1):
     os.environ["CUDA_VISIBLE_DEVICES"]= str(GPUNum)
 
-def CalculateModelSize(sess, PrintFlag=None):
+def CalculateModelSize(PrintFlag=None):
     var_sizes = [np.product(list(map(int, v.shape))) * v.dtype.size
                  for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]
     SizeMB = sum(var_sizes) / (1024 ** 2)

@@ -32,7 +32,6 @@ def CenterCropFactorAllImgs(ReadPath, WritePath, Prefix, ImageFormat, Factor):
         INow, _ = iu.CenterCropFactor(cv2.imread(ReadPath + os.sep + Prefix%(ImageNum) + ImageFormat), Factor)
         cv2.imwrite(WritePath + os.sep +  Prefix%(ImageNum) + ImageFormat, INow)
 
-    
 def MakeImgPairs(ReadPath, WritePath, Prefix, ImageFormat):
     if(not os.path.exists(WritePath)):
             os.makedirs(WritePath)
@@ -133,10 +132,10 @@ def ReadSplits(WritePath):
 def main():
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
-    Parser.add_argument('--ReadPath', default='/media/analogicalnexus/00EA777C1E864BA9/2018/EVDodge/dataset',
-                        help='Base path of images, Default:/media/analogicalnexus/00EA777C1E864BA9/2018/EVDodge/dataset')
-    Parser.add_argument('--WritePath', default='/media/analogicalnexus/00EA777C1E864BA9/2018/EVDodge/processed',
-                        help='Base path of images, Default:/media/analogicalnexus/00EA777C1E864BA9/2018/EVDodge/processed')
+    Parser.add_argument('--ReadPath', default='/home/nitin/Datasets/MSCOCO/train2014',
+                        help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014')
+    Parser.add_argument('--WritePath', default='/home/nitin/Datasets/MSCOCO/train2014Processed',
+                        help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014Processed')
     Parser.add_argument('--Prefix', default='COCO_train2014_%012d', help='Prefix name in images, Default: COCO_train2014_%012d')
     Parser.add_argument('--ImageFormat', default='.png', help='Image Format, Default: .png')
     
