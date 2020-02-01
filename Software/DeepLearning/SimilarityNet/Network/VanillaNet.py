@@ -10,23 +10,24 @@ from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
 # Required to import ..Misc so you don't have to run as package with -m flag
-# sys.path.insert(0, '../Misc/')
-# import TFUtils as tu
-# from Decorators import *
-from ..Misc import TFUtils as tu
-from ..Misc.Decorators import *
-import ..Misc.warpICSTN2 as warp2
+sys.path.insert(0, '../Misc/')
+import TFUtils as tu
+from Decorators import *
+import warpICSTN2 as warp2
 from BaseLayers import *
+# from ..Misc import TFUtils as tu
+# from ..Misc.Decorators import *
+# from ..Misc.warpICSTN2 import * as warp2
 
 # TODO: Add training flag
 
 class VanillaNet(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None):
-        super(SqueezeNet, self).__init__()
+        super(VanillaNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
-        if( Opt is None):
+        if(Opt is None):
             print('ERROR: Options cannot be empty!')
             sys.exit(0)
         self.InputPH = InputPH
@@ -34,8 +35,8 @@ class VanillaNet(BaseLayers):
         self.Training = Training
         self.ExpansionFactor = 2.0
         self.DropOutRate = 0.7
-        if(padding is None):
-            padding = 'same'
+        if(Padding is None):
+            Padding = 'same'
         self.Padding = Padding
         self.Opt = Opt
 
@@ -55,40 +56,40 @@ class VanillaNet(BaseLayers):
     @add_arg_scope
     def ICSTNBlock(self, inputs = None, filters = None, NumOut = None):
         # Conv
-        Net = self.ConvBNReLUBlock(inputs = inputs, padding = self.Padding, filters = filters, kernel_size = (7,7))
+        Net = self.ConvBNReLUBlock(inputs = inputs, filters = filters, kernel_size = (7,7))
         # Conv
         NumFilters = int(filters*self.ExpansionFactor)
-        Net = self.ConvBNReLUBlock(inputs = Net, padding = self.Padding, filters = NumFilters, kernel_size = (5,5))
+        Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (5,5))
         # Conv
         NumFilters = int(NumFilters*self.ExpansionFactor)
-        Net = self.ConvBNReLUBlock(inputs = Net, padding = self.Padding, filters = NumFilters, kernel_size = (3,3))
+        Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
         # Conv
         NumFilters = int(NumFilters*self.ExpansionFactor)
-        Net = self.ConvBNReLUBlock(inputs = Net, padding = self.Padding, filters = NumFilters, kernel_size = (3,3))
+        Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
         # Output
-        Net = self.OutputLayer(self, inputs = Net, padding = self.Padding, rate=self.DropOutRate, NumOut = NumOut)
+        Net = self.OutputLayer(self, inputs = Net, rate=self.DropOutRate, NumOut = NumOut)
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.ConvBNReLUBlock, self.Conv, self.BN, self.ReLU, self.FireModule], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.ConvBNReLUBlock, self.Conv, self.BN, self.ReLU], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
         with arg_scope(self._arg_scope()):
-             for count in range(self.Opt.NumBlocks):
-                 if(count == 0):
-                     pNow = self.Opt.pInit
-                     pMtrxNow = warp2.vec2mtrx(self.Opt, pNow)
-                # Warp Original Image based on previous composite warp parameters
-                ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
+            for count in range(self.Opt.NumBlocks):
+                if(count == 0):
+                    pNow = self.Opt.pInit
+                    pMtrxNow = warp2.vec2mtrx(self.Opt, pNow)
+            # Warp Original Image based on previous composite warp parameters
+            ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
 
-                # Compute current warp parameters
-                dpNow = self.ICSTNBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
-                dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)
-                pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow)
+            # Compute current warp parameters
+            dpNow = self.ICSTNBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
+            dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)
+            pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow)
 
-                # Update counter used for looping over warpType
-                self.Opt.currBlock += 1
+            # Update counter used for looping over warpType
+            self.Opt.currBlock += 1
                 
             # Decrement counter so you use last warp Type
             self.Opt.currBlock -= 1
