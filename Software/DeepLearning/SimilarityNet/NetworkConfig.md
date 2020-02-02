@@ -1,5 +1,5 @@
 
-# VanillaNet
+# VanillaNet (Model Size <= 2.5 MB and <=25 MB)
 
 ## Smaller x2 PS
 self.InitNeurons = 26
@@ -54,5 +54,24 @@ warpType = ['scale', 'scale', 'translation', 'translation']
 
 Choose best from above. 
 
-# SqueezeNeXt
+# SqueezeNet 
+Speed calculated as best of 1000 runs
+## Smaller (Model FPS >= 200 FPS on All Cores i7, and Model Size <= 2.5 MB)
+self.InitNeurons = 4
+self.ExpansionFactor = 1.42
+self.DropOutRate = 0.7
+warpType = ['pseudosimilarity', 'pseudosimilarity']
+NumFlops = 65174577
+NumParams = 401246
+Expected Model Size = 1.530754 MB
+~ 199.07fps on BS = 1, Nitin's PC CPU All Cores
 
+## Larger (Model FPS >= 20 FPS on All Cores i7, and Model Size <= 25 MB)
+self.InitNeurons = 16
+self.ExpansionFactor = 1.5
+self.DropOutRate = 0.7
+warpType = ['pseudosimilarity', 'pseudosimilarity']
+NumFlops = 7799809633
+NumParams = 6082914
+Expected Model Size = 23.205086 MB
+~ 31.70fps on BS = 1, Nitin's PC CPU All Cores
