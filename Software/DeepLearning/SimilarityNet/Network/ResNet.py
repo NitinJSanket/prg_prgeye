@@ -33,7 +33,7 @@ class ResNet(BaseLayers):
             print('ERROR: Options cannot be empty!')
             sys.exit(0)
         self.InputPH = InputPH
-        self.InitNeurons = 8
+        self.InitNeurons = 16
         self.Training = Training
         self.ExpansionFactor = 2
         self.DropOutRate = 0.7
@@ -61,11 +61,10 @@ class ResNet(BaseLayers):
     @CountAndScope
     @add_arg_scope
     def ResBlock(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
-        Net = inputs
-        Net = self.ConvBNReLUBlock(inputs = Net, filters = filters, padding = padding, strides=(1,1), activation=tf.nn.relu)
+        Net = self.ConvBNReLUBlock(inputs = inputs, filters = filters, padding = padding, strides=(1,1))
         Net = self.Conv(inputs = Net, filters = filters, padding = padding, strides=(1,1), activation=None)
         Net = self.BN(inputs = Net)
-        Net = tf.add(Net, InputNow)
+        Net = tf.add(Net, inputs)
         Net = self.ReLU(inputs = Net)
         return Net
 
@@ -81,17 +80,17 @@ class ResNet(BaseLayers):
 
         # 3 x Res blocks
         for count in range(self.NumRes):
-            NumFilters = int(NumFilters*self.ExpansionFactor)
             Net = self.ResBlock(inputs = Net, filters = NumFilters)
+            NumFilters = int(NumFilters*self.ExpansionFactor)
             # Extra Conv for downscaling
-            Net = self.Conv(inputs = Net, filters = filters, padding = padding, strides=strides, activation=None)
+            Net = self.Conv(inputs = Net, filters = NumFilters, padding = self.Padding, activation=None)
         
         # Output
         Net = self.OutputLayer(inputs = Net, padding = self.Padding, rate=self.DropOutRate, NumOut = NumOut)
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.Conv, self.ConvBNReLUBlock, self.FireConvBlock], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.Conv, self.ConvBNReLUBlock, self.ResBlock], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
@@ -126,7 +125,7 @@ class ResNet(BaseLayers):
         return pMtrxNow, pNow, ImgWarp
 
 def main():
-   tu.SetGPU(1)
+   tu.SetGPU(-1)
    # Test functionality of code
    PatchSize = np.array([128, 128, 3])
    MiniBatchSize = 1

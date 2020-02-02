@@ -75,3 +75,28 @@ NumFlops = 7799809633
 NumParams = 6082914
 Expected Model Size = 23.205086 MB
 ~ 31.70fps on BS = 1, Nitin's PC CPU All Cores
+
+
+# ResNet 
+Speed calculated as best of 1000 runs
+## Smaller (Model FPS >= 200 FPS on All Cores i7, and Model Size <= 2.5 MB)
+NumRes = 4
+self.InitNeurons = 15
+self.ExpansionFactor = 1.5
+self.DropOutRate = 0.7
+warpType = ['pseudosimilarity', 'pseudosimilarity']
+NumFlops = 161618397
+NumParams = 611100
+Expected Model Size = 2.337128 MB
+~ 223.63fps on BS = 1, Nitin's PC CPU All Cores
+
+## Larger (Model FPS >= 20 FPS on All Cores i7, and Model Size <= 25 MB)
+NumRes = 4
+self.InitNeurons = 16
+self.ExpansionFactor = 2
+self.DropOutRate = 0.7
+warpType = ['pseudosimilarity', 'pseudosimilarity']
+NumFlops = 485211389
+NumParams = 6317446
+Expected Model Size = 24.114525 MB
+~ 174.03fps on BS = 1, Nitin's PC CPU All Cores
