@@ -77,6 +77,10 @@ Tri-camera module with IMU and dual/triple Cortex M7
 - ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Chahat
 - How are Model Sizes Computed? (From Num. params or file size)?
 
+Reference papers:
+- [Benchmark Analysis of Representative Deep Neural Network Architectures](https://arxiv.org/abs/1810.00736)
+- [An Analysis Of Deep Neural Network Models For Practical Applications](https://arxiv.org/abs/1605.07678)
+
 
 ## Hardware
 
