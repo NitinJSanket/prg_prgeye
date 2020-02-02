@@ -15,68 +15,47 @@ from tensorflow.contrib.framework import arg_scope
 # from Decorators import *
 from ..Misc import TFUtils as tu
 from ..Misc.Decorators import *
+import ..Misc.warpICSTN2 as warp2
+from BaseLayers import *
 
 # TODO: Add training flag
-    
-class BaseLayers(object):
-    def __init__(self):
-        self.CurrBlock = 0
-    # Decorator to count number of functions have been called
-    # Ideas from
-    # https://stackoverflow.com/questions/13852138/how-can-i-define-decorator-method-inside-class
-    # https://stackoverflow.com/questions/41678265/how-to-increase-a-number-every-time-a-function-is-run
-
-    @CountAndScope
-    @add_arg_scope
-    def ConvBNReLUBlock(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
-        conv =  self.Conv(inputs, filters, kernel_size, strides, padding)
-        bn = self.BN(conv)
-        Output = self.ReLU(bn)
-        return Output
-
-    @CountAndScope
-    @add_arg_scope
-    def Conv(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, activation=None, name=None):
-        Output = tf.layers.conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size,\
-                                  strides = strides, padding = padding, activation=activation, name=name) 
-        return Output
-
-    @CountAndScope
-    @add_arg_scope
-    def BN(self, inputs = None):
-        Output = tf.layers.batch_normalization(inputs = inputs) 
-        return Output
-    
-    @CountAndScope
-    @add_arg_scope
-    def ReLU(self, inputs = None):
-        Output = tf.nn.relu(inputs)
-        return Output
-
-    @CountAndScope
-    @add_arg_scope
-    def Concat(self, inputs = None, axis=0):
-        Output = tf.concat(values = inputs, axis = axis)
-        return Output
-
-    @CountAndScope
-    @add_arg_scope
-    def Dense(self, inputs = None, filters = None, activation=None, name=None):
-        Output = tf.layers.dense(inputs, units = filters, activation=activation, name=name)
-        return Output
 
 class SqueezeNet(BaseLayers):
-    def __init__(self, ImageSize = None, NumOut = None, InputPH = None, Training = False):
+    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, NumFire = None, NumFireConvModules = None):
         super(SqueezeNet, self).__init__()
-        self.ImageSize = ImageSize
-        self.NumOut = NumOut
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
+        if( Opt is None):
+            print('ERROR: Options cannot be empty!')
+            sys.exit(0)
         self.InputPH = InputPH
-        self.ExpansionFactor = 2.0 # Factor by which number of output neurons grow at every stage
-        self.InitNeurons = 32
+        self.InitNeurons = 8
         self.Training = Training
+        self.ExpansionFactor = 2.0
+        self.DropOutRate = 0.7
+        if(padding is None):
+            padding = 'same'
+        self.Padding = Padding
+        self.Opt = Opt
+        if(NumFire is None):
+            NumFire =  2
+        if(NumFireConv is None):
+            NumFireConv = 3
+        self.NumFireConv = NumFireConv
+        self.NumFire = NumFire
+
+    @CountAndScope
+    @add_arg_scope
+    def OutputLayer(self, inputs = None, padding = None, rate=None, NumOut=None):
+        if(rate is None):
+            rate = 0.5
+        if(NumOut is None):
+           NumOut = self.NumOut     
+        flat = self.Flatten(inputs = inputs)
+        drop = self.Dropout(inputs = flat, rate=rate)
+        dense = self.Dense(inputs = drop, filters = NumOut, activation=None)
+        return dense
 
     @CountAndScope
     @add_arg_scope
@@ -92,50 +71,71 @@ class SqueezeNet(BaseLayers):
 
     @CountAndScope
     @add_arg_scope
-    def OutputLayer(self, inputs = None, padding = None):
-        conv = self.Conv(inputs = inputs, filters = self.NumOut, kernel_size = (1,1), strides = (1,1), padding = padding)
-        dense = self.Dense(inputs = conv, filters = self.NumOut, activation=None, name='dense')
-        return dense
+    def FireConvBlock(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, Bypass = False, NumFire = None):
+        for count in range(NumFire): 
+            Net = FireModule(self, inputs = inputs, filters = None, kernel_size = None, strides = None, padding = None, Bypass = False)
+        Net = self.Conv(inputs = Net, filters = filters, kernel_size = (1,1), padding = padding, strides=(1,1), activation=tf.nn.relu)
+        return Net
 
+    @CountAndScope
+    @add_arg_scope
+    def ICSTNBlock(self, inputs = None, filters = None, NumOut = None):
+        # Conv
+        Net = self.ConvBNReLUBlock(inputs = inputs, padding = self.Padding, filters = filters, kernel_size = (7,7))
+        
+        # Conv
+        NumFilters = int(filters*self.ExpansionFactor)
+        Net = self.ConvBNReLUBlock(inputs = Net, padding = self.Padding, filters = NumFilters, kernel_size = (5,5))
+
+        # 3 x FireConv blocks
+        for count in range(self.NumFireConv):
+            NumFilters = int(NumFilters*self.ExpansionFactor)
+            Net = FireConvBlock(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, Bypass = False, NumFire = self.NumFire)
+
+       # TODO: Global Avg. Pool
+        # Output
+        Net = self.OutputLayer(self, inputs = Net, padding = self.Padding, rate=self.DropOutRate, NumOut = NumOut)
+        return Net
+        
     def _arg_scope(self):
-        with arg_scope([self.ConvBNReLUBlock, self.Conv, self.BN, self.ReLU, self.FireModule], kernel_size = (3,3), strides = (2,2), padding = 'same') as sc: 
+        with arg_scope([self.Conv,  self.FireConvBlock], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
         with arg_scope(self._arg_scope()):
-            # Conv
-            self.Net = self.Conv(inputs = self.InputPH, filters = self.InitNeurons, kernel_size = (7,7))
-            # Conv
-            self.Net = self.Conv(inputs = self.Net, filters = int(self.InitNeurons*self.ExpansionFactor), kernel_size = (5,5))
-            # 2 x Fire
-            for count in range(2):
-                self.Net = self.FireModule(inputs = self.Net, filters = int(self.ExpansionFactor*16.0))
-            # Conv
-            self.Net = self.Conv(inputs = self.Net, filters = int(self.ExpansionFactor*16.0), kernel_size = (3,3))
-            # 2 x Fire
-            for count in range(2):
-                self.Net = self.FireModule(inputs = self.Net, filters = int(self.ExpansionFactor*32.0))
-            # Conv
-            self.Net = self.Conv(inputs = self.Net, filters = int(self.ExpansionFactor*32.0), kernel_size = (3,3))
-            # 2 x Fire
-            for count in range(2):
-                self.Net = self.FireModule(inputs = self.Net, filters = int(self.ExpansionFactor*24.0))
-            # 2 x Fire
-            for count in range(2):
-                self.Net = self.FireModule(inputs = self.Net, filters = int(self.ExpansionFactor*64.0))
-            # conv = self.Conv(filters = self.NumOut, kernel_size = (1,1), strides = (1,1))
-            # TODO: Add DropOut here
-            self.Net = self.OutputLayer(inputs = self.Net, padding = 'same')
-        return self.Net
+             for count in range(self.Opt.NumBlocks):
+                 if(count == 0):
+                     pNow = self.Opt.pInit
+                     pMtrxNow = warp2.vec2mtrx(self.Opt, pNow)
+                # Warp Original Image based on previous composite warp parameters
+                ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
+
+                # Compute current warp parameters
+                dpNow = self.ICSTNBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
+                dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)
+                pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow)
+
+                # Update counter used for looping over warpType
+                self.Opt.currBlock += 1
+                
+            # Decrement counter so you use last warp Type
+            self.Opt.currBlock -= 1
+            ImgWarp = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow) # Final Image Warp
+            pNow = warp2.mtrx2vec(self.opt, pMtrxNow)
+            
+        return pMtrxNow, pNow, ImgWarp
 
 def main():
    tu.SetGPU(1)
    # Test functionality of code
+   PatchSize = np.array([100, 100, 3])
+   MiniBatchSize = 32
    InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
    # Create network class variable
-   SN = SqueezeNet(InputPH = InputPH, NumOut = 10)
+   Opt =  warp2.Options(PatchSize= PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['pseudosimilarity', 'pseudosimilarity']) # ICSTN Options
+   SN = SqueezeNet(InputPH = InputPH,  Opt = Opt, NumFire = 2, NumFireConvModules = 3)
    # Build the atual network
-   Network = SN.Network()
+   pMtrxNow, pNow, ImgWarp = SN.Network()
    # Setup Saver
    Saver = tf.train.Saver()
    with tf.Session() as sess:
@@ -145,7 +145,7 @@ def main():
        tu.CalculateModelSize(1)
        tu.FindNumFlops(sess, 1)
        # Save model every epoch
-       SaveName = '/home/nitin/PRGEye/CheckPoints/SpeedTests/TestSqueezeNet/model.ckpt'
+       SaveName = '/home/nitin/PRGEye/CheckPoints/SpeedTests/TestVanillaNet/model.ckpt'
        Saver.save(sess, save_path=SaveName)
        print(SaveName + ' Model Saved...') 
        input('q')
