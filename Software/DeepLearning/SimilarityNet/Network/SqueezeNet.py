@@ -83,14 +83,13 @@ class SqueezeNet(BaseLayers):
 
     @CountAndScope
     @add_arg_scope
-    def SqueezeBlock(self, inputs = None, filters = None, NumOut = None):
+    def SqueezeNetBlock(self, inputs = None, filters = None, NumOut = None):
         # Conv
         Net = self.ConvBNReLUBlock(inputs = inputs, padding = self.Padding, filters = filters, kernel_size = (7,7))
         
         # Conv
         NumFilters = int(filters*self.ExpansionFactor)
         Net = self.ConvBNReLUBlock(inputs = Net, padding = self.Padding, filters = NumFilters, kernel_size = (5,5))
-
 
         # 3 x FireConv blocks
         for count in range(self.NumFireConv):
@@ -118,7 +117,7 @@ class SqueezeNet(BaseLayers):
                         ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
 
                     # Compute current warp parameters
-                    dpNow = self.SqueezeBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count])
+                    dpNow = self.SqueezeNetBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count])
 
                     dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)    
                     pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow) 

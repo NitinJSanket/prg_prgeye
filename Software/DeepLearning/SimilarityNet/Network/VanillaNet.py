@@ -55,7 +55,7 @@ class VanillaNet(BaseLayers):
 
     @CountAndScope
     @add_arg_scope
-    def VanillaBlock(self, inputs = None, filters = None, NumOut = None, ExpansionFactor = None):
+    def VanillaNetBlock(self, inputs = None, filters = None, NumOut = None, ExpansionFactor = None):
         if(ExpansionFactor is None):
             ExpansionFactor = self.ExpansionFactor
         # Conv
@@ -89,7 +89,7 @@ class VanillaNet(BaseLayers):
                         ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
 
                     # Compute current warp parameters
-                    dpNow = self.VanillaBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
+                    dpNow = self.VanillaNetBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
                     dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)    
                     pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow) 
 
