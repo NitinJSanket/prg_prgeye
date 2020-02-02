@@ -24,6 +24,7 @@ from tqdm import tqdm
 # TODO: Add training flag
 
 class ResNet(BaseLayers):
+    # http://torch.ch/blog/2016/02/04/resnets.html
     def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, NumRes = None):
         super(ResNet, self).__init__()
         if(InputPH is None):
