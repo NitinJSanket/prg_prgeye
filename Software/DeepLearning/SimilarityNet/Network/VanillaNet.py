@@ -33,7 +33,7 @@ class VanillaNet(BaseLayers):
         self.InputPH = InputPH
         self.InitNeurons = 8
         self.Training = Training
-        self.ExpansionFactor = 2.0
+        self.ExpansionFactor = 4.0
         self.DropOutRate = 0.7
         if(Padding is None):
             Padding = 'same'
@@ -54,24 +54,26 @@ class VanillaNet(BaseLayers):
 
     @CountAndScope
     @add_arg_scope
-    def ICSTNBlock(self, inputs = None, filters = None, NumOut = None):
+    def VanillaBlock(self, inputs = None, filters = None, NumOut = None, ExpansionFactor = None):
+        if(ExpansionFactor is None):
+            ExpansionFactor = self.ExpansionFactor
         # Conv
         Net = self.ConvBNReLUBlock(inputs = inputs, filters = filters, kernel_size = (7,7))
         # Conv
-        NumFilters = int(filters*self.ExpansionFactor)
+        NumFilters = int(filters*ExpansionFactor)
         Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (5,5))
         # Conv
-        NumFilters = int(NumFilters*self.ExpansionFactor)
+        NumFilters = int(NumFilters*ExpansionFactor)
         Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
         # Conv
-        NumFilters = int(NumFilters*self.ExpansionFactor)
+        NumFilters = int(NumFilters*ExpansionFactor)
         Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
         # Output
-        Net = self.OutputLayer(self, inputs = Net, rate=self.DropOutRate, NumOut = NumOut)
+        Net = self.OutputLayer(inputs = Net, rate=self.DropOutRate, NumOut = NumOut)
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.ConvBNReLUBlock, self.Conv, self.BN, self.ReLU], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
@@ -80,21 +82,27 @@ class VanillaNet(BaseLayers):
                 if(count == 0):
                     pNow = self.Opt.pInit
                     pMtrxNow = warp2.vec2mtrx(self.Opt, pNow)
-            # Warp Original Image based on previous composite warp parameters
-            ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
+                with tf.variable_scope('ICTSNBlock' + str(count)):
+                    # Warp Original Image based on previous composite warp parameters
+                    if(self.Training):
+                        ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
 
-            # Compute current warp parameters
-            dpNow = self.ICSTNBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
-            dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)
-            pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow)
+                    # Compute current warp parameters
+                    dpNow = self.VanillaBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
+                    dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)    
+                    pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow) 
 
-            # Update counter used for looping over warpType
-            self.Opt.currBlock += 1
-                
-            # Decrement counter so you use last warp Type
-            self.Opt.currBlock -= 1
-            ImgWarp = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow) # Final Image Warp
-            pNow = warp2.mtrx2vec(self.opt, pMtrxNow)
+                    # Update counter used for looping over warpType
+                    self.Opt.currBlock += 1
+
+                    if(self.Opt.currBlock == self.Opt.NumBlocks):
+                        # Decrement counter so you use last warp Type
+                        self.Opt.currBlock -= 1
+                        pNow = warp2.mtrx2vec(self.Opt, pMtrxNow) 
+                        if(self.Training):
+                            ImgWarp = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow) # Final Image Warp
+                        else:
+                            ImgWarp = None
             
         return pMtrxNow, pNow, ImgWarp
 
@@ -106,7 +114,7 @@ def main():
    InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
    # Create network class variable
    Opt =  warp2.Options(PatchSize= PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['pseudosimilarity', 'pseudosimilarity']) # ICSTN Options
-   VN = VanillaNet(InputPH = InputPH,  Opt = Opt)
+   VN = VanillaNet(InputPH = InputPH, Training = True, Opt = Opt)
    # Build the atual network
    pMtrxNow, pNow, ImgWarp = VN.Network()
    # Setup Saver
@@ -114,16 +122,15 @@ def main():
    with tf.Session() as sess:
        # Initialize Weights
        sess.run(tf.global_variables_initializer())
+       tu.FindNumFlops(sess, 1)
        tu.FindNumParams(1)
        tu.CalculateModelSize(1)
-       tu.FindNumFlops(sess, 1)
        # Save model every epoch
        SaveName = '/home/nitin/PRGEye/CheckPoints/SpeedTests/TestVanillaNet/model.ckpt'
        Saver.save(sess, save_path=SaveName)
        print(SaveName + ' Model Saved...') 
-       input('q')
        FeedDict = {VN.InputPH: np.random.rand(32,100,100,3)}
-       RetVal = sess.run([Network], feed_dict=FeedDict) 
+       # RetVal = sess.run([Network], feed_dict=FeedDict) 
    Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())
 
 if __name__=="__main__":

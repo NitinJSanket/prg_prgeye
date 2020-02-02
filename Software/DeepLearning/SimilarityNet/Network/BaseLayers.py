@@ -31,7 +31,7 @@ class BaseLayers(object):
     @CountAndScope
     @add_arg_scope
     def ConvBNReLUBlock(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
-        conv =  self.Conv(inputs, filters, kernel_size, strides, padding)
+        conv =  self.Conv(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = strides, padding = padding)
         bn = self.BN(conv)
         Output = self.ReLU(bn)
         return Output
@@ -66,7 +66,7 @@ class BaseLayers(object):
     def Flatten(self, inputs = None):
         # https://stackoverflow.com/questions/37868935/tensorflow-reshape-tensor
         Shape = inputs.get_shape().as_list()       
-        Dim = numpy.prod(Shape[1:])        
+        Dim = np.prod(Shape[1:])        
         Output = tf.reshape(inputs, [-1, Dim])         
         return Output
 
