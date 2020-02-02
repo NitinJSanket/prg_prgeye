@@ -15,6 +15,7 @@ import TFUtils as tu
 from Decorators import *
 import warpICSTN2 as warp2
 from BaseLayers import *
+import MiscUtils as mu
 # from ..Misc import TFUtils as tu
 # from ..Misc.Decorators import *
 # from ..Misc.warpICSTN2 import * as warp2
@@ -31,9 +32,9 @@ class VanillaNet(BaseLayers):
             print('ERROR: Options cannot be empty!')
             sys.exit(0)
         self.InputPH = InputPH
-        self.InitNeurons = 8
+        self.InitNeurons = 24
         self.Training = Training
-        self.ExpansionFactor = 4.0
+        self.ExpansionFactor = 3.0
         self.DropOutRate = 0.7
         if(Padding is None):
             Padding = 'same'
@@ -107,18 +108,21 @@ class VanillaNet(BaseLayers):
         return pMtrxNow, pNow, ImgWarp
 
 def main():
-   tu.SetGPU(1)
+   tu.SetGPU(0)
    # Test functionality of code
    PatchSize = np.array([100, 100, 3])
-   MiniBatchSize = 32
-   InputPH = tf.placeholder(tf.float32, shape=(32, 100, 100, 3), name='Input')
+   MiniBatchSize = 1
+   InputPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='Input')
    # Create network class variable
-   Opt =  warp2.Options(PatchSize= PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['pseudosimilarity', 'pseudosimilarity']) # ICSTN Options
+   Opt =  warp2.Options(PatchSize= PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['scale', 'scale', 'translation', 'translation']) # ICSTN Options
    VN = VanillaNet(InputPH = InputPH, Training = True, Opt = Opt)
    # Build the atual network
    pMtrxNow, pNow, ImgWarp = VN.Network()
    # Setup Saver
    Saver = tf.train.Saver()
+   # This runs on 1 thread of CPU when tu.SetGPU(-1) is set
+   # config=tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1, allow_soft_placement=True)
+   # tf.Session(config=config)
    with tf.Session() as sess:
        # Initialize Weights
        sess.run(tf.global_variables_initializer())
@@ -129,8 +133,11 @@ def main():
        SaveName = '/home/nitin/PRGEye/CheckPoints/SpeedTests/TestVanillaNet/model.ckpt'
        Saver.save(sess, save_path=SaveName)
        print(SaveName + ' Model Saved...') 
-       FeedDict = {VN.InputPH: np.random.rand(32,100,100,3)}
-       # RetVal = sess.run([Network], feed_dict=FeedDict) 
+       FeedDict = {VN.InputPH: np.random.rand(MiniBatchSize,PatchSize[0],PatchSize[1],PatchSize[2])}
+       for count in range(10):
+           Timer1 = mu.tic()
+           pMtrxNowVal, pNowVal, ImgWarpVal = sess.run([pMtrxNow, pNow, ImgWarp], feed_dict=FeedDict)
+           print(1/mu.toc(Timer1))
    Writer = tf.summary.FileWriter('/home/nitin/PRGEye/Logs3/', graph=tf.get_default_graph())
 
 if __name__=="__main__":
