@@ -107,7 +107,7 @@ def vec2mtrx(opt,p):
             pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,O],[cospsi,sinpsi,O],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "scale":
             scale = tf.squeeze(p) # tf.unstack(p,axis=1)
-            pMtrx = tf.transpose(tf.stack([[scale,O,O],[O,scale,O],[O,O,I]]),perm=[2,0,1])
+            pMtrx = tf.transpose(tf.stack([[I+scale,O,O],[O,I+scale,O],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "translation":
             tx,ty = tf.unstack(p,axis=1)
             pMtrx = tf.transpose(tf.stack([[I,O,tx],[O,I,ty],[O,O,I]]),perm=[2,0,1])
@@ -139,7 +139,7 @@ def mtrx2vec(opt,pMtrx):
                         CompareVal =  opt.warpType
 
                 if CompareVal == "yaw": p = [[e11]] # value of sinpsi is regressed directly, this might make cospsi unconstrained?
-                if CompareVal == "scale": p = [[e00]] # this might make e00 != e11?
+                if CompareVal == "scale": p = [[e00-1]] # this might make e00 != e11?
                 if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
                 if CompareVal == "pseudosimilarity": p = tf.stack([e00-1,e02,e12],axis=1)
                 if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)

@@ -28,7 +28,7 @@ def SetGPU(GPUNum=-1):
 def CalculateModelSize(PrintFlag=None):
     var_sizes = [np.product(list(map(int, v.shape))) * v.dtype.size
                  for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]
-    SizeMB = sum(var_sizes) / (1024 ** 2)
+    SizeMB = sum(var_sizes) / (1024. ** 2)
     if(PrintFlag is not None):
         print('Expected Model Size is %f' % SizeMB)
     return SizeMB
