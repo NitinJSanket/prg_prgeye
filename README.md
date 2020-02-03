@@ -2,16 +2,16 @@
 Tri-camera module with IMU and dual/triple Cortex M7
 
 ## TODO
-- [ ] Architectures
+- [ ] Num ICSTN Blocks and which warping function to use (On Vanilla Network)
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 1 scale 1 translation 1 scale 1 translation (half size each) 
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 4 psudo-similarity (half size each)
+ - [ ] Architectures (Choose best Num ICSTN setup)
   - [x] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Vanilla Net Arch
   - [x] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) SqueezeNet 
   - [x] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) ResNet 
   - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) MobileNet
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ShuffleNetv2
-- [ ] Num ICSTN Blocks and which warping function to use (Choose best Arch)
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 1 scale 1 translation 1 scale 1 translation (half size each) 
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 4 psudo-similarity (half size each)
 - [ ] Loss Functions (Choose best ICSTN combination on best Arch)
    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Supervised ICSTN 
    - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Unsupervised L1 
