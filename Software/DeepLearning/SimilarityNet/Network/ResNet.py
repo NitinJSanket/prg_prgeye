@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# Run as python -m SimilarityNet.Network.SqueezeNet from DeepLearning folder
-
 import tensorflow as tf
 import sys
 import numpy as np
@@ -14,9 +12,6 @@ sys.path.insert(0, '../Misc/')
 import TFUtils as tu
 from Decorators import *
 import warpICSTN2 as warp2
-# from ..Misc import TFUtils as tu
-# from ..Misc.Decorators import *
-# import ..Misc.warpICSTN2 as warp2
 from BaseLayers import *
 import MiscUtils as mu
 from tqdm import tqdm

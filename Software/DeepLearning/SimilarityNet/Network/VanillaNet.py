@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# Run as python -m SimilarityNet.Network.SqueezeNet from DeepLearning folder
-
 import tensorflow as tf
 import sys
 import numpy as np
@@ -16,9 +14,7 @@ from Decorators import *
 import warpICSTN2 as warp2
 from BaseLayers import *
 import MiscUtils as mu
-# from ..Misc import TFUtils as tu
-# from ..Misc.Decorators import *
-# from ..Misc.warpICSTN2 import * as warp2
+
 
 # TODO: Add training flag
 
