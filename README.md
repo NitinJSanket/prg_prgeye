@@ -6,7 +6,7 @@ Tri-camera module with IMU and dual/triple Cortex M7
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 1 scale 1 translation 1 scale 1 translation (half size each) 
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 4 psudo-similarity (half size each)
- - [ ] Architectures (Choose best Num ICSTN setup)
+- [ ] Architectures (Choose best Num ICSTN setup)
   - [x] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Vanilla Net Arch
   - [x] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) SqueezeNet 
   - [x] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) ResNet 
