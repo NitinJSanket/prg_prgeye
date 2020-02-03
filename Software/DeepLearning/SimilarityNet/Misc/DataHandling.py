@@ -53,7 +53,7 @@ def SetupAll(BasePath, LearningRate, MiniBatchSize):
     # Warp Parameters
     warpType = ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
-    MaxParams = np.array([0.5, 0.2, 0.2])
+    MaxParams = np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(MaxParams = MaxParams, TransformType = warpType[-1], MiniBatchSize = MiniBatchSize)
 
     return TrainNames, ValNames, TestNames, OptimizerParams,\
