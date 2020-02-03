@@ -25,7 +25,6 @@ import Misc.ImageUtils as iu
 import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
-from Network.HomographyNetICSTNSimpler import  ICSTN
 from Misc.MiscUtils import *
 import numpy as np
 import time
@@ -43,21 +42,19 @@ import Misc.warpICSTN2 as warp2
 from Misc.DataHandling import *
 from Misc.BatchCreationNP import *
 from Misc.BatchCreationTF import *
-
+from Network.VanillaNet import *
+from Misc.Decorators import *
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
-def LossFunc(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
-    # TODO: Warp using A H Ainv
+@Scope
+def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
     # L2 loss between predicted and ground truth parameters
     # DiffImg = WarpI1Patch - I2PH
     # Label = warp2.mtrx2vec(opt, LabelPH)
     lossPhoto = tf.reduce_mean(tf.square(prVal - LabelPH))
-
-    # TODO: Use stop gradient to calculate loss of individual components
-    # TODO: Try using Normal STN
 
     # Unsupervised L1 Photometric Loss
     # lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
@@ -68,6 +65,29 @@ def LossFunc(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
     # lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
 
     return lossPhoto, WarpI1Patch
+
+@Scope
+def Optimizer(OptimizerParams, loss):
+    Optimizer = tf.train.AdamOptimizer(learning_rate=OptimizerParams[0], beta1=OptimizerParams[1],
+                                           beta2=OptimizerParams[2], epsilon=OptimizerParams[3])
+    Gradients = Optimizer.compute_gradients(loss)
+    OptimizerUpdate = Optimizer.apply_gradients(Gradients)
+    # Optimizer = tf.train.GradientDescentOptimizer(learning_rate=1e-8).minimize(loss)
+    # Optimizer = tf.train.MomentumOptimizer(learning_rate=1e-3, momentum=0.9, use_nesterov=True).minimize(loss)
+    return OptimizerUpdate
+
+def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdeal, prVal, LabelPH):
+    # Create a summary to monitor loss tensor
+    tf.summary.scalar('LossEveryIter', loss)
+    tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3], max_outputs=3)
+    tf.summary.image('I1Patch', I1PH[:,:,:,0:3], max_outputs=3)
+    tf.summary.image('I2Patch', I2PH[:,:,:,0:3], max_outputs=3)
+    tf.summary.image('WarpI1PatchIdeal', WarpI1PatchIdeal[0,:,:,0:3], max_outputs=3)
+    tf.summary.histogram('prVal', prVal)
+    tf.summary.histogram('Label', LabelPH)
+    # Merge all summaries into a single operation
+    MergedSummaryOP = tf.summary.merge_all()
+    return MergedSummaryOP
     
 def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
@@ -92,34 +112,24 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
     Outputs:
     Saves Trained network in CheckPointPath
     """
-    
+    # Create Network Object with required parameters
+    VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt)
     # Predict output with forward pass
-    prHVal, prVal, WarpI1Patch = ICSTN(ImgPH, PatchSize, MiniBatchSize, opt)
+    prHVal, prVal, WarpI1Patch = VN.Network()
+    
+    # Warp I1 with ideal parameters for visual sanity check
     WarpI1PatchIdeal = warp2.transformImage(opt, I1PH, warp2.vec2mtrx(opt, LabelPH))
+    # Data Generation 
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
-    with tf.name_scope('Loss'):
-    	loss, WarpI1PatchRet = LossFunc(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt)
-            
-    with tf.name_scope('Adam'):
-        Optimizer = tf.train.AdamOptimizer(learning_rate=OptimizerParams[0], beta1=OptimizerParams[1],
-                                           beta2=OptimizerParams[2], epsilon=OptimizerParams[3])
-        Gradients = Optimizer.compute_gradients(loss)
-        OptimizerUpdate = Optimizer.apply_gradients(Gradients)
-        #Optimizer = tf.train.GradientDescentOptimizer(learning_rate=1e-8).minimize(loss)
-        #Optimizer = tf.train.MomentumOptimizer(learning_rate=1e-3, momentum=0.9, use_nesterov=True).minimize(loss)
+    # Compute Loss
+    loss, WarpI1PatchRet = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt)
 
+    # Run Backprop and Gradient Update
+    OptimizerUpdate = Optimizer(OptimizerParams, loss)
+        
     # Tensorboard
-    # Create a summary to monitor loss tensor
-    tf.summary.scalar('LossEveryIter', loss)
-    tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3])
-    tf.summary.image('I1Patch', I1PH[:,:,:,0:3])
-    tf.summary.image('I2Patch', I2PH[:,:,:,0:3])
-    tf.summary.image('WarpI1PatchIdeal', WarpI1PatchIdeal[:,:,:,0:3])
-    tf.summary.histogram('prHVal', prHVal)
-    tf.summary.histogram('Label', LabelPH)
-    # Merge all summaries into a single operation
-    MergedSummaryOP = tf.summary.merge_all()
+    MergedSummaryOP = TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdeal, prVal, LabelPH)
  
     # Setup Saver
     Saver = tf.train.Saver()
@@ -135,9 +145,13 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
             StartEpoch = 0
             print('New model initialized....')
 
+        StartEpoch = 0
+
         # Create Batch Generator Object
         bg = BatchGeneration(sess, I2Gen, IOrgPH, HPH)
-        
+
+        # TODO: Pretty Print Network Stats
+
         # Print Number of parameters in the network    
         tu.FindNumParams(1)
         
@@ -149,7 +163,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
             for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
                 IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
 
-                FeedDict = {ImgPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch}
+                FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch}
                 _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
                 
                 # Tensorboard
@@ -186,7 +200,7 @@ def main():
     Parser.add_argument('--BasePath', default='/home/nitin/Datasets/MSCOCO/train2014', help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014')
     Parser.add_argument('--NumEpochs', type=int, default=200, help='Number of Epochs to Train for, Default:200')
     Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
-    Parser.add_argument('--MiniBatchSize', type=int, default=32, help='Size of the MiniBatch to use, Default:32')
+    Parser.add_argument('--MiniBatchSize', type=int, default=256, help='Size of the MiniBatch to use, Default:32')
     Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointPath?, Default:0')
     Parser.add_argument('--RemoveLogs', type=int, default=0, help='Delete log Files from ./Logs?, Default:0')
     Parser.add_argument('--LossFuncName', default='PhotoL1', help='Choice of Loss functions, choose from PhotoL1, PhotoChab, PhotoRobust. Default:PhotoL1')
@@ -211,6 +225,7 @@ def main():
     GPUDevice = Args.GPUDevice
     LearningRate = Args.LR
     TrainingType = Args.TrainingType
+
     
     # Set GPUDevice
     tu.SetGPU(GPUDevice)
@@ -221,14 +236,16 @@ def main():
     # Setup all needed parameters including file reading
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
-    NumTestRunsPerEpoch, OriginalImageSize, HObj = SetupAll(BasePath, LearningRate)
+    NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize)
 
     # If CheckPointPath doesn't exist make the path
     if(not (os.path.isdir(CheckPointPath))):
        os.makedirs(CheckPointPath)
 
-    opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['pseudosimilarity', 'pseudosimilarity']) # ICSTN Options
-    optdg = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = ['pseudosimilarity']) # Data Generation Options
+
+    opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
+    # Data Generation Options, warpType should the same the last one in the previous command
+    optdg = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = [warpType[-1]]) 
     
     # Find Latest Checkpoint File
     if LoadCheckPoint==1:

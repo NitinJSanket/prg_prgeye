@@ -7,14 +7,11 @@ import inspect
 from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
-# Required to import ..Misc so you don't have to run as package with -m flag
-sys.path.insert(0, '../Misc/')
-import TFUtils as tu
-from Decorators import *
-import warpICSTN2 as warp2
-from BaseLayers import *
-import MiscUtils as mu
-
+import Misc.TFUtils as tu
+from Misc.Decorators import *
+import Misc.warpICSTN2 as warp2
+from Network.BaseLayers import *
+import Misc.MiscUtils as mu
 
 # TODO: Add training flag
 

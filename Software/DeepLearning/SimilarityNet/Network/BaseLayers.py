@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# Run as python -m SimilarityNet.Network.SqueezeNet from DeepLearning folder
-
 import tensorflow as tf
 import sys
 import numpy as np
@@ -9,14 +7,9 @@ import inspect
 from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
-# Required to import ..Misc so you don't have to run as package with -m flag
-sys.path.insert(0, '../Misc/')
-import TFUtils as tu
-from Decorators import *
-import warpICSTN2 as warp2
-# from ..Misc import TFUtils as tu
-# from ..Misc.Decorators import *
-# import ..Misc.warpICSTN2 as warp2
+import Misc.TFUtils as tu
+from Misc.Decorators import *
+import Misc.warpICSTN2 as warp2
 
 # TODO: Add training flag
     

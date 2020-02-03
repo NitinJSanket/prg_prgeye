@@ -2,7 +2,7 @@ import Misc.ImageUtils as iu
 import os
 import numpy as np
 
-def SetupAll(BasePath, LearningRate):
+def SetupAll(BasePath, LearningRate, MiniBatchSize):
     """
     Inputs: 
     BasePath is the base path where Images are saved without "/" at the end
@@ -50,14 +50,15 @@ def SetupAll(BasePath, LearningRate):
     NumTrainSamples = len(TrainNames)
     NumValSamples = len(ValNames)
     NumTestSamples = len(TestNames)
+    # Warp Parameters
+    warpType = ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
-    # HObj = iu.Homography(ImageSize = OriginalImageSize, MaxT = np.array([[0.025], [0.025], [0.025]]), MaxYaw = 1.2, MaxMinScale = np.array([0.97, 1.03]))
     MaxParams = np.array([0.5, 0.2, 0.2])
-    HObj = iu.HomographyICTSN(MaxParams = MaxParams)
+    HObj = iu.HomographyICTSN(MaxParams = MaxParams, TransformType = warpType[-1], MiniBatchSize = MiniBatchSize)
 
     return TrainNames, ValNames, TestNames, OptimizerParams,\
         SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
-        NumTestRunsPerEpoch, OriginalImageSize, HObj      
+        NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType      
 
 
 def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):

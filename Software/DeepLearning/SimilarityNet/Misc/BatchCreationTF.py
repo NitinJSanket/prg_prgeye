@@ -20,7 +20,7 @@ class BatchGeneration():
             ImageSize = np.array(np.shape(I1))[1:]
             # TODO: Extract MiniBatchSize here
 
-        H, Params = HObj.GetRandReducedHICSTN(TransformType = 'psuedosimilarity', MiniBatchSize = MiniBatchSize)
+        H, Params = HObj.GetRandReducedHICSTN()
 
         # Maybe there is a better way? https://dominikschmidt.xyz/tensorflow-data-pipeline/
         

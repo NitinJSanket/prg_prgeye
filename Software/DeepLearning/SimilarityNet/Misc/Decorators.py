@@ -25,3 +25,10 @@ def CountAndScope(func):
             self.CurrBlock += 1
             return func(self, *args, **kwargs)
     return wrapped
+
+def Scope(func):
+    @wraps(func)
+    def wrapped(self, *args, **kwargs):
+        with tf.variable_scope(func.__name__):
+            return func(self, *args, **kwargs)
+    return wrapped
