@@ -145,8 +145,6 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
             StartEpoch = 0
             print('New model initialized....')
 
-        StartEpoch = 0
-
         # Create Batch Generator Object
         bg = BatchGeneration(sess, I2Gen, IOrgPH, HPH)
 
@@ -241,7 +239,6 @@ def main():
     # If CheckPointPath doesn't exist make the path
     if(not (os.path.isdir(CheckPointPath))):
        os.makedirs(CheckPointPath)
-
 
     opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
     # Data Generation Options, warpType should the same the last one in the previous command
