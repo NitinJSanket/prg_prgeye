@@ -3,11 +3,11 @@ Tri-camera module with IMU and dual/triple Cortex M7
 
 ## TODO
 - [ ] Architectures
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Vanilla Net Arch
-  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) SqueezeNet or SqueezeNext
-  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) ResNet or ResNeXt
-  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) DenseNet
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ShuffleNet
+  - [x] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Vanilla Net Arch
+  - [x] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) SqueezeNet 
+  - [x] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) ResNet 
+  - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) MobileNet
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ShuffleNetv2
 - [ ] Num ICSTN Blocks and which warping function to use (Choose best Arch)
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 1 scale 1 translation 1 scale 1 translation (half size each) 
