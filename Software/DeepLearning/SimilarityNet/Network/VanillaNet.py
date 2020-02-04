@@ -16,7 +16,8 @@ import Misc.MiscUtils as mu
 # TODO: Add training flag
 
 class VanillaNet(BaseLayers):
-    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None):
+    def __init__(self, InputPH = None, Training = False,  Padding = None,\
+                 Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None):
         super(VanillaNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
@@ -26,10 +27,16 @@ class VanillaNet(BaseLayers):
             sys.exit(0)
         self.InputPH = InputPH
         self.Training = Training
-        self.InitNeurons = 31
-        self.ExpansionFactor = 2.0
+        if(InitNeurons is None):
+            InitNeurons = 31
+        if(ExpansionFactor is None):
+            ExpansionFactor =  2.0
+        if(NumBlocks is None):
+            NumBlocks = 3
+        self.InitNeurons = InitNeurons
+        self.ExpansionFactor = ExpansionFactor
         self.DropOutRate = 0.7
-        self.NumBlocks = 3
+        self.NumBlocks = NumBlocks
         if(Padding is None):
             Padding = 'same'
         self.Padding = Padding

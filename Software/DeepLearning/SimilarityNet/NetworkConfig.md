@@ -3,7 +3,7 @@
 - No Data Augmentation on MSCOCO
 - Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100
 
-## Scale, Scale, Trans, Trans
+## Scale, Scale, Trans, Trans 
 self.InitNeurons = 32
 self.ExpansionFactor = 2.0
 self.DropOutRate = 0.7
@@ -25,7 +25,7 @@ NumParams = 6395493
 Expected Model Size = 24.418156 MB
 warpType = ['scale', 'translation']
 
-## Pseudosimilarity x 2
+## Pseudosimilarity x 2 (PRG UMD GPU 0)
 self.InitNeurons = 45
 self.ExpansionFactor = 2.0
 self.DropOutRate = 0.7
@@ -36,7 +36,7 @@ NumParams = 6430056
 Expected Model Size = 24.550003 MB
 warpType = ['pseudosimilarity', 'pseudosimilarity']
 
-## Pseudosimilarity x 4
+## Pseudosimilarity x 4 (Nitin GPU 1)
 self.InitNeurons = 31
 self.ExpansionFactor = 2.0
 self.DropOutRate = 0.7
