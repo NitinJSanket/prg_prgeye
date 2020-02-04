@@ -1,3 +1,53 @@
+# Choosing Best ICSTN Warp Architecture: VanillaNet (Model Size <= 25 MB and Model FPS >= 20 FPS on All Cores i7)
+- Running on Image Size of 128x128x(3x2)
+- No Data Augmentation on MSCOCO
+- Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100
+
+## Scale, Scale, Trans, Trans
+self.InitNeurons = 32
+self.ExpansionFactor = 2.0
+self.DropOutRate = 0.7
+self.NumBlocks = 3
+~ 130.73fps on BS = 1, Nitin's PC All Cores i7
+NumFlops = 1203299912
+NumParams = 6496646
+Expected Model Size = 24.813011 MB
+warpType = ['scale', 'scale', 'translation', 'translation']
+
+## Scale, Trans
+self.InitNeurons = 45
+self.ExpansionFactor = 2.0
+self.DropOutRate = 0.7
+self.NumBlocks = 3
+~ 162.15fps on BS = 1, Nitin's PC All Cores i7
+NumFlops = 1098047365
+NumParams = 6395493
+Expected Model Size = 24.418156 MB
+warpType = ['scale', 'translation']
+
+## Pseudosimilarity x 2
+self.InitNeurons = 45
+self.ExpansionFactor = 2.0
+self.DropOutRate = 0.7
+self.NumBlocks = 3
+~ 149.17fps on BS = 1, Nitin's PC All Cores i7
+NumFlops = 1098185611
+NumParams = 6430056
+Expected Model Size = 24.550003 MB
+warpType = ['pseudosimilarity', 'pseudosimilarity']
+
+## Pseudosimilarity x 4
+self.InitNeurons = 31
+self.ExpansionFactor = 2.0
+self.DropOutRate = 0.7
+self.NumBlocks = 3
+~ 130.77fps on BS = 1, Nitin's PC All Cores i7
+NumFlops = 1139355123
+NumParams = 6147560
+Expected Model Size = 23.480408 MB
+warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity']
+
+<!-- 
 
 # VanillaNet (Model Size <= 2.5 MB and <=25 MB)
 
@@ -44,9 +94,10 @@ Expected Model Size = 24.034340 MB
 warpType = ['scale', 'translation']
 
 ## Larger x4 (Scale, Scale, Trans, Trans)
-self.InitNeurons = 24
-self.ExpansionFactor = 3.0
+self.InitNeurons = 12
+self.ExpansionFactor = 1.9
 self.DropOutRate = 0.7
+self.NumBlocks = 3
 ~ 170fps on BS = 1, Nitin's PC GPU = 0
 NumFlops = 986180244
 NumParams = 5987670
@@ -100,4 +151,4 @@ warpType = ['pseudosimilarity', 'pseudosimilarity']
 NumFlops = 485211389
 NumParams = 6317446
 Expected Model Size = 24.114525 MB
-~ 174.03fps on BS = 1, Nitin's PC CPU All Cores
+~ 174.03fps on BS = 1, Nitin's PC CPU All Cores -->
