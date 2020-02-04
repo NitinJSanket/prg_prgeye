@@ -29,6 +29,7 @@ class VanillaNet(BaseLayers):
         self.Training = Training
         self.ExpansionFactor = 3.0
         self.DropOutRate = 0.7
+        self.NumBlocks = 3
         if(Padding is None):
             Padding = 'same'
         self.Padding = Padding
@@ -57,11 +58,10 @@ class VanillaNet(BaseLayers):
         NumFilters = int(filters*ExpansionFactor)
         Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (5,5))
         # Conv
-        NumFilters = int(NumFilters*ExpansionFactor)
-        Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
-        # Conv
-        NumFilters = int(NumFilters*ExpansionFactor)
-        Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
+        for count in range(self.NumBlocks):
+            NumFilters = int(NumFilters*ExpansionFactor)
+            Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
+      
         # Output
         Net = self.OutputLayer(inputs = Net, rate=self.DropOutRate, NumOut = NumOut)
         return Net

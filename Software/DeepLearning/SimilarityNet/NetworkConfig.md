@@ -5,6 +5,7 @@
 self.InitNeurons = 26
 self.ExpansionFactor = 2.0
 self.DropOutRate = 0.7
+self.NumBlocks = 3
 
 ~ 270fps on BS = 1, Nitin's PC GPU = 0
 NumFlops = 197530233
