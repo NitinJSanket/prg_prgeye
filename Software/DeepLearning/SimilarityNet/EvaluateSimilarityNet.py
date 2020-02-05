@@ -40,13 +40,16 @@ from tqdm import tqdm
 import Misc.STNUtils as stn
 import Misc.TFUtils as tu
 import Misc.warpICSTN2 as warp2
+from Misc.DataHandling import *
+from Misc.BatchCreationNP import *
 from Misc.BatchCreationTF import *
-
+from Network.VanillaNet import *
+from Misc.Decorators import *
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
-def SetupAll(ReadPath, warpType):
+def SetupAll(ReadPath):
     """
     Inputs: 
     BasePath is the base path where Images are saved without "/" at the end
@@ -72,10 +75,12 @@ def SetupAll(ReadPath, warpType):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    MaxParams = np.array([0.5, 0.2, 0.2])
+    warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    # Homography Perturbation Parameters
+    MaxParams = np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = warpType[-1], MaxParams = MaxParams)
     
-    return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
+    return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj, warpType
 
 def ReadDirNames(DirNamesPath):
     """
@@ -173,7 +178,10 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     # Data Generation
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
-    prH, prParams, WarpI1Patch = ICSTN(PatchPH, PatchSize, MiniBatchSize, opt)
+    # Create Network Object with required parameters
+    VN = VanillaNet(InputPH = PatchPH, Training = False, Opt = opt)
+    # Predict output with forward pass
+    prH, prParams, _ = VN.Network()
 
     # Setup Saver
     Saver = tf.train.Saver()
@@ -218,13 +226,13 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
             IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(I, PatchSize, MiniBatchSize, HObj, ReadPath, ImageSize, Vis = False)
 
             # TODO: Better way is to feed data into a MiniBatch and Extract it again
-            FeedDict = {PatchPH: IBatch}
-            prHVal, prParamsVal, WarpI1PatchVal = sess.run([prH, prParams, WarpI1Patch], feed_dict=FeedDict)
+            FeedDict = {VN.InputPH: IBatch}
+            prHVal, prParamsVal = sess.run([prH, prParams], feed_dict=FeedDict)
 
             # Extract Values
             prHVal = prHVal[0]
             prParamsVal = prParamsVal[0]
-            WarpI1PatchVal = WarpI1PatchVal[0]
+            # WarpI1PatchVal = WarpI1PatchVal[0]
             ParamsBatch = ParamsBatch[0]
 
             def ComputeScaleError(ImageSize, GT, Pred = None):
@@ -296,10 +304,8 @@ def main():
     # Set GPUNum
     tu.SetGPU(GPUDevice)
 
-    warpType = ['pseudosimilarity', 'pseudosimilarity'] 
-
     # Setup all needed parameters including file reading
-    TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj = SetupAll(ReadPath, warpType)
+    TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj, warpType = SetupAll(ReadPath)
 
     # If CheckPointPath doesn't exist make the path
     if(not (os.path.isdir(ModelPath))):
