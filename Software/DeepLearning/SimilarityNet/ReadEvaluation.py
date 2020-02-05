@@ -30,9 +30,13 @@ def main(ReadPath):
     print('Scale Identity Mean {} +- {} Px'.format(np.mean(ErrorScalePxIdentity), np.std(ErrorScalePxIdentity)))
     print('Trans Pred Mean {} +- {} Px'.format(np.mean(ErrorTransPxPred), np.std(ErrorTransPxPred)))
     print('Trans Identity Mean {} +- {} Px'.format(np.mean(ErrorTransPxIdentity), np.std(ErrorTransPxIdentity)))
+    print('Scale Pred Median {} Px'.format(np.median(ErrorScalePxPred)))
+    print('Scale Identity Median {} Px'.format(np.median(ErrorScalePxIdentity)))
+    print('Trans Pred Median {} Px'.format(np.median(ErrorTransPxPred)))
+    print('Trans Identity Median {} Px'.format(np.median(ErrorTransPxIdentity)))
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
-    ax1.plot(ErrorScalePxIdentity, 'b', ErrorScalePxPred, 'r')
-    ax2.plot(ErrorTransPxIdentity, 'b', ErrorTransPxPred, 'r')
+    ax1.plot(ErrorScalePxIdentity, 'b.', ErrorScalePxPred, 'r.')
+    ax2.plot(ErrorTransPxIdentity, 'b.', ErrorTransPxPred, 'r.')
     plt.show()
 
 if __name__=="__main__":

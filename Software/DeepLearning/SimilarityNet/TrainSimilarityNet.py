@@ -51,10 +51,12 @@ sys.dont_write_bytecode = True
 @Scope
 def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
-    # L2 loss between predicted and ground truth parameters
+    # L2 loss between predicted and ground truth parametersb
     # DiffImg = WarpI1Patch - I2PH
     # Label = warp2.mtrx2vec(opt, LabelPH)
-    lossPhoto = tf.reduce_mean(tf.square(prVal - LabelPH))
+    Lambda = [0.1, 1.0, 1.0]
+    Lambda = np.tile(Lambda, (MiniBatchSize, 1))
+    lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, Lambda)))
 
     # Unsupervised L1 Photometric Loss
     # lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
