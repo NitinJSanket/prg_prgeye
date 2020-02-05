@@ -64,6 +64,7 @@ class BatchGeneration():
         
         IOrgBatch = [] 
 
+        
         ImageNum = 0
         while ImageNum < MiniBatchSize:
             # Generate random image

@@ -42,7 +42,7 @@ import Misc.warpICSTN2 as warp2
 from Misc.DataHandling import *
 from Misc.BatchCreationNP import *
 from Misc.BatchCreationTF import *
-from Network.VanillaNet import *
+from Network.VanillaNet2 import *
 from Misc.Decorators import *
 
 # Don't generate pyc codes
@@ -120,8 +120,14 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
     prHVal, prVal, WarpI1Patch = VN.Network()
     
     # Warp I1 with ideal parameters for visual sanity check
-    WarpI1PatchIdeal = warp2.transformImage(opt, I1PH, warp2.vec2mtrx(opt, LabelPH))
-    # Data Generation 
+    # MODIFY THIS DEPENDING ON ARCH!
+    opt2 = opt
+    opt2.warpType = 'pseudosimilarity'
+    WarpI1PatchIdeal = warp2.transformImage(opt2, I1PH, warp2.vec2mtrx(opt, LabelPH))
+    # Data Generation
+    # MODIFY THIS DEPENDING ON ARCH!
+    optdg.warpType = 'pseudosimilarity'
+    # HObj.TranformType is set in DataHandling.py
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
@@ -258,6 +264,7 @@ def main():
     # PH for losses
     I1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1')
     I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I2')
+    # MODIFY THIS DEPENDING ON ARCH!
     LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3), name='Label')
     # PH for Data Generation
     IOrgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='IOrg') 

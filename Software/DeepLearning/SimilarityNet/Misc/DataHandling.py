@@ -40,7 +40,7 @@ def SetupAll(BasePath, LearningRate, MiniBatchSize):
         OptimizerParams = [LearningRate, 0.9, 0.999, 1e-8]   
         
     # Save checkpoint every SaveCheckPoint iteration in every epoch, checkpoint saved automatically after every epoch
-    SaveCheckPoint = 100 
+    SaveCheckPoint = 1000 
     # Number of passes of Val data with MiniBatchSize 
     NumTestRunsPerEpoch = 5
     
@@ -51,10 +51,12 @@ def SetupAll(BasePath, LearningRate, MiniBatchSize):
     NumValSamples = len(ValNames)
     NumTestSamples = len(TestNames)
     # Warp Parameters
-    warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    warpType = ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     MaxParams = np.array([0.5, 0.4, 0.4])
-    HObj = iu.HomographyICTSN(MaxParams = MaxParams, TransformType = warpType[-1], MiniBatchSize = MiniBatchSize)
+    # MODIFY THIS DEPENDING ON ARCH!
+    # HObj = iu.HomographyICTSN(MaxParams = MaxParams, TransformType = warpType[-1], MiniBatchSize = MiniBatchSize)
+    HObj = iu.HomographyICTSN(MaxParams = MaxParams, TransformType = 'pseudosimilarity', MiniBatchSize = MiniBatchSize)
 
     return TrainNames, ValNames, TestNames, OptimizerParams,\
         SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
