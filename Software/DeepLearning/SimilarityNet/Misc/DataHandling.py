@@ -2,7 +2,7 @@ import Misc.ImageUtils as iu
 import os
 import numpy as np
 
-def SetupAll(BasePath, LearningRate, MiniBatchSize):
+def SetupAll(BasePath, LearningRate, MiniBatchSize, warpType = None):
     """
     Inputs: 
     BasePath is the base path where Images are saved without "/" at the end
@@ -51,7 +51,8 @@ def SetupAll(BasePath, LearningRate, MiniBatchSize):
     NumValSamples = len(ValNames)
     NumTestSamples = len(TestNames)
     # Warp Parameters
-    warpType = ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    if(warpType is None):
+        warpType = ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     MaxParams = np.array([0.5, 0.4, 0.4])
     # MODIFY THIS DEPENDING ON ARCH!

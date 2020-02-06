@@ -54,7 +54,7 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
     # L2 loss between predicted and ground truth parametersb
     # DiffImg = WarpI1Patch - I2PH
     # Label = warp2.mtrx2vec(opt, LabelPH)
-    Lambda = [0.1, 1.0, 1.0]
+    Lambda = [1.0, 1.0, 1.0]
     Lambda = np.tile(Lambda, (MiniBatchSize, 1))
     lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, Lambda)))
 
@@ -240,9 +240,11 @@ def main():
         shutil.rmtree(os.getcwd() + os.sep + 'Logs' + os.sep)
 
     # Setup all needed parameters including file reading
+    # MODIFY THIS DEPENDING ON ARCHITECTURE!
+    warpType = ['scale', 'scale', 'translation', 'translation'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
-    NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize)
+    NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)
 
     # If CheckPointPath doesn't exist make the path
     if(not (os.path.isdir(CheckPointPath))):

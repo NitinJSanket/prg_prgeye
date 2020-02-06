@@ -96,7 +96,7 @@ class VanillaNet(BaseLayers):
                     pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow)
 
                     # MODIFY THIS DEPENDING ON ARCH!
-                    if(count == 2):
+                    if(count == 1):
                         # Numpy like indexing directly doesn't work on Tensors
                         # https://stackoverflow.com/questions/37670886/how-do-i-select-certain-columns-of-a-2d-tensor-in-tensorflow
                         pReta = tf.expand_dims(tf.transpose(tf.nn.embedding_lookup(tf.transpose(warp2.mtrx2vec(self.Opt, pMtrxNow)), 0)), axis=1)
