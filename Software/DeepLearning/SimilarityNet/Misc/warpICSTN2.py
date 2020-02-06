@@ -138,8 +138,8 @@ def mtrx2vec(opt,pMtrx):
                 else:
                         CompareVal =  opt.warpType
 
-                if CompareVal == "yaw": p = [[e11]] # value of sinpsi is regressed directly, this might make cospsi unconstrained?
-                if CompareVal == "scale": p = [[e00-1]] # this might make e00 != e11?
+                if CompareVal == "yaw": p = tf.expand_dims(e11, 1)# [[e11]] # value of sinpsi is regressed directly, this might make cospsi unconstrained?
+                if CompareVal == "scale": p = tf.expand_dims(e00-1, 1) # [[e00-1]] # this might make e00 != e11?
                 if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
                 if CompareVal == "pseudosimilarity": p = tf.stack([e00-1,e02,e12],axis=1)
                 if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
