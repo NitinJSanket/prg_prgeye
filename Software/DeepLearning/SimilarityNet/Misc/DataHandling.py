@@ -54,7 +54,7 @@ def SetupAll(BasePath, LearningRate, MiniBatchSize, warpType = None):
     if(warpType is None):
         warpType = ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
-    MaxParams = np.array([0.5, 0.4, 0.4])
+    MaxParams = np.array([0.25, 0.2, 0.2])
     # MODIFY THIS DEPENDING ON ARCH!
     # HObj = iu.HomographyICTSN(MaxParams = MaxParams, TransformType = warpType[-1], MiniBatchSize = MiniBatchSize)
     HObj = iu.HomographyICTSN(MaxParams = MaxParams, TransformType = 'pseudosimilarity', MiniBatchSize = MiniBatchSize)

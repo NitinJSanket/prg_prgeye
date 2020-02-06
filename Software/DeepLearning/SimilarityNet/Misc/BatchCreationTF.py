@@ -23,7 +23,6 @@ class BatchGeneration():
         H, Params = HObj.GetRandReducedHICSTN()
 
         # Maybe there is a better way? https://dominikschmidt.xyz/tensorflow-data-pipeline/
-        
         FeedDict = {self.IOrgPH: I1, self.HPH: H}
         I2 = np.uint8(self.sess.run([self.WarpI1PatchIdealGen], feed_dict=FeedDict)[0]) # self.WarpI1PatchIdealGen.eval(feed_dict=FeedDict)
 

@@ -30,6 +30,24 @@ def CenterCrop(I, OutShape):
         
     return ICrop
 
+def PadOutside(I, OutShape):
+    AppendFlag = False
+    if(len(np.shape(I)) == 3):
+        I = I[np.newaxis, :, :, :] # Append Batch Dim
+        AppendFlag = True
+    Output = np.zeros((np.shape(I)[0], OutShape[0], OutShape[1], OutShape[2]))
+    ImageSize = np.shape(I)
+    CenterX = OutShape[0]/2
+    CenterY = OutShape[1]/2
+    try:
+        Output[:, int(np.ceil(CenterX-ImageSize[1]/2)):int(np.ceil(CenterX+ImageSize[1]/2)),\
+                  int(np.ceil(CenterY-ImageSize[2]/2)):int(np.ceil(CenterY+ImageSize[2]/2)), :] = I
+        if(AppendFlag): # Remove Batch Dim
+            Output = np.squeeze(Output, axis=0)
+    except:
+        Output = None        
+    return Output
+
 def CenterCropFactor(I, Factor):
     AppendFlag = False
     if(len(np.shape(I)) == 3):

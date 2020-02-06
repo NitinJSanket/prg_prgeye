@@ -51,20 +51,21 @@ sys.dont_write_bytecode = True
 @Scope
 def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
-    # L2 loss between predicted and ground truth parametersb
+    # Self-supervised Losses
     # DiffImg = WarpI1Patch - I2PH
-    # Label = warp2.mtrx2vec(opt, LabelPH)
-    Lambda = [1.0, 1.0, 1.0]
-    Lambda = np.tile(Lambda, (MiniBatchSize, 1))
-    lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, Lambda)))
 
-    # Unsupervised L1 Photometric Loss
+    # Self-supervised Photometric L1 Loss
     # lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
-    
-    # Unsupervised Chabonier Photometric Loss
+
+    # Self-supervised Photometric Chabonier Loss
     # epsilon = 1e-3
     # alpha = 0.45
     # lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
+
+    # Supervised L2 loss
+    Lambda = [1.0, 1.0, 1.0]
+    Lambda = np.tile(Lambda, (MiniBatchSize, 1))
+    lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, Lambda)))
 
     return lossPhoto, WarpI1Patch
 
@@ -78,20 +79,20 @@ def Optimizer(OptimizerParams, loss):
     # Optimizer = tf.train.MomentumOptimizer(learning_rate=1e-3, momentum=0.9, use_nesterov=True).minimize(loss)
     return OptimizerUpdate
 
-def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdeal, prVal, LabelPH):
+def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelPH):
     # Create a summary to monitor loss tensor
     tf.summary.scalar('LossEveryIter', loss)
-    tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3], max_outputs=3)
     tf.summary.image('I1Patch', I1PH[:,:,:,0:3], max_outputs=3)
     tf.summary.image('I2Patch', I2PH[:,:,:,0:3], max_outputs=3)
-    tf.summary.image('WarpI1PatchIdeal', WarpI1PatchIdeal[:,:,:,0:3], max_outputs=3)
+    tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3], max_outputs=3)
+    # tf.summary.image('WarpI1PatchIdeal', WarpI1PatchIdealPH[:,:,:,0:3], max_outputs=3)
     tf.summary.histogram('prVal', prVal)
     tf.summary.histogram('Label', LabelPH)
     # Merge all summaries into a single operation
     MergedSummaryOP = tf.summary.merge_all()
     return MergedSummaryOP
     
-def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
+def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
                    DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize, opt, optdg, HObj):
     """
@@ -118,12 +119,19 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
     VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt)
     # Predict output with forward pass
     prHVal, prVal, WarpI1Patch = VN.Network()
-    
+
+    # TODO: Warp Patch here
+    # Maybe Asmall * AbigInv * H * Abig
     # Warp I1 with ideal parameters for visual sanity check
     # MODIFY THIS DEPENDING ON ARCH!
     opt2 = opt
     opt2.warpType = 'pseudosimilarity'
-    WarpI1PatchIdeal = warp2.transformImage(opt2, I1PH, warp2.vec2mtrx(opt, LabelPH))
+    # optlarge = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = 'pseudosimilarity') # ICSTN Options
+    # Alarge = tf.linalg.inv(optlarge.refMtrx)
+    # HCorr = tf.matmul(Alarge, tf.matmul(warp2.vec2mtrx(opt2, LabelPH), tf.linalg.inv(Alarge)))
+    # WarpI1PatchIdeal = warp2.transformImage(opt, I1PH, HCorr)
+    WarpI1PatchIdeal = warp2.transformImage(opt, IOrgPH, warp2.vec2mtrx(opt2, LabelPH))
+
     # Data Generation
     # MODIFY THIS DEPENDING ON ARCH!
     optdg.warpType = 'pseudosimilarity'
@@ -137,7 +145,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
         
     # Tensorboard
-    MergedSummaryOP = TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdeal, prVal, LabelPH)
+    MergedSummaryOP = TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelPH)
  
     # Setup Saver
     Saver = tf.train.Saver()
@@ -168,9 +176,20 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestName
             NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
             for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
                 IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
-
-                FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch}
-                _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
+                P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
+                                
+                FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
+                _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                # _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
+                # WarpI1PatchIdealRet = iu.CenterCrop(WarpI1PatchIdealRet, PatchSize)
+                # FeedDict = {WarpI1PatchIdealPH: WarpI1PatchIdealRet, VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
+                # Summary = sess.run([MergedSummaryOP], feed_dict=FeedDict)
+                
+                # A = np.uint8(np.concatenate((P1Batch[0], P2Batch[0], WarpI1PatchIdealRet[0], np.abs(P2Batch[0]-WarpI1PatchIdealRet[0])), axis=1))
+                # B = np.uint8(np.concatenate((I1Batch[0], I2Batch[0]), axis=1))
+                # cv2.imshow('P1, P2, P1Warp', A)
+                # cv2.imshow('I1, I2', B)
+                # cv2.waitKey(0)
                 
                 # Tensorboard
                 Writer.add_summary(Summary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
@@ -251,6 +270,7 @@ def main():
        os.makedirs(CheckPointPath)
 
     opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
+    # opt = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
     # Data Generation Options, warpType should the same the last one in the previous command
     optdg = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = [warpType[-1]]) 
     
@@ -266,13 +286,14 @@ def main():
     # PH for losses
     I1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1')
     I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I2')
+    WarpI1PatchIdealPH =  tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1WarpIdeal')
     # MODIFY THIS DEPENDING ON ARCH!
     LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3), name='Label')
     # PH for Data Generation
     IOrgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='IOrg') 
     HPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3, 3), name='LabelH')
 
-    TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
+    TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
                    DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize, opt, optdg, HObj)
         

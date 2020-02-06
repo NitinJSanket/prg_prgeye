@@ -11,6 +11,7 @@ class Options:
         self.batchSize = np.array(MiniBatchSize).astype(np.int32)
         self.NumBlocks = NumBlocks
         self.warpType = warpType
+        self.warpDim = 0
         if(isinstance(self.warpType, list)): # If you don't need different warps, send single string for warpType instead
             # Also update NumBlocks here
             self.NumBlocks = len(self.warpType)
@@ -32,7 +33,7 @@ class Options:
                     self.warpDim.append(8)
             self.pInit = tf.zeros([MiniBatchSize, self.warpDim[0]])
         else:
-            self.warpType = warpType
+            # self.warpType = warpType
             if self.warpType == 'yaw':
                 self.warpDim = 1
             elif self.warpType == 'scale':
@@ -106,7 +107,7 @@ def vec2mtrx(opt,p):
             cospsi = tf.math.sqrt(tf.math.subtract(1.0, tf.math.pow(sinpsi,2)))
             pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,O],[cospsi,sinpsi,O],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "scale":
-            scale = tf.squeeze(p) # tf.unstack(p,axis=1)
+            scale =  tf.squeeze(p) # tf.unstack(p,axis=1) # tf.squeeze(p) # tf.unstack(p,axis=1)
             pMtrx = tf.transpose(tf.stack([[I+scale,O,O],[O,I+scale,O],[O,O,I]]),perm=[2,0,1])
         if CompareVal == "translation":
             tx,ty = tf.unstack(p,axis=1)
