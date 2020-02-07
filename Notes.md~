@@ -1,0 +1,4 @@
+## Search for best combination of ICSTN blocks
+
+- PS trains well (both 2x and 4x with BS = 32 and LR = 1e-3); No Aug used
+- 

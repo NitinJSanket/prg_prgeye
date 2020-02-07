@@ -75,7 +75,7 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
     
 
     # Supervised L2 loss
-    Lambda = [10.0, 1.0, 1.0]
+    Lambda = [1.0, 10.0, 10.0]
     Lambda = np.tile(Lambda, (MiniBatchSize, 1))
     lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, Lambda)))
 

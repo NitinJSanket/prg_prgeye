@@ -4,7 +4,7 @@ Tri-camera module with IMU and dual/triple Cortex M7
 ## TODO
 - [ ] Num ICSTN Blocks and which warping function to use (On Vanilla Network)
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity **WORKS**
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 scale 2 translation (half size each) **WORKS** with $Lambda$ = (10.0, 1.0, 1.0)
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 scale 2 translation (half size each) **WORKS** with $\lambda$ = (10.0, 1.0, 1.0)
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 translation 2 scale (half size each) **WORKS** with 2s2t (10.0, 1.0, 1.0)
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 4 psudo-similarity (half size each) **WORKS**
 - [ ] Architectures (Choose best Num ICSTN setup)
