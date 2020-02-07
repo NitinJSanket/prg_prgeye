@@ -42,7 +42,7 @@ import Misc.warpICSTN2 as warp2
 from Misc.DataHandling import *
 from Misc.BatchCreationNP import *
 from Misc.BatchCreationTF import *
-from Network.VanillaNet2 import *
+from Network.VanillaNet3 import *
 from Misc.Decorators import *
 
 # Don't generate pyc codes
@@ -62,8 +62,20 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
     # alpha = 0.45
     # lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
 
+    # TODO: HP Filter Loss
+
+    # TODO: Cornerness Loss
+    # WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
+    # WarpI1PatchCornerness = tf.boolean_mask(WarpI1Cornerness, MaskPH), send this as input to function
+    # I2PatchCornerness = tf.boolean_mask(I2CornernessPH, MaskPH), send this as input to function
+
+    # Lambda = [0.1, 1.0] # Photo, CornerPhoto
+    # lossCornerPhoto = tf.math.multiply(WarpI1Patch, WarpI1PatchCornerness) - tf.math.multiply(I2Patch, I2PatchCornerness)
+    # lossPhoto = tf.reduce_mean(Lambda[0]*tf.abs(DiffImg) + Lambda[1]*lossCornerPhoto)
+    
+
     # Supervised L2 loss
-    Lambda = [1.0, 1.0, 1.0]
+    Lambda = [10.0, 1.0, 1.0]
     Lambda = np.tile(Lambda, (MiniBatchSize, 1))
     lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, Lambda)))
 
@@ -260,7 +272,7 @@ def main():
 
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
-    warpType = ['scale', 'scale', 'translation', 'translation'] 
+    warpType = ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)

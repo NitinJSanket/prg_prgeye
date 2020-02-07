@@ -3,9 +3,10 @@ Tri-camera module with IMU and dual/triple Cortex M7
 
 ## TODO
 - [ ] Num ICSTN Blocks and which warping function to use (On Vanilla Network)
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 scale 2 translation (half size each) 
-  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 4 psudo-similarity (half size each)
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity **WORKS**
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 scale 2 translation (half size each) **WORKS** with $Lambda$ = (10.0, 1.0, 1.0)
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 translation 2 scale (half size each) **WORKS** with 2s2t (10.0, 1.0, 1.0)
+  - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 4 psudo-similarity (half size each) **WORKS**
 - [ ] Architectures (Choose best Num ICSTN setup)
   - [x] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Vanilla Net Arch
   - [x] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) SqueezeNet 
@@ -50,9 +51,9 @@ Tri-camera module with IMU and dual/triple Cortex M7
     - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite Smaller Network
     - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite Bigger Network
   - [ ] Intel Up Board on bigger and smaller network (most accurate from above), Batch Size of 1
-    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Smaller Network
-    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Bigger Network
+	- [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Smaller Network
     - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Smaller Network
+    - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Bigger Network
     - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF-Lite (CPU) Bigger Network
   - [ ] NVIDIA Jetson TX2 on bigger and smaller network (most accurate from above), Batch Size of 1
     - [ ] ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) TF (CPU) Smaller Network
