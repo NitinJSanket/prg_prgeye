@@ -6,15 +6,8 @@
 # termcolor, do (pip install termcolor)
 # tqdm, do (pip install tqdm)
 
-# TODO:
-# Clean print statements
-# Global step only loss/epoch on tensorboard
-# Print Num parameters in model as a function
-# Clean comments
-# Check Factor from network list
-# ClearLogs command line argument
-# Adapt more augmentation from: https://github.com/sthalles/deeplab_v3/blob/master/preprocessing/inception_preprocessing.py
-# Tensorboard logging of images
+
+# TODO: Adapt more augmentation from: https://github.com/sthalles/deeplab_v3/blob/master/preprocessing/inception_preprocessing.py
 
 import tensorflow as tf
 import cv2
@@ -42,8 +35,11 @@ import Misc.warpICSTN2 as warp2
 from Misc.DataHandling import *
 from Misc.BatchCreationNP import *
 from Misc.BatchCreationTF import *
-from Network.VanillaNet3 import *
 from Misc.Decorators import *
+# Import of network is done in main code
+import importlib
+from datetime import datetime
+
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -76,10 +72,10 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
 
     # Supervised L2 loss
     Lambda = [1.0, 10.0, 10.0]
-    Lambda = np.tile(Lambda, (MiniBatchSize, 1))
-    lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, Lambda)))
+    LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
+    lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, LambdaStack)))
 
-    return lossPhoto, WarpI1Patch
+    return lossPhoto, WarpI1Patch, Lambda
 
 @Scope
 def Optimizer(OptimizerParams, loss):
@@ -103,10 +99,47 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelP
     # Merge all summaries into a single operation
     MergedSummaryOP = tf.summary.merge_all()
     return MergedSummaryOP
+
+
+def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda):
+    # TODO: Write to file?
+    cprint('Network Statistics', 'yellow')
+    cprint('Network Used: {}'.format(Args.NetworkName), 'green')
+    cprint('Num Params: {}'.format(NumParams), 'green')
+    cprint('Num FLOPs: {}'.format(NumFlops), 'green')
+    cprint('Estimated Model Size (MB): {}'.format(ModelSize), 'green')
+    cprint('Warp Types used: {}'.format(warpType), 'green')
+    cprint('Warp Types For Data Generation: {}'.format(warpTypedg), 'green')
+    cprint('Loss Function used: {}'.format(Args.LossFuncName), 'green')
+    cprint('Loss Function Weights: {}'.format(Lambda), 'green')
+    cprint('CheckPoints are saved in: {}'.format(Args.CheckPointPath), 'red')
+    cprint('Logs are saved in: {}'.format(Args.LogsPath), 'red')
+    cprint('Images used for Training are in: {}'.format(Args.BasePath), 'red')
+    Key = raw_input('Enter y/Y/yes/Yes/YES to save to RunCommand.md, any other key to exit.')
+    if(Key.lower() == 'y' or 'yes'):
+        FileName = 'RunCommand.md'
+        with open(FileName, 'a+') as RunCommand:
+            RunCommand.write('\n\n')
+            RunCommand.write('{}\n'.format(datetime.now()))
+            RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
+            RunCommand.write('Num Params: {}\n'.format(NumParams))
+            RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
+            RunCommand.write('Estimated Model Size (MB): {}\n'.format(ModelSize))
+            RunCommand.write('Warp Types used: {}\n'.format(warpType))
+            RunCommand.write('Warp Types For Data Generation: {}\n'.format(warpTypedg))
+            RunCommand.write('Loss Function used: {}\n'.format(Args.LossFuncName))
+            RunCommand.write('Loss Function Weights: {}\n'.format(Lambda))
+            RunCommand.write('CheckPoints are saved in: {}\n'.format(Args.CheckPointPath))
+            RunCommand.write('Logs are saved in: {}\n'.format(Args.LogsPath))
+            RunCommand.write('Images used for Training are in: {}\n'.format(Args.BasePath))
+        cprint('Log written in {}'.format(FileName), 'yellow')
+    else:
+        cprint('Log writing skipped', 'yellow')
+        
     
 def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize, opt, optdg, HObj):
+                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -128,7 +161,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt)
+    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt)
     # Predict output with forward pass
     prHVal, prVal, WarpI1Patch = VN.Network()
 
@@ -151,7 +184,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
-    loss, WarpI1PatchRet = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt)
+    loss, WarpI1PatchRet, Lambda = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt)
 
     # Run Backprop and Gradient Update
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
@@ -161,65 +194,74 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
  
     # Setup Saver
     Saver = tf.train.Saver()
+
+    try:
+        with tf.Session() as sess:       
+            if LatestFile is not None:
+                Saver.restore(sess, CheckPointPath + LatestFile + '.ckpt')
+                # Extract only numbers from the name
+                StartEpoch = int(''.join(c for c in LatestFile.split('a')[0] if c.isdigit()))
+                print('Loaded latest checkpoint with the name ' + LatestFile + '....')
+            else:
+                sess.run(tf.global_variables_initializer())
+                StartEpoch = 0
+                print('New model initialized....')
+
+            # Create Batch Generator Object
+            bg = BatchGeneration(sess, I2Gen, IOrgPH, HPH)
+
+            # Print out Number of parameters
+            NumParams = tu.FindNumParams(1)
+            # Print out Number of Flops
+            NumFlops = tu.FindNumFlops(sess, 1)
+            # Print out Expected Model Size
+            ModelSize = tu.CalculateModelSize(1)
+
+            # Pretty Print Stats
+            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda)
     
-    with tf.Session() as sess:       
-        if LatestFile is not None:
-            Saver.restore(sess, CheckPointPath + LatestFile + '.ckpt')
-            # Extract only numbers from the name
-            StartEpoch = int(''.join(c for c in LatestFile.split('a')[0] if c.isdigit()))
-            print('Loaded latest checkpoint with the name ' + LatestFile + '....')
-        else:
-            sess.run(tf.global_variables_initializer())
-            StartEpoch = 0
-            print('New model initialized....')
 
-        # Create Batch Generator Object
-        bg = BatchGeneration(sess, I2Gen, IOrgPH, HPH)
+            # Tensorboard
+            Writer = tf.summary.FileWriter(LogsPath, graph=tf.get_default_graph())
 
-        # TODO: Pretty Print Network Stats
+            for Epochs in tqdm(range(StartEpoch, NumEpochs)):
+                NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
+                for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
+                    IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
+                    P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
 
-        # Print Number of parameters in the network    
-        tu.FindNumParams(1)
-        
-        # Tensorboard
-        Writer = tf.summary.FileWriter(LogsPath, graph=tf.get_default_graph())
+                    FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
+                    _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                    # _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
+                    # WarpI1PatchIdealRet = iu.CenterCrop(WarpI1PatchIdealRet, PatchSize)
+                    # FeedDict = {WarpI1PatchIdealPH: WarpI1PatchIdealRet, VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
+                    # Summary = sess.run([MergedSummaryOP], feed_dict=FeedDict)
 
-        for Epochs in tqdm(range(StartEpoch, NumEpochs)):
-            NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
-            for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
-                IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
-                P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
-                                
-                FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
-                _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
-                # _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
-                # WarpI1PatchIdealRet = iu.CenterCrop(WarpI1PatchIdealRet, PatchSize)
-                # FeedDict = {WarpI1PatchIdealPH: WarpI1PatchIdealRet, VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
-                # Summary = sess.run([MergedSummaryOP], feed_dict=FeedDict)
-                
-                # A = np.uint8(np.concatenate((P1Batch[0], P2Batch[0], WarpI1PatchIdealRet[0], np.abs(P2Batch[0]-WarpI1PatchIdealRet[0])), axis=1))
-                # B = np.uint8(np.concatenate((I1Batch[0], I2Batch[0]), axis=1))
-                # cv2.imshow('P1, P2, P1Warp', A)
-                # cv2.imshow('I1, I2', B)
-                # cv2.waitKey(0)
-                
-                # Tensorboard
-                Writer.add_summary(Summary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
-                # If you don't flush the tensorboard doesn't update until a lot of iterations!
-                Writer.flush()
+                    # A = np.uint8(np.concatenate((P1Batch[0], P2Batch[0], WarpI1PatchIdealRet[0], np.abs(P2Batch[0]-WarpI1PatchIdealRet[0])), axis=1))
+                    # B = np.uint8(np.concatenate((I1Batch[0], I2Batch[0]), axis=1))
+                    # cv2.imshow('P1, P2, P1Warp', A)
+                    # cv2.imshow('I1, I2', B)
+                    # cv2.waitKey(0)
 
-                # Save checkpoint every some SaveCheckPoint's iterations
-                if PerEpochCounter % SaveCheckPoint == 0:
-                    # Save the Model learnt in this epoch
-                    SaveName =  CheckPointPath + str(Epochs) + 'a' + str(PerEpochCounter) + 'model.ckpt'
-                    Saver.save(sess,  save_path=SaveName)
-                    print(SaveName + ' Model Saved...')
-                            
-            # Save model every epoch
-            SaveName = CheckPointPath + str(Epochs) + 'model.ckpt'
-            Saver.save(sess, save_path=SaveName)
-            print(SaveName + ' Model Saved...')
+                    # Tensorboard
+                    Writer.add_summary(Summary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
+                    # If you don't flush the tensorboard doesn't update until a lot of iterations!
+                    Writer.flush()
 
+                    # Save checkpoint every some SaveCheckPoint's iterations
+                    if PerEpochCounter % SaveCheckPoint == 0:
+                        # Save the Model learnt in this epoch
+                        SaveName =  CheckPointPath + str(Epochs) + 'a' + str(PerEpochCounter) + 'model.ckpt'
+                        Saver.save(sess,  save_path=SaveName)
+                        print(SaveName + ' Model Saved...')
+
+                # Save model every epoch
+                SaveName = CheckPointPath + str(Epochs) + 'model.ckpt'
+                Saver.save(sess, save_path=SaveName)
+                print(SaveName + ' Model Saved...')
+    except KeyboardInterrupt:
+        # Pretty Print Stats before exitting
+        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda)
 
 def main():
     """
@@ -228,10 +270,6 @@ def main():
     Outputs:
     Runs the Training and testing code based on the Flag
     """
-    # TODO: Make LogDir
-    # TODO: Make logging file a parameter
-    # TODO: Time to complete print
-
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
     Parser.add_argument('--BasePath', default='/home/nitin/Datasets/MSCOCO/train2014Processed', help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014')
@@ -240,13 +278,14 @@ def main():
     Parser.add_argument('--MiniBatchSize', type=int, default=32, help='Size of the MiniBatch to use, Default:32')
     Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointPath?, Default:0')
     Parser.add_argument('--RemoveLogs', type=int, default=0, help='Delete log Files from ./Logs?, Default:0')
-    Parser.add_argument('--LossFuncName', default='PhotoL1', help='Choice of Loss functions, choose from PhotoL1, PhotoChab, PhotoRobust. Default:PhotoL1')
+    Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet3', help='Name of network file, Default: Network.VanillaNet3')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
     Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
+    Parser.add_argument('--DataAug', type=int, default=0, help='Do you want to do Data augmentation?, Default:0')
     Parser.add_argument('--LR', type=float, default=1e-3, help='Learning Rate, Default: 1e-4')
-    Parser.add_argument('--TrainingType', default='S', help='Training Type, S: Supervised, US: Unsupervised, Default: US')
     
     Args = Parser.parse_args()
     NumEpochs = Args.NumEpochs
@@ -261,9 +300,12 @@ def main():
     LogsPath = Args.LogsPath
     GPUDevice = Args.GPUDevice
     LearningRate = Args.LR
-    TrainingType = Args.TrainingType
+    NetworkName = Args.NetworkName
+    DataAug = Args.DataAug
 
-    
+    # Import Network Module
+    Net = importlib.import_module(NetworkName)
+
     # Set GPUDevice
     tu.SetGPU(GPUDevice)
 
@@ -307,8 +349,8 @@ def main():
 
     TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, TrainingType, OriginalImageSize, opt, optdg, HObj)
-        
+                       DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType)
+    
     
 if __name__ == '__main__':
     main()

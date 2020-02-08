@@ -4,6 +4,7 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
+import importlib
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -63,3 +64,40 @@ def ClosestRotMat(RDash):
     SModified[2,2] = np.linalg.det(np.matmul(U, Vt))
     Rot = np.matmul(np.matmul(U, Vt), Vt)
     return Rot
+
+# Python program to print 
+# colored text and background
+# Adapted from: https://www.geeksforgeeks.org/print-colors-python-terminal/
+def printcolor(s, color = 'r'):
+    if(color == 'r'):
+         print("\033[91m {}\033[00m" .format(s)) # red
+    elif(color == 'g'):
+         print("\033[92m {}\033[00m" .format(s)) # green
+    elif(color == 'y'):
+        print("\033[93m {}\033[00m" .format(s)) # yellow
+    elif(color == 'lp'):
+         print("\033[94m {}\033[00m" .format(s)) # light purple
+    elif(color == 'p'):
+        print("\033[95m {}\033[00m" .format(s)) # purple
+    elif(color == 'c'):
+         print("\033[96m {}\033[00m" .format(s)) # cyan
+    elif(color == 'lgray'):
+        print("\033[97m {}\033[00m" .format(s)) # light gray
+    elif(color == 'k'):
+        print("\033[98m {}\033[00m" .format(s)) # black
+
+
+# Doesnt work
+# def ImportModule(s):
+#     # get a handle on the module
+#     mdl = importlib.import_module(s)
+
+#     # is there an __all__?  if so respect it
+#     if "__all__" in mdl.__dict__:
+#         names = mdl.__dict__["__all__"]
+#     else:
+#         # otherwise we import all names that don't begin with _
+#         names = [x for x in mdl.__dict__ if not x.startswith("_")]
+
+#     # now drag them in
+#     globals().update({k: getattr(mdl, k) for k in names})
