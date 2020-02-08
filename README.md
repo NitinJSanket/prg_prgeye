@@ -2,6 +2,14 @@
 Tri-camera module with IMU and dual/triple Cortex M7
 
 ## TODO
+- Print Stats in color
+- LossFuncName
+- Test MobileNet
+- Test ShuffleNetv2
+- HP Filter in TF
+- Cornerness warp in TF
+
+## Checklist
 - [ ] Num ICSTN Blocks and which warping function to use (On Vanilla Network)
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 psudo-similarity **WORKS**
   - [ ] ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) 2 scale 2 translation (half size each) **WORKS** with $\lambda$ = (10.0, 1.0, 1.0)
