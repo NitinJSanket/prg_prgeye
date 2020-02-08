@@ -45,35 +45,46 @@ from datetime import datetime
 sys.dont_write_bytecode = True
 
 @Scope
-def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt):
+def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
-    # Self-supervised Losses
-    # DiffImg = WarpI1Patch - I2PH
+    Lambda = [1.0, 10.0, 10.0]
+    LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
 
-    # Self-supervised Photometric L1 Loss
-    # lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
+    # Choice of Loss Function
+    if(Args.LossFuncName == 'SL2'):
+        # Supervised L2 loss
+        lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, LambdaStack)))
+    elif(Args.LossFuncName == 'PhotoL1'):        
+        # Self-supervised Photometric L1 Losses
+        DiffImg = WarpI1Patch - I2PH
 
-    # Self-supervised Photometric Chabonier Loss
-    # epsilon = 1e-3
-    # alpha = 0.45
-    # lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
+        # Self-supervised Photometric L1 Loss
+        lossPhoto = tf.reduce_mean(tf.abs(tf.multiply(DiffImg, LambdaStack)))
+    elif(Args.LossFuncName == 'PhotoChab'):
+        # Self-supervised Photometric Chabonier Loss
+        epsilon = 1e-3
+        alpha = 0.45
+        lossPhoto = tf.reduce_mean(tf.pow(tf.square(tf.multiply(DiffImg, LambdaStack)) + tf.square(epsilon), alpha))
+    elif(Args.LossFuncName == 'PhotoRobust'):
+        print('ERROR: Not implemented yet!')
+        sys.exit(0)
 
+    if(Args.RegFuncName == 'None'):
+        lossReg = 0.
+    elif(Args.RegFuncName == 'C'):
+        # TODO: Cornerness Loss
+        # WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
+        # WarpI1PatchCornerness = tf.boolean_mask(WarpI1Cornerness, MaskPH), send this as input to function
+        # I2PatchCornerness = tf.boolean_mask(I2CornernessPH, MaskPH), send this as input to function
+        print('ERROR: Not implemented yet!')
+        sys.exit(0)
+    
     # TODO: HP Filter Loss
-
-    # TODO: Cornerness Loss
-    # WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
-    # WarpI1PatchCornerness = tf.boolean_mask(WarpI1Cornerness, MaskPH), send this as input to function
-    # I2PatchCornerness = tf.boolean_mask(I2CornernessPH, MaskPH), send this as input to function
-
     # Lambda = [0.1, 1.0] # Photo, CornerPhoto
     # lossCornerPhoto = tf.math.multiply(WarpI1Patch, WarpI1PatchCornerness) - tf.math.multiply(I2Patch, I2PatchCornerness)
     # lossPhoto = tf.reduce_mean(Lambda[0]*tf.abs(DiffImg) + Lambda[1]*lossCornerPhoto)
     
-
-    # Supervised L2 loss
-    Lambda = [1.0, 10.0, 10.0]
-    LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
-    lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, LambdaStack)))
+    # loss = lossPhoto + lossReg
 
     return lossPhoto, WarpI1Patch, Lambda
 
@@ -184,7 +195,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
-    loss, WarpI1PatchRet, Lambda = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt)
+    loss, WarpI1PatchRet, Lambda = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
 
     # Run Backprop and Gradient Update
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
@@ -279,6 +290,7 @@ def main():
     Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointPath?, Default:0')
     Parser.add_argument('--RemoveLogs', type=int, default=0, help='Delete log Files from ./Logs?, Default:0')
     Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
+    Parser.add_argument('--RegFuncName', default='None', help='Choice of regularization function, choose from None, C (Cornerness). Default:None')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
     Parser.add_argument('--NetworkName', default='Network.VanillaNet3', help='Name of network file, Default: Network.VanillaNet3')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
@@ -302,6 +314,7 @@ def main():
     LearningRate = Args.LR
     NetworkName = Args.NetworkName
     DataAug = Args.DataAug
+    RegFuncName = Args.RegFuncName
 
     # Import Network Module
     Net = importlib.import_module(NetworkName)
