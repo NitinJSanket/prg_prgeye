@@ -28,7 +28,7 @@ class VanillaNet(BaseLayers):
         self.InputPH = InputPH
         self.Training = Training
         if(InitNeurons is None):
-            InitNeurons = 31
+            InitNeurons = 36
         if(ExpansionFactor is None):
             ExpansionFactor =  2.0
         if(NumBlocks is None):

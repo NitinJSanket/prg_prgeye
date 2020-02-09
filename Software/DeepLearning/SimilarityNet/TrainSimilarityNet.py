@@ -47,7 +47,7 @@ sys.dont_write_bytecode = True
 @Scope
 def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
-    Lambda = [1.0, 10.0, 10.0]
+    Lambda = [1.0, 1.0, 1.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
 
     # Choice of Loss Function
@@ -127,7 +127,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
     cprint('Logs are saved in: {}'.format(Args.LogsPath), 'red')
     cprint('Images used for Training are in: {}'.format(Args.BasePath), 'red')
     Key = raw_input('Enter y/Y/yes/Yes/YES to save to RunCommand.md, any other key to exit.')
-    if(Key.lower() == 'y' or 'yes'):
+    if(Key.lower() == 'y' or Key.lower() == 'yes'):
         FileName = 'RunCommand.md'
         with open(FileName, 'a+') as RunCommand:
             RunCommand.write('\n\n')
@@ -292,7 +292,7 @@ def main():
     Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
     Parser.add_argument('--RegFuncName', default='None', help='Choice of regularization function, choose from None, C (Cornerness). Default:None')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet3', help='Name of network file, Default: Network.VanillaNet3')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet3')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
     Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
@@ -327,7 +327,7 @@ def main():
 
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
-    warpType = ['translation', 'translation', 'scale', 'scale'] 
+    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)
