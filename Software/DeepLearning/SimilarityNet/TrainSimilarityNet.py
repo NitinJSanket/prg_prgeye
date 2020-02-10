@@ -112,7 +112,7 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelP
     return MergedSummaryOP
 
 
-def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda):
+def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda, OverideKbInput=False):
     # TODO: Write to file?
     cprint('Network Statistics', 'yellow')
     cprint('Network Used: {}'.format(Args.NetworkName), 'green')
@@ -126,7 +126,10 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
     cprint('CheckPoints are saved in: {}'.format(Args.CheckPointPath), 'red')
     cprint('Logs are saved in: {}'.format(Args.LogsPath), 'red')
     cprint('Images used for Training are in: {}'.format(Args.BasePath), 'red')
-    Key = raw_input('Enter y/Y/yes/Yes/YES to save to RunCommand.md, any other key to exit.')
+    if(OverideKbInput):
+        Key = 'y'
+    else:
+        Key = raw_input('Enter y/Y/yes/Yes/YES to save to RunCommand.md, any other key to exit.')
     if(Key.lower() == 'y' or Key.lower() == 'yes'):
         FileName = 'RunCommand.md'
         with open(FileName, 'a+') as RunCommand:
@@ -229,7 +232,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
             ModelSize = tu.CalculateModelSize(1)
 
             # Pretty Print Stats
-            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda)
+            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, OverideKbInput=True)
     
 
             # Tensorboard
@@ -239,9 +242,9 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
                 NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
                 for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
                     IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
-                    P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
+                    # P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
 
-                    FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
+                    FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
                     _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                     # _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
                     # WarpI1PatchIdealRet = iu.CenterCrop(WarpI1PatchIdealRet, PatchSize)
@@ -270,6 +273,10 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
                 SaveName = CheckPointPath + str(Epochs) + 'model.ckpt'
                 Saver.save(sess, save_path=SaveName)
                 print(SaveName + ' Model Saved...')
+
+        # Pretty Print Stats before exiting
+        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, OverideKbInput=True)
+    
     except KeyboardInterrupt:
         # Pretty Print Stats before exitting
         PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda)

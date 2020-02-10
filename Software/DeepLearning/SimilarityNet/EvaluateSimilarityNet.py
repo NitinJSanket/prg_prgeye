@@ -43,7 +43,7 @@ import Misc.warpICSTN2 as warp2
 from Misc.DataHandling import *
 from Misc.BatchCreationNP import *
 from Misc.BatchCreationTF import *
-from Network.VanillaNet3 import *
+from Network.VanillaNet import *
 from Misc.Decorators import *
 
 # Don't generate pyc codes
@@ -75,7 +75,7 @@ def SetupAll(ReadPath):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    warpType = ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     MaxParams = np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
