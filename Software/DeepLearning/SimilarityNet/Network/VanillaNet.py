@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Use when all warps are of same type
+
 import tensorflow as tf
 import sys
 import numpy as np
@@ -28,7 +30,7 @@ class VanillaNet(BaseLayers):
         self.InputPH = InputPH
         self.Training = Training
         if(InitNeurons is None):
-            InitNeurons = 26
+            InitNeurons = 37
         if(ExpansionFactor is None):
             ExpansionFactor =  2.0
         if(NumBlocks is None):

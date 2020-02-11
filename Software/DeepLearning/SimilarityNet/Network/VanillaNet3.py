@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# For [Translation, Translation, Scale, Scale]
+
 import tensorflow as tf
 import sys
 import numpy as np
@@ -28,7 +30,7 @@ class VanillaNet(BaseLayers):
         self.InputPH = InputPH
         self.Training = Training
         if(InitNeurons is None):
-            InitNeurons = 31
+            InitNeurons = 18
         if(ExpansionFactor is None):
             ExpansionFactor =  2.0
         if(NumBlocks is None):

@@ -112,10 +112,11 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelP
     return MergedSummaryOP
 
 
-def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda, OverideKbInput=False):
+def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda, VN, OverideKbInput=False):
     # TODO: Write to file?
     cprint('Network Statistics', 'yellow')
-    cprint('Network Used: {}'.format(Args.NetworkName), 'green')
+    cprint('Network Used: {}'.format(Args.NetworkName), 'yellow')
+    cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate), 'yellow')
     cprint('Num Params: {}'.format(NumParams), 'green')
     cprint('Num FLOPs: {}'.format(NumFlops), 'green')
     cprint('Estimated Model Size (MB): {}'.format(ModelSize), 'green')
@@ -136,6 +137,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
             RunCommand.write('\n\n')
             RunCommand.write('{}\n'.format(datetime.now()))
             RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
+            RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
             RunCommand.write('Num Params: {}\n'.format(NumParams))
             RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
             RunCommand.write('Estimated Model Size (MB): {}\n'.format(ModelSize))
@@ -175,7 +177,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt)
+    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = 18)
     # Predict output with forward pass
     prHVal, prVal, WarpI1Patch = VN.Network()
 
@@ -232,8 +234,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
             ModelSize = tu.CalculateModelSize(1)
 
             # Pretty Print Stats
-            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, OverideKbInput=True)
-    
+            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, VN, OverideKbInput=False)
 
             # Tensorboard
             Writer = tf.summary.FileWriter(LogsPath, graph=tf.get_default_graph())
@@ -299,7 +300,7 @@ def main():
     Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
     Parser.add_argument('--RegFuncName', default='None', help='Choice of regularization function, choose from None, C (Cornerness). Default:None')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet3')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
     Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
@@ -334,7 +335,7 @@ def main():
 
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
-    warpType = ['pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
+    warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)

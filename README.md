@@ -2,8 +2,7 @@
 Tri-camera module with IMU and dual/triple Cortex M7
 
 ## TODO
-- Print Stats in color
-- LossFuncName
+- Log Num Neurons as well
 - Test MobileNet
 - Test ShuffleNetv2
 - HP Filter in TF

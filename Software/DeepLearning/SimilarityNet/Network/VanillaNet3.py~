@@ -100,7 +100,7 @@ class VanillaNet(BaseLayers):
                         # Numpy like indexing directly doesn't work on Tensors
                         # https://stackoverflow.com/questions/37670886/how-do-i-select-certain-columns-of-a-2d-tensor-in-tensorflow
                         # print(self.Opt.warpDim[self.Opt.currBlock])
-                        pReta = tf.expand_dims(tf.transpose(tf.nn.embedding_lookup(tf.transpose(warp2.mtrx2vec(self.Opt, pMtrxNow)), 0)), axis=1)
+                        pReta =  tf.transpose(tf.nn.embedding_lookup(tf.transpose(warp2.mtrx2vec(self.Opt, pMtrxNow)), [0,1]))
                     
                     # Update counter used for looping over warpType
                     self.Opt.currBlock += 1
@@ -111,8 +111,8 @@ class VanillaNet(BaseLayers):
                         self.Opt.currBlock -= 1
                         pNow = warp2.mtrx2vec(self.Opt, pMtrxNow)
                         # MODIFY THIS DEPENDING ON ARCH!
-                        pRetb = tf.transpose(tf.nn.embedding_lookup(tf.transpose(warp2.mtrx2vec(self.Opt, pMtrxNow)), [0,1]))
-                        pRet = tf.concat([pReta, pRetb], axis=1)
+                        pRetb = tf.expand_dims(tf.transpose(tf.nn.embedding_lookup(tf.transpose(warp2.mtrx2vec(self.Opt, pMtrxNow)), 0)), axis=1)
+                        pRet = tf.concat([pRetb, pReta], axis=1)
                         if(self.Training):
                             ImgWarp = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow) # Final Image Warp
                         else:

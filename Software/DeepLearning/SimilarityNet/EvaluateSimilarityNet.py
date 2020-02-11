@@ -43,8 +43,9 @@ import Misc.warpICSTN2 as warp2
 from Misc.DataHandling import *
 from Misc.BatchCreationNP import *
 from Misc.BatchCreationTF import *
-from Network.VanillaNet import *
 from Misc.Decorators import *
+# Import of network is done in main code
+import importlib
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -75,7 +76,7 @@ def SetupAll(ReadPath):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    warpType = ['pseudosimilarity']#, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity'] #['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     MaxParams = np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
@@ -164,7 +165,7 @@ class BatchGeneration():
 
 
 def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, PatchSize, ModelPath, ReadPath,\
-                  WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg):
+                  WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -179,7 +180,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = VanillaNet(InputPH = PatchPH, Training = False, Opt = opt)
+    VN = Net.VanillaNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = 36)
     # Predict output with forward pass
     prH, prParams, _ = VN.Network()
 
@@ -194,7 +195,9 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
         # Print out Number of Flops
         NumFlops = tu.FindNumFlops(sess, 1)
         # Print out Expected Model Size
-        ModelSize = tu.CalculateModelSize(1)
+        ModelSize = tu.CalculateModelSize()*3 # For some wierd reason result has to be multiplied by 3
+        print('Expected Model Size is %f' % ModelSize)
+
         # Create PredOuts File
         PredOuts = open(WritePath + os.sep + 'PredOuts.txt', 'w')
         PredOuts.write('Model Used: {}\n'.format(ModelPath))
@@ -288,6 +291,8 @@ def main():
                                                                              help='Path to load images from, Default:WritePath')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet')
+
     # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
     # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
 
@@ -298,8 +303,13 @@ def main():
     GPUDevice = Args.GPUDevice
     CropType = Args.CropType
     MiniBatchSize = 1
+    NetworkName = Args.NetworkName
+
     # ImageFormat = Args.ImageFormat
     # Prefix = Args.Prefix
+
+    # Import Network Module
+    Net = importlib.import_module(NetworkName)
     
     # Set GPUNum
     tu.SetGPU(GPUDevice)
@@ -326,7 +336,7 @@ def main():
         os.mkdir(WritePath)
 
     TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, PatchSize, ModelPath,\
-                  ReadPath, WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg)
+                  ReadPath, WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net)
 
      
 if __name__ == '__main__':
