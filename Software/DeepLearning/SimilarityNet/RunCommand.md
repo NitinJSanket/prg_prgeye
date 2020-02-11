@@ -447,3 +447,18 @@ Loss Function Weights: [1.0, 1.0, 1.0]
 CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
 Logs are saved in: /home/nitin/PRGEye/Logs
 Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-11 15:02:42.441500
+Network Used: Network.VanillaNet2
+Init Neurons 18, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43744396636
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['scale', 'scale', 'translation', 'translation']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [10.0, 1.0, 1.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints2
+Logs are saved in: /home/nitin/PRGEye/Logs2
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed

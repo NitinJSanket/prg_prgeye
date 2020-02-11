@@ -15,7 +15,7 @@ Expected Model Size = 23.8192596436 MB
 Network Used: Network.VanillaNet3
 warpType = ['translation', 'translation', 'scale', 'scale']
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Scale, Scale, Trans, Trans: [Trained Model Link]()
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) Scale, Scale, Trans, Trans: [Trained Model Link]() Currently Training on Nitin's GPU 0
 self.InitNeurons = 18
 self.ExpansionFactor = 2.0
 self.DropOutRate = 0.7
