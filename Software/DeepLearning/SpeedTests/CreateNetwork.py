@@ -26,6 +26,7 @@ import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
 from Network.EVHomographyNetUnsupSmall import EVHomographyNetUnsupSmall
+from Network.EVHomographyNetUnsupSmallMaixPy import EVHomographyNetUnsupSmallMaixPy
 from Network.EVHomographyNetUnsup import EVHomographyNetUnsup
 from Misc.MiscUtils import *
 import numpy as np
@@ -49,7 +50,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, Mi
     if(NetworkType == 'Small'):
         prHVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
     elif(NetworkType == 'Large'):
-        prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
+        prHVal = EVHomographyNetUnsupSmallMaixPy(ImgPH, ImageSize, MiniBatchSize)
             
     # Setup Saver
     Saver = tf.train.Saver()
@@ -90,7 +91,7 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
         if(NetworkType == 'Small'):
             prHVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
         elif(NetworkType == 'Large'):
-            prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
+            prHVal = EVHomographyNetUnsupSmallMaixPy(ImgPH, ImageSize, MiniBatchSize)
 
         # Setup Saver
         Saver = tf.train.Saver()
@@ -100,7 +101,7 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
             print('Model initialized....')
 
             # Predict Model Size
-            ModelSize = tu.CalculateModelSize(sess, PrintFlag=1)
+            ModelSize = 0#tu.CalculateModelSize(sess, PrintFlag=1)
 
             # Write this the first time only
             if((count2 == StartIdx) and (not Append)):

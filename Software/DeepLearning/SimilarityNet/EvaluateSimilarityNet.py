@@ -76,7 +76,7 @@ def SetupAll(ReadPath):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    warpType = ['pseudosimilarity']#, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity'] #['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    warpType = ['scale', 'scale', 'translation', 'translation'] #['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     MaxParams = np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
@@ -180,7 +180,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = 36)
+    VN = Net.VanillaNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = 18)
     # Predict output with forward pass
     prH, prParams, _ = VN.Network()
 
@@ -291,7 +291,7 @@ def main():
                                                                              help='Path to load images from, Default:WritePath')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet2', help='Name of network file, Default: Network.VanillaNet')
 
     # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
     # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
@@ -316,10 +316,6 @@ def main():
 
     # Setup all needed parameters including file reading
     TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj, warpType = SetupAll(ReadPath)
-
-    # If CheckPointPath doesn't exist make the path
-    if(not (os.path.isdir(ModelPath))):
-       os.makedirs(ModelPath)
 
     opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
     optdg = warp2.Options(PatchSize=ImageSize, MiniBatchSize=MiniBatchSize, warpType = [warpType[-1]]) # Data Generation Options, warpType should the same the last one in the previous command
