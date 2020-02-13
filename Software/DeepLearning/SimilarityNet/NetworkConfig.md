@@ -51,7 +51,7 @@ Expected Model Size = 24.8676147461 MB
 Network Used: Network.VanillaNet
 warpType = ['pseudosimilarity', 'pseudosimilarity']
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 4: [Trained Model Link]() Done, Need to Upload
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 4: [Trained Model Link](https://drive.google.com/open?id=1IhJLQ0rc1mPV6ZrQkFiBFK8Nhkp8hMjl) 
 self.InitNeurons = 18
 self.ExpansionFactor = 2.0
 self.DropOutRate = 0.7
@@ -82,11 +82,11 @@ self.ExpansionFactor = 2.0
 self.DropOutRate = 0.7
 self.NumBlocks = 3
 ~ 162.15fps on BS = 1, Nitin's PC All Cores i7
-NumFlops = 1098047365
-NumParams = 6395493
-Expected Model Size = 24.418156 MB
-Network Used: Network.VanillaNet
-warpType = ['scale', 'translation']
+NumFlops = 
+NumParams = 
+Expected Model Size =  MB
+Network Used: Network.VanillaNet3Simpler
+warpType = ['translation', 'scale']
 
 
 <!-- 
