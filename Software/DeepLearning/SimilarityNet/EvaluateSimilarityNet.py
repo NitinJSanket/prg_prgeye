@@ -50,7 +50,7 @@ import importlib
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
-def SetupAll(ReadPath):
+def SetupAll(ReadPath, warpType):
     """
     Inputs: 
     BasePath is the base path where Images are saved without "/" at the end
@@ -76,12 +76,10 @@ def SetupAll(ReadPath):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    warpType = ['scale', 'scale', 'translation', 'translation'] #['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
-    # Homography Perturbation Parameters
-    MaxParams = np.array([0.5, 0.4, 0.4])
+    MaxParams = np.array([0.5, 0.4, 0.4]) # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
     
-    return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj, warpType
+    return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
 
 def ReadDirNames(DirNamesPath):
     """
@@ -165,7 +163,7 @@ class BatchGeneration():
 
 
 def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, PatchSize, ModelPath, ReadPath,\
-                  WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net):
+                  WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net, InitNeurons):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -180,7 +178,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = 18)
+    VN = Net.VanillaNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     prH, prParams, _ = VN.Network()
 
@@ -199,7 +197,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
         print('Expected Model Size is %f' % ModelSize)
 
         # Create PredOuts File
-        PredOuts = open(WritePath + os.sep + 'PredOuts.txt', 'w')
+        PredOuts = open(WritePath + os.sep + 'PredOutsLargeDeviation.txt', 'w')
         PredOuts.write('Model Used: {}\n'.format(ModelPath))
         PredOuts.write('Model Statistics: \n')
         PredOuts.write('Number of Parameters: {}\n'.format(NumParams))
@@ -291,7 +289,7 @@ def main():
                                                                              help='Path to load images from, Default:WritePath')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet2', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet3Simpler', help='Name of network file, Default: Network.VanillaNet')
 
     # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
     # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
@@ -315,7 +313,10 @@ def main():
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
-    TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj, warpType = SetupAll(ReadPath)
+    InitNeurons = 26
+    warpType = ['translation', 'scale'] #['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    # Homography Perturbation Parameters
+    TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj = SetupAll(ReadPath, warpType)
 
     opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
     optdg = warp2.Options(PatchSize=ImageSize, MiniBatchSize=MiniBatchSize, warpType = [warpType[-1]]) # Data Generation Options, warpType should the same the last one in the previous command
@@ -332,7 +333,7 @@ def main():
         os.mkdir(WritePath)
 
     TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, PatchSize, ModelPath,\
-                  ReadPath, WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net)
+                  ReadPath, WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net, InitNeurons)
 
      
 if __name__ == '__main__':

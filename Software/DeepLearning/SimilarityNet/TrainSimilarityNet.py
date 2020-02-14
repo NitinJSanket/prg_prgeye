@@ -47,7 +47,7 @@ sys.dont_write_bytecode = True
 @Scope
 def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
-    Lambda = [10.0, 1.0, 1.0]
+    Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
 
     # Choice of Loss Function
@@ -155,7 +155,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
     
 def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType):
+                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType, InitNeurons):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -177,7 +177,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = 26)
+    VN = Net.ResNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     prHVal, prVal, WarpI1Patch = VN.Network()
 
@@ -292,7 +292,7 @@ def main():
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
     Parser.add_argument('--BasePath', default='/home/nitin/Datasets/MSCOCO/train2014Processed', help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014')
-    Parser.add_argument('--NumEpochs', type=int, default=200, help='Number of Epochs to Train for, Default:200')
+    Parser.add_argument('--NumEpochs', type=int, default=100, help='Number of Epochs to Train for, Default:200')
     Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
     Parser.add_argument('--MiniBatchSize', type=int, default=32, help='Size of the MiniBatch to use, Default:32')
     Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointPath?, Default:0')
@@ -300,12 +300,12 @@ def main():
     Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
     Parser.add_argument('--RegFuncName', default='None', help='Choice of regularization function, choose from None, C (Cornerness). Default:None')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet2Simpler', help='Name of network file, Default: Network.VanillaNet2')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet3', help='Name of network file, Default: Network.VanillaNet2')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
     Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--DataAug', type=int, default=0, help='Do you want to do Data augmentation?, Default:0')
-    Parser.add_argument('--LR', type=float, default=1e-3, help='Learning Rate, Default: 1e-4')
+    Parser.add_argument('--LR', type=float, default=1e-4, help='Learning Rate, Default: 1e-4')
     
     Args = Parser.parse_args()
     NumEpochs = Args.NumEpochs
@@ -335,7 +335,8 @@ def main():
 
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
-    warpType = ['scale', 'translation']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
+    InitNeurons = 13
+    warpType = ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)
@@ -370,7 +371,7 @@ def main():
 
     TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                       DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType)
+                       DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType, InitNeurons)
     
     
 if __name__ == '__main__':

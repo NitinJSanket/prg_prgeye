@@ -1,92 +1,117 @@
 # Choosing Best ICSTN Warp Architecture: VanillaNet (Model Size <= 25 MB and Model FPS >= 20 FPS on All Cores i7)
-- Running on Image Size of 128x128x(3x2)
-- No Data Augmentation on MSCOCO
-- Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100
+- Running on Image Size of 128x128x(3x2)  
+- No Data Augmentation on MSCOCO  
+- Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100  
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Trans, Trans, Scale, Scale: [Trained Model Link](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) 
-self.InitNeurons = 18
-self.ExpansionFactor = 2.0
-self.DropOutRate = 0.7
-self.NumBlocks = 3
-?? FPS on BS = 1, Nitin's PC All Cores i7
-NumFlops = 43744396604
-NumParams = 2079870
-Expected Model Size = 23.8192596436 MB
-Network Used: Network.VanillaNet3
-warpType = ['translation', 'translation', 'scale', 'scale']
+## **BEST ONE!** ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Trans, Trans, Scale, Scale: [Trained Model Link](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) 
+self.InitNeurons = 18  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 43744396604  
+NumParams = 2079870  
+Expected Model Size = 23.8192596436 MB  
+Network Used: Network.VanillaNet3  
+warpType = ['translation', 'translation', 'scale', 'scale']  
 
 ## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Scale, Scale, Trans, Trans: [Trained Model Link](https://drive.google.com/open?id=1NEQ9gMixBjpzLiUwFsjC6_b7HLP88nm8) 
-self.InitNeurons = 18
-self.ExpansionFactor = 2.0
-self.DropOutRate = 0.7
-self.NumBlocks = 3
-?? FPS on BS = 1, Nitin's PC All Cores i7
-NumFlops = 43744396636
-NumParams = 2079870
-Expected Model Size = 23.8192596436 MB
-Network Used: Network.VanillaNet2
-warpType = ['scale', 'scale', 'translation', 'translation']
+self.InitNeurons = 18  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 43744396636  
+NumParams = 2079870  
+Expected Model Size = 23.8192596436 MB  
+Network Used: Network.VanillaNet2  
+warpType = ['scale', 'scale', 'translation', 'translation']  
 
 ## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 1: [Trained Model Link](https://drive.google.com/open?id=1Pj6Uqr3PeMCJF_vpkd_Nr4ljQ_WfgJiY) 
-self.InitNeurons = 36
-self.ExpansionFactor = 2.0
-self.DropOutRate = 0.7
-self.NumBlocks = 3
-?? FPS on BS = 1, Nitin's PC All Cores i7
-NumFlops = 35238910489
-NumParams = 2065935
-Expected Model Size = 23.6512718201 MB
-Network Used: Network.VanillaNet
-warpType = ['pseudosimilarity']
+self.InitNeurons = 36  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 35238910489  
+NumParams = 2065935  
+Expected Model Size = 23.6512718201 MB  
+Network Used: Network.VanillaNet  
+warpType = ['pseudosimilarity']  
 
 ## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 2: [Trained Model Link](https://drive.google.com/open?id=1p4UJ1vybf15NSuWK2m--meqbagxpeR9H)
-self.InitNeurons = 26
-self.ExpansionFactor = 2.0
-self.DropOutRate = 0.7
-self.NumBlocks = 3
-?? FPS on BS = 1, Nitin's PC All Cores i7
-NumFlops = 40148554316
-NumParams = 2171890
-Expected Model Size = 24.8676147461 MB
-Network Used: Network.VanillaNet
-warpType = ['pseudosimilarity', 'pseudosimilarity']
+self.InitNeurons = 26  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 40148554316  
+NumParams = 2171890  
+Expected Model Size = 24.8676147461 MB  
+Network Used: Network.VanillaNet  
+warpType = ['pseudosimilarity', 'pseudosimilarity']    
 
 ## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 4: [Trained Model Link](https://drive.google.com/open?id=1IhJLQ0rc1mPV6ZrQkFiBFK8Nhkp8hMjl) 
-self.InitNeurons = 18
-self.ExpansionFactor = 2.0
-self.DropOutRate = 0.7
-self.NumBlocks = 3
-?? FPS on BS = 1, Nitin's PC All Cores i7
-NumFlops = 43749760630
-NumParams = 2107524
-Expected Model Size = 24.1357345581 MB
-Network Used: Network.VanillaNet
-warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity']
+self.InitNeurons = 18  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 43749760630  
+NumParams = 2107524  
+Expected Model Size = 24.1357345581 MB  
+Network Used: Network.VanillaNet  
+warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity']  
+
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Scale, Trans [Trained Model Link](https://drive.google.com/open?id=1fw3vzSNM0VSy8vz6wXbPqd5l0tbmB_E3) 
+self.InitNeurons = 26  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 40144680527  
+NumParams = 2151919  
+Expected Model Size = 24.6390647888 MB  
+Network Used: Network.VanillaNet2Simpler  
+warpType = ['scale', 'translation']  
+
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Trans, Scale [Trained Model Link](https://drive.google.com/open?id=1PnYX1PXEgZsQ6UUbYeD9uS3OxDzXVX4Y) 
+self.InitNeurons = 26  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops =   
+NumParams =   
+Expected Model Size =  MB  
+Network Used: Network.VanillaNet3Simpler  
+warpType = ['translation', 'scale']  
 
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) Scale, Trans Currently Training on Nitin's GPU 1
-self.InitNeurons = 26
-self.ExpansionFactor = 2.0
-self.DropOutRate = 0.7
-self.NumBlocks = 3
-~ 162.15fps on BS = 1, Nitin's PC All Cores i7
-NumFlops = 40144680527
-NumParams = 2151919
-Expected Model Size = 24.6390647888 MB
-Network Used: Network.VanillaNet2Simpler
-warpType = ['scale', 'translation']
+**Best Combination is 2T2S.**  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) Trans, Scale Need to Start Training on PRGUMD's GPU 1
-self.InitNeurons = 26
-self.ExpansionFactor = 2.0
-self.DropOutRate = 0.7
-self.NumBlocks = 3
-~ 162.15fps on BS = 1, Nitin's PC All Cores i7
-NumFlops = 
-NumParams = 
-Expected Model Size =  MB
-Network Used: Network.VanillaNet3Simpler
-warpType = ['translation', 'scale']
+
+# Choosing Best Network Architecture: VanillaNet (Model Size <= 25 MB and Model FPS >= 20 FPS on All Cores i7)
+- Running on Image Size of 128x128x(3x2)  
+- No Data Augmentation on MSCOCO  
+- Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100  
+
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [Trained Model Link]() Currently Training 
+self.InitNeurons = 13  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 55175035536  
+NumParams = 2119578  
+Expected Model Size = 24.268951416 MB  
+Network Used: Network.ResNet3  
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+
+- ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) `#f03c15`
+- ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) `#c5f015`
+- ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) `#1589F0`
 
 
 <!-- 

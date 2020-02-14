@@ -48,7 +48,7 @@ sys.dont_write_bytecode = True
 def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize):    
     # Predict output with forward pass
     if(NetworkType == 'Small'):
-        prHVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
+        prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
     elif(NetworkType == 'Large'):
         prHVal = EVHomographyNetUnsupSmallMaixPy(ImgPH, ImageSize, MiniBatchSize)
             
@@ -61,6 +61,9 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, Mi
 
         # Print Number of parameters in the network    
         tu.FindNumParams(1)
+
+        # Print Model Size in MB
+        tu.CalculateModelSize(1)
 
         # Try TFLite
         # Converting a GraphDef from session.
