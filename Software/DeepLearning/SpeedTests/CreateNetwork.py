@@ -61,7 +61,29 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, Mi
 
         # Print Number of parameters in the network    
         tu.FindNumParams(1)
-        
+
+        # Try TFLite
+        # Converting a GraphDef from session.
+
+        def representative_dataset_gen():
+            for _ in range(10):
+                # Get sample input data as a numpy array in a method of your choosing.
+                input = np.float32(2.*(np.random.rand(MiniBatchSize, ImageSize[0], ImageSize[1], 2*ImageSize[2]) - 0.5))
+                yield [input]
+
+
+        converter = tf.lite.TFLiteConverter.from_session(sess, [ImgPH], [prHVal])
+        converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] #[tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+        # converter.representative_dataset = representative_dataset_gen
+        # input_arrays = converter.get_input_arrays()
+        # converter.quantized_input_stats = {input_arrays[0] : (0., 1.)}  # mean, std_dev
+        # converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+        # converter.inference_input_type = tf.uint8
+        # converter.inference_output_type = tf.uint8
+        tflite_model = converter.convert() 
+        open("converted_model.tflite", "wb").write(tflite_model)
+        print('TFLite Model Written....')
+
         # Save model every epoch
         SaveName = CheckPointPath + os.sep + ModelPrefix +'model.ckpt'
         Saver.save(sess, save_path=SaveName)
