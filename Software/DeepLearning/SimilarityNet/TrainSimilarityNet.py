@@ -104,6 +104,10 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelP
     tf.summary.image('I1Patch', I1PH[:,:,:,0:3], max_outputs=3)
     tf.summary.image('I2Patch', I2PH[:,:,:,0:3], max_outputs=3)
     tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3], max_outputs=3)
+    I2PHGray = tf.image.rgb_to_grayscale(I2PH)
+    WarpI1PatchGray = tf.image.rgb_to_grayscale(WarpI1Patch[:,:,:,0:3]*255.0)
+    OverlayImg = tf.concat([tf.concat([I2PHGray, tf.zeros(np.shape(I2PHGray))], axis=3), WarpI1PatchGray], axis=3)
+    tf.summary.image('DiffOverlay', OverlayImg, max_outputs=3)
     # tf.summary.image('WarpI1PatchIdeal', WarpI1PatchIdealPH[:,:,:,0:3], max_outputs=3)
     tf.summary.histogram('prVal', prVal)
     tf.summary.histogram('Label', LabelPH)
@@ -179,6 +183,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     # Create Network Object with required parameters
     VN = Net.ResNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
+    # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, WarpI1Patch = VN.Network()
 
     # TODO: Warp Patch here
