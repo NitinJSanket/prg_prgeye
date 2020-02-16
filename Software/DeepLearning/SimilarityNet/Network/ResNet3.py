@@ -127,7 +127,7 @@ class ResNet(BaseLayers):
                         else:
                             ImgWarp = None
             
-        return pMtrxNow, pNow, ImgWarp
+        return pMtrxNow, pRet, ImgWarp
 
 def main():
    tu.SetGPU(-1)
