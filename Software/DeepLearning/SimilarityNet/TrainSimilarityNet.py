@@ -47,7 +47,7 @@ sys.dont_write_bytecode = True
 @Scope
 def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
-    Lambda = [1.0, 10.0, 10.0]
+    Lambda = [1.0, 1.0, 1.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
 
     # Choice of Loss Function

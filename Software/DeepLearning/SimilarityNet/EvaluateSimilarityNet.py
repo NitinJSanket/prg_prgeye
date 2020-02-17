@@ -76,7 +76,7 @@ def SetupAll(ReadPath, warpType):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    MaxParams = np.array([0.25, 0.2, 0.2]) # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
+    MaxParams = np.array([0.5, 0.4, 0.4]) # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
     
     return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
@@ -197,7 +197,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
         print('Expected Model Size is %f' % ModelSize)
 
         # Create PredOuts File
-        PredOuts = open(WritePath + os.sep + 'PredOuts.txt', 'w') # LargeDeviation
+        PredOuts = open(WritePath + os.sep + 'PredOutsLargeDeviation.txt', 'w') # LargeDeviation
         PredOuts.write('Model Used: {}\n'.format(ModelPath))
         PredOuts.write('Model Statistics: \n')
         PredOuts.write('Number of Parameters: {}\n'.format(NumParams))
@@ -253,10 +253,6 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
                 ErrorTrans = np.sqrt(ErrorTransX**2 + ErrorTransY**2)
                 ErrorTransPx = np.sqrt(ErrorTransXPx**2 + ErrorTransYPx**2)
                 return ErrorTrans, ErrorTransPx
-
-            print(np.shape(ParamsBatch))
-            print(np.shape(prParamsVal))
-            input('q')
 
             # Compute Error between GT and Pred
             ErrorScalePred, ErrorScalePxPred = ComputeScaleError(PatchSize, ParamsBatch[0], prParamsVal[0])

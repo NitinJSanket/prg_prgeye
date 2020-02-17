@@ -3,7 +3,7 @@
 - No Data Augmentation on MSCOCO  
 - Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100  
 
-## **BEST ONE!** ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Trans, Trans, Scale, Scale: [Trained Model Link](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) 
+## **BEST ONE!** ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Trans, Trans, Scale, Scale: [100EpochModel](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) 
 self.InitNeurons = 18  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -13,9 +13,10 @@ NumFlops = 43744396604
 NumParams = 2079870  
 Expected Model Size = 23.8192596436 MB  
 Network Used: Network.VanillaNet3  
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Scale, Scale, Trans, Trans: [Trained Model Link](https://drive.google.com/open?id=1NEQ9gMixBjpzLiUwFsjC6_b7HLP88nm8) 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Scale, Scale, Trans, Trans: [100EpochModel](https://drive.google.com/open?id=1NEQ9gMixBjpzLiUwFsjC6_b7HLP88nm8) 
 self.InitNeurons = 18  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -25,9 +26,10 @@ NumFlops = 43744396636
 NumParams = 2079870  
 Expected Model Size = 23.8192596436 MB  
 Network Used: Network.VanillaNet2  
+Lambda = [10.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['scale', 'scale', 'translation', 'translation']  
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 1: [Trained Model Link](https://drive.google.com/open?id=1Pj6Uqr3PeMCJF_vpkd_Nr4ljQ_WfgJiY) 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 1: [100EpochModel](https://drive.google.com/open?id=1Pj6Uqr3PeMCJF_vpkd_Nr4ljQ_WfgJiY) 
 self.InitNeurons = 36  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -37,9 +39,10 @@ NumFlops = 35238910489
 NumParams = 2065935  
 Expected Model Size = 23.6512718201 MB  
 Network Used: Network.VanillaNet  
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['pseudosimilarity']  
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 2: [Trained Model Link](https://drive.google.com/open?id=1p4UJ1vybf15NSuWK2m--meqbagxpeR9H)
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 2: [100EpochModel](https://drive.google.com/open?id=1p4UJ1vybf15NSuWK2m--meqbagxpeR9H)
 self.InitNeurons = 26  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -49,9 +52,10 @@ NumFlops = 40148554316
 NumParams = 2171890  
 Expected Model Size = 24.8676147461 MB  
 Network Used: Network.VanillaNet  
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['pseudosimilarity', 'pseudosimilarity']    
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 4: [Trained Model Link](https://drive.google.com/open?id=1IhJLQ0rc1mPV6ZrQkFiBFK8Nhkp8hMjl) 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Pseudosimilarity x 4: [100EpochModel](https://drive.google.com/open?id=1IhJLQ0rc1mPV6ZrQkFiBFK8Nhkp8hMjl) 
 self.InitNeurons = 18  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -61,9 +65,10 @@ NumFlops = 43749760630
 NumParams = 2107524  
 Expected Model Size = 24.1357345581 MB  
 Network Used: Network.VanillaNet  
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity']  
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Scale, Trans [Trained Model Link](https://drive.google.com/open?id=1fw3vzSNM0VSy8vz6wXbPqd5l0tbmB_E3) 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Scale, Trans [100EpochModel](https://drive.google.com/open?id=1fw3vzSNM0VSy8vz6wXbPqd5l0tbmB_E3) 
 self.InitNeurons = 26  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -73,9 +78,10 @@ NumFlops = 40144680527
 NumParams = 2151919  
 Expected Model Size = 24.6390647888 MB  
 Network Used: Network.VanillaNet2Simpler  
+Lambda = [10.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['scale', 'translation']  
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Trans, Scale [Trained Model Link](https://drive.google.com/open?id=1PnYX1PXEgZsQ6UUbYeD9uS3OxDzXVX4Y) 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Trans, Scale [100EpochModel](https://drive.google.com/open?id=1PnYX1PXEgZsQ6UUbYeD9uS3OxDzXVX4Y) 
 self.InitNeurons = 26  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -85,6 +91,7 @@ NumFlops =
 NumParams =   
 Expected Model Size =  MB  
 Network Used: Network.VanillaNet3Simpler  
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
 warpType = ['translation', 'scale']  
 
 
@@ -96,7 +103,7 @@ warpType = ['translation', 'scale']
 - No Data Augmentation on MSCOCO  
 - Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [Trained Model Link]() Currently Training 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [100EpochModel](https://drive.google.com/open?id=1q2vSRg2_LSkkEkL9X46Lz4TVkKlSrQbY)
 self.InitNeurons = 13  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -106,6 +113,33 @@ NumFlops = 55175035536
 NumParams = 2119578  
 Expected Model Size = 24.268951416 MB  
 Network Used: Network.ResNet3  
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [50EpochModel]() Training on Nitin's GPU 0 for 50 Epochs 
+self.InitNeurons = 13  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 55175035536  
+NumParams = 2119578  
+Expected Model Size = 24.268951416 MB  
+Network Used: Network.ResNet3  
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [50EpochModel]() Training on Nitin's GPU 1 for 50 Epochs 
+self.InitNeurons = 13  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 55175035536  
+NumParams = 2119578  
+Expected Model Size = 24.268951416 MB  
+Network Used: Network.ResNet3  
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 
