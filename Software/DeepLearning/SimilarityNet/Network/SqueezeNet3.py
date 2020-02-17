@@ -15,30 +15,32 @@ import Misc.MiscUtils as mu
 
 # TODO: Add training flag
 
-class ResNet(BaseLayers):
-    # http://torch.ch/blog/2016/02/04/resnets.html
-    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, NumBlocks = None, InitNeurons = None):
-        super(ResNet, self).__init__()
+class SqueezeNet(BaseLayers):
+    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, InitNeurons = None, NumFire = None, NumBlocks = None):
+        super(SqueezeNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
-        if(Opt is None):
+        if( Opt is None):
             print('ERROR: Options cannot be empty!')
             sys.exit(0)
         self.InputPH = InputPH
         if(InitNeurons is None):
-            InitNeurons = 16
+          InitNeurons = 4
         self.InitNeurons = InitNeurons
         self.Training = Training
-        self.ExpansionFactor = 2
+        self.ExpansionFactor = 1.2
         self.DropOutRate = 0.7
         if(Padding is None):
             Padding = 'same'
         self.Padding = Padding
         self.Opt = Opt
+        if(NumFire is None):
+            NumFire =  2
         if(NumBlocks is None):
-            NumBlocks =  3
+            NumBlocks = 2
         self.NumBlocks = NumBlocks
+        self.NumFire = NumFire
 
     @CountAndScope
     @add_arg_scope
@@ -52,20 +54,30 @@ class ResNet(BaseLayers):
         dense = self.Dense(inputs = drop, filters = NumOut, activation=None)
         return dense
 
+    @CountAndScope
+    @add_arg_scope
+    def FireModule(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, Bypass = False):
+        expandfilter = int(4.0*filters)
+        squeeze = self.Conv(inputs = inputs, filters = filters, kernel_size = (1,1), padding = padding, strides=(1,1), activation=tf.nn.relu, name='squeeze')
+        expand1x1 = self.Conv(inputs = squeeze, filters = expandfilter, kernel_size = (1,1), padding = padding, strides=(1,1), activation=tf.nn.relu, name='expand1x1')
+        expand3x3 = self.Conv(inputs = squeeze, filters = expandfilter, kernel_size = (3,3), padding = padding, strides=(1,1), activation=tf.nn.relu, name='expand3x3')
+        concat = self.Concat(inputs = [expand1x1, expand3x3], axis=1)
+        if(Bypass):
+            concat = tf.math.add(inputs, concat, name='add')
+        return concat
 
     @CountAndScope
     @add_arg_scope
-    def ResBlock(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
-        Net = self.ConvBNReLUBlock(inputs = inputs, filters = filters, padding = padding, strides=(1,1))
-        Net = self.Conv(inputs = Net, filters = filters, padding = padding, strides=(1,1), activation=None)
-        Net = self.BN(inputs = Net)
-        Net = tf.add(Net, inputs)
-        Net = self.ReLU(inputs = Net)
+    def FireConvBlock(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, Bypass = False, NumFire = None):
+        Net = inputs
+        for count in range(NumFire): 
+            Net = self.FireModule(inputs = Net, filters = filters, kernel_size = kernel_size, strides = strides, padding = padding, Bypass = Bypass)
+        Net = self.Conv(inputs = Net, filters = filters, kernel_size = (1,1), padding = padding, strides=(1,1), activation=tf.nn.relu)
         return Net
 
     @CountAndScope
     @add_arg_scope
-    def ResNetBlock(self, inputs = None, filters = None, NumOut = None):
+    def SqueezeNetBlock(self, inputs = None, filters = None, NumOut = None):
         # Conv
         Net = self.ConvBNReLUBlock(inputs = inputs, padding = self.Padding, filters = filters, kernel_size = (7,7))
         
@@ -73,19 +85,18 @@ class ResNet(BaseLayers):
         NumFilters = int(filters*self.ExpansionFactor)
         Net = self.ConvBNReLUBlock(inputs = Net, padding = self.Padding, filters = NumFilters, kernel_size = (5,5))
 
-        # 3 x Res blocks
+        # 3 x FireConv blocks
         for count in range(self.NumBlocks):
-            Net = self.ResBlock(inputs = Net, filters = NumFilters)
             NumFilters = int(NumFilters*self.ExpansionFactor)
-            # Extra Conv for downscaling
-            Net = self.Conv(inputs = Net, filters = NumFilters, padding = self.Padding, activation=None)
-        
+            Net = self.FireConvBlock(inputs = Net, filters = NumFilters, Bypass = False, NumFire = self.NumFire)
+
+        # TODO: Global Avg. Pool
         # Output
         Net = self.OutputLayer(inputs = Net, padding = self.Padding, rate=self.DropOutRate, NumOut = NumOut)
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.Conv, self.ConvBNReLUBlock, self.ResBlock], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.Conv, self.ConvBNReLUBlock, self.FireConvBlock], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
@@ -100,10 +111,10 @@ class ResNet(BaseLayers):
                         ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
 
                     # Compute current warp parameters
-                    dpNow = self.ResNetBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count])
+                    dpNow = self.SqueezeNetBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count])
 
                     dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)    
-                    pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow)
+                    pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow) 
 
                     # MODIFY THIS DEPENDING ON ARCH!
                     if(count == 1):
@@ -118,7 +129,7 @@ class ResNet(BaseLayers):
                     if(self.Opt.currBlock == self.Opt.NumBlocks):
                         # Decrement counter so you use last warp Type
                         self.Opt.currBlock -= 1
-                        pNow = warp2.mtrx2vec(self.Opt, pMtrxNow)
+                        pNow = warp2.mtrx2vec(self.Opt, pMtrxNow) 
                         # MODIFY THIS DEPENDING ON ARCH!
                         pRetb = tf.expand_dims(tf.transpose(tf.nn.embedding_lookup(tf.transpose(warp2.mtrx2vec(self.Opt, pMtrxNow)), 0)), axis=1)
                         pRet = tf.concat([pRetb, pReta], axis=1)
@@ -137,9 +148,9 @@ def main():
    InputPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='Input')
    # Create network class variable
    Opt =  warp2.Options(PatchSize= PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['pseudosimilarity', 'pseudosimilarity']) # ICSTN Options
-   RN = ResNet(InputPH = InputPH, Training = True, Opt = Opt)
+   SN = SqueezeNet(InputPH = InputPH, Training = True, Opt = Opt)
    # Build the atual network
-   pMtrxNow, pNow, ImgWarp = RN.Network()
+   pMtrxNow, pNow, ImgWarp = SN.Network()
    # Setup Saver
    Saver = tf.train.Saver()
    # This runs on 1 thread of CPU when tu.SetGPU(-1) is set
@@ -155,7 +166,7 @@ def main():
        SaveName = '/home/nitin/PRGEye/CheckPoints/SpeedTests/TestVanillaNet/model.ckpt'
        Saver.save(sess, save_path=SaveName)
        print(SaveName + ' Model Saved...') 
-       FeedDict = {RN.InputPH: np.random.rand(MiniBatchSize,PatchSize[0],PatchSize[1],PatchSize[2])}
+       FeedDict = {SN.InputPH: np.random.rand(MiniBatchSize,PatchSize[0],PatchSize[1],PatchSize[2])}
        for count in range(10):
            Timer1 = mu.tic()
            pMtrxNowVal, pNowVal, ImgWarpVal = sess.run([pMtrxNow, pNow, ImgWarp], feed_dict=FeedDict)

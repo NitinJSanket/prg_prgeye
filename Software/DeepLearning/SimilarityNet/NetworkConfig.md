@@ -142,10 +142,23 @@ Network Used: Network.ResNet3
 Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel]() Training on PRGUMD's GPU 0 for 50 Epochs 
+self.InitNeurons = 12    
+self.ExpansionFactor = 1.2 
+self.DropOutRate = 0.7  
+self.NumBlocks = 2  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 209774502264  
+NumParams = 2120962  
+Expected Model Size = 24.2732849121 MB  
+Network Used: Network.SqueezeNet3    
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
+warpType = ['translation', 'translation', 'scale', 'scale']  
 
-- ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) `#f03c15`
-- ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) `#c5f015`
-- ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) `#1589F0`
+
+- ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) `#f03c15` Red  
+- ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) `#c5f015` Green   
+- ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) `#1589F0` Blue  
 
 
 <!-- 
