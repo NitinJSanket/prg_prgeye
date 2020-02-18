@@ -167,7 +167,7 @@ NumFlops = 111691692124
 NumParams = 2103110  
 Expected Model Size = 24.1038360596 MB  
 Network Used: Network.ShuffleNetv23    
-Lambda = [1.0, 10.0, 10.0] # [Scale, Translation] 
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation] LR = 1e-4 oscillates and trains super slowly, trying LR = 1e-5
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 # Choosing Best Small Network Architecture (Model Size <= 2.5 MB and Model FPS >= 200 FPS on All Cores i7)
