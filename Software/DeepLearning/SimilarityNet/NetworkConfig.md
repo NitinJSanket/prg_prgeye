@@ -1,7 +1,7 @@
 # Choosing Best ICSTN Warp Architecture: VanillaNet (Model Size <= 25 MB and Model FPS >= 20 FPS on All Cores i7)
 - Running on Image Size of 128x128x(3x2)  
 - No Data Augmentation on MSCOCO  
-- Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100  
+- Train on  LR = 1e-4, BatchSize = 32, NumEpochs = 100  
 
 ## **BEST ONE!** ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) Trans, Trans, Scale, Scale: [100EpochModel](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) 
 self.InitNeurons = 18  
@@ -97,10 +97,10 @@ warpType = ['translation', 'scale']
 
 **Best Combination is 2T2S.**  
 
-# Choosing Best Network Architecture: VanillaNet (Model Size <= 25 MB and Model FPS >= 20 FPS on All Cores i7)
+# Choosing Best Large Network Architecture (Model Size <= 25 MB and Model FPS >= 20 FPS on All Cores i7)
 - Running on Image Size of 128x128x(3x2)  
 - No Data Augmentation on MSCOCO  
-- Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100  
+- Train on  LR = 1e-4, BatchSize = 32, NumEpochs = 100  
 
 ## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [50EpochModel](https://drive.google.com/open?id=1CVcOdikijaZzUGBUeTwCtMZJ7k2M8Az5) [100EpochModel](https://drive.google.com/open?id=1q2vSRg2_LSkkEkL9X46Lz4TVkKlSrQbY) 
 self.InitNeurons = 13  
@@ -129,7 +129,7 @@ Network Used: Network.ResNet3
 Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1psmiRJwUj_iZ_2qA-wRGmjVrlXEBPmFz) [100EpochModel](https://drive.google.com/open?id=1tHkZ8YW6I3jdolJQRZ1XyWE4kKE7vXTz) 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1psmiRJwUj_iZ_2qA-wRGmjVrlXEBPmFz) [100EpochModel](https://drive.google.com/open?id=1tHkZ8YW6I3jdolJQRZ1XyWE4kKE7vXTz) 
 self.InitNeurons = 12    
 self.ExpansionFactor = 1.2 
 self.DropOutRate = 0.7  
@@ -168,6 +168,37 @@ NumParams = 2103110
 Expected Model Size = 24.1038360596 MB  
 Network Used: Network.ShuffleNetv23    
 Lambda = [1.0, 10.0, 10.0] # [Scale, Translation] 
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+# Choosing Best Small Network Architecture (Model Size <= 2.5 MB and Model FPS >= 200 FPS on All Cores i7)
+- Running on Image Size of 128x128x(3x2)  
+- No Data Augmentation on MSCOCO  
+- Train on  LR = 1e-4, BatchSize = 32, NumEpochs = 100  
+
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) VanillaNet: [50EpochModel](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) 
+self.InitNeurons = 10  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 2  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 16597160988  
+NumParams = 208286  
+Expected Model Size = 2.38822937012 MB  
+Network Used: Network.VanillaNet3Small  
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ResNet [50EpochModel]() 
+self.InitNeurons = 8 
+self.ExpansionFactor = 1.95 
+self.DropOutRate = 0.7  
+self.NumBlocks = 2  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 18004062284  
+NumParams = 195466  
+Expected Model Size = 2.24032592773MB  
+Network Used: Network.ResNet3Small    
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 
