@@ -202,6 +202,50 @@ Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) SqueezeNet [50EpochModel]() 
+self.InitNeurons = 10    
+self.ExpansionFactor = 1.15 
+self.DropOutRate = 0.7  
+self.NumBlocks = 1  
+self.NumFire = 1
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 17588437784  
+NumParams = 196826  
+Expected Model Size = 2.25314331055 MB  
+Network Used: Network.SqueezeNet3Small    
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) MobileNetv1 [50EpochModel]() 
+self.InitNeurons = 8    
+self.ExpansionFactor = 1.95 
+self.DropOutRate = 0.7  
+self.NumBlocks = 2  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 13937688800  
+NumParams = 198226  
+Expected Model Size = 2.2744140625 MB  
+Network Used: Network.MobileNetv13Small      
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation] trains at LR = 1e-5
+warpType = ['translation', 'translation', 'scale', 'scale'] 
+
+
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ShuffleNetv2 [50EpochModel]() 
+self.InitNeurons = 8  
+self.ExpansionFactor = 1.6
+self.DropOutRate = 0.7  
+self.NumBlocks = 2  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 11372248916  
+NumParams = 213654  
+Expected Model Size = 2.4493560791 MB  
+Network Used: Network.ShuffleNetv23Small    
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation] 
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+
+
 - ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) `#f03c15` Red  
 - ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) `#c5f015` Green   
 - ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) `#1589F0` Blue  
