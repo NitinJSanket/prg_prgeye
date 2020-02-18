@@ -97,7 +97,6 @@ warpType = ['translation', 'scale']
 
 **Best Combination is 2T2S.**  
 
-
 # Choosing Best Network Architecture: VanillaNet (Model Size <= 25 MB and Model FPS >= 20 FPS on All Cores i7)
 - Running on Image Size of 128x128x(3x2)  
 - No Data Augmentation on MSCOCO  
