@@ -18,7 +18,7 @@ import Misc.MiscUtils as mu
 class ShuffleNetv2(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
                  Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None):
-        super(VanillaNet, self).__init__()
+        super(ShuffleNetv2, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
@@ -46,13 +46,13 @@ class ShuffleNetv2(BaseLayers):
     @CountAndScope
     @add_arg_scope
     def DepthwiseConvBN(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
-        conv = tf.separable_conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = strides, padding = padding, dilation_rate  = (1,1), activation=None)
+        conv = tf.layers.separable_conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = (1,1), padding = padding, dilation_rate  = (1,1), activation=None)
         bn = self.BN(conv)
         return bn
 
     @CountAndScope
     @add_arg_scope
-    def Shuffle(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
+    def Shuffle(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, groups = 2):
         # Taken from https://github.com/timctho/shufflenet-v2-tensorflow/blob/ae091dfbf10e5bf0fb723e00ebbf5410b550f4f8/module.py
         n, h, w, c = inputs.get_shape().as_list()
         Output = tf.reshape(inputs, shape=tf.convert_to_tensor([tf.shape(inputs)[0], h, w, groups, c // groups]))
@@ -103,7 +103,7 @@ class ShuffleNetv2(BaseLayers):
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.DepthwiseConvBN, self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):

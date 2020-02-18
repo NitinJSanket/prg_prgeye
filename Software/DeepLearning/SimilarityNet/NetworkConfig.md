@@ -130,7 +130,7 @@ Network Used: Network.ResNet3
 Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1psmiRJwUj_iZ_2qA-wRGmjVrlXEBPmFz) [100EpochModel]() Currently Training 100 Epoch Model on Nitin's GPU 1 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1psmiRJwUj_iZ_2qA-wRGmjVrlXEBPmFz) [100EpochModel](https://drive.google.com/open?id=1tHkZ8YW6I3jdolJQRZ1XyWE4kKE7vXTz) 
 self.InitNeurons = 12    
 self.ExpansionFactor = 1.2 
 self.DropOutRate = 0.7  
@@ -153,7 +153,22 @@ NumFlops = 37762557976
 NumParams = 2041798  
 Expected Model Size = 23.389084 MB  
 Network Used: Network.MobileNetv13    
-Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  oscillates a lot
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation] trains at LR = 1e-5
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ShuffleNetv2 [50EpochModel]() [100EpochModel]() Currently Training 50 Epoch Model on Nitin's GPU 1 
+self.InitNeurons = 16  
+self.ExpansionFactor = 2.0 
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 111691692124  
+NumParams = 2103110  
+Expected Model Size = 24.1038360596 MB  
+Network Used: Network.ShuffleNetv23    
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation] 
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 

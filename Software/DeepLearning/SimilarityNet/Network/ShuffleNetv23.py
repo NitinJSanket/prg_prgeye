@@ -18,7 +18,7 @@ import Misc.MiscUtils as mu
 class ShuffleNetv2(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
                  Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None):
-        super(VanillaNet, self).__init__()
+        super(ShuffleNetv2, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
@@ -46,13 +46,13 @@ class ShuffleNetv2(BaseLayers):
     @CountAndScope
     @add_arg_scope
     def DepthwiseConvBN(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
-        conv = tf.separable_conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = strides, padding = padding, dilation_rate  = (1,1), activation=None)
+        conv = tf.layers.separable_conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = (1,1), padding = padding, dilation_rate  = (1,1), activation=None)
         bn = self.BN(conv)
         return bn
 
     @CountAndScope
     @add_arg_scope
-    def Shuffle(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
+    def Shuffle(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None, groups = 2):
         # Taken from https://github.com/timctho/shufflenet-v2-tensorflow/blob/ae091dfbf10e5bf0fb723e00ebbf5410b550f4f8/module.py
         n, h, w, c = inputs.get_shape().as_list()
         Output = tf.reshape(inputs, shape=tf.convert_to_tensor([tf.shape(inputs)[0], h, w, groups, c // groups]))
@@ -103,7 +103,7 @@ class ShuffleNetv2(BaseLayers):
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.DepthwiseConvBN, self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
@@ -120,7 +120,14 @@ class ShuffleNetv2(BaseLayers):
                     # Compute current warp parameters
                     dpNow = self.ShuffleNetv2Block(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
                     dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)    
-                    pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow) 
+                    pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow)
+
+                    # MODIFY THIS DEPENDING ON ARCH!
+                    if(count == 1):
+                        # Numpy like indexing directly doesn't work on Tensors
+                        # https://stackoverflow.com/questions/37670886/how-do-i-select-certain-columns-of-a-2d-tensor-in-tensorflow
+                        # print(self.Opt.warpDim[self.Opt.currBlock])
+                        pReta =  tf.transpose(tf.nn.embedding_lookup(tf.transpose(warp2.mtrx2vec(self.Opt, pMtrxNow)), [0,1]))
 
                     # Update counter used for looping over warpType
                     self.Opt.currBlock += 1
@@ -128,13 +135,16 @@ class ShuffleNetv2(BaseLayers):
                     if(self.Opt.currBlock == self.Opt.NumBlocks):
                         # Decrement counter so you use last warp Type
                         self.Opt.currBlock -= 1
-                        pNow = warp2.mtrx2vec(self.Opt, pMtrxNow) 
+                        pNow = warp2.mtrx2vec(self.Opt, pMtrxNow)
+                        # MODIFY THIS DEPENDING ON ARCH!
+                        pRetb = tf.expand_dims(tf.transpose(tf.nn.embedding_lookup(tf.transpose(warp2.mtrx2vec(self.Opt, pMtrxNow)), 0)), axis=1)
+                        pRet = tf.concat([pRetb, pReta], axis=1)
                         if(self.Training):
                             ImgWarp = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow) # Final Image Warp
                         else:
                             ImgWarp = None
             
-        return pMtrxNow, pNow, ImgWarp
+        return pMtrxNow, pRet, ImgWarp
 
 # def main():
 #    tu.SetGPU(0)
