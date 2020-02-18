@@ -30,7 +30,7 @@ class MobileNetv1(BaseLayers):
         if(InitNeurons is None):
             InitNeurons = 16
         if(ExpansionFactor is None):
-            ExpansionFactor =  2.0
+            ExpansionFactor =  1.95
         if(NumBlocks is None):
             NumBlocks = 3
         self.InitNeurons = InitNeurons
@@ -45,7 +45,7 @@ class MobileNetv1(BaseLayers):
     @CountAndScope
     @add_arg_scope
     def DepthwiseConvBNReLU(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
-        conv = tf.nn.separable_conv2d(input = inputs, depthwise_filter = filters, kernel_size = kernel_size, strides = (1,1), padding = padding, dilation_rate  = (1,1), activation=None)
+        conv = tf.layers.separable_conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = (1,1), padding = padding, dilation_rate  = (1,1), activation=None)
         bn = self.BN(conv)
         Output = self.ReLU(bn)
         return Output
@@ -83,7 +83,7 @@ class MobileNetv1(BaseLayers):
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([ self.DepthwiseConvBNReLU, self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):

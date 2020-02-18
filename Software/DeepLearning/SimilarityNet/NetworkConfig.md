@@ -103,7 +103,7 @@ warpType = ['translation', 'scale']
 - No Data Augmentation on MSCOCO  
 - Train on  LR = 1e-3, BatchSize = 32, NumEpochs = 100  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [100EpochModel](https://drive.google.com/open?id=1q2vSRg2_LSkkEkL9X46Lz4TVkKlSrQbY)
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [50EpochModel](https://drive.google.com/open?id=1CVcOdikijaZzUGBUeTwCtMZJ7k2M8Az5) [100EpochModel](https://drive.google.com/open?id=1q2vSRg2_LSkkEkL9X46Lz4TVkKlSrQbY) 
 self.InitNeurons = 13  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -116,20 +116,8 @@ Network Used: Network.ResNet3
 Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [50EpochModel]() Training on Nitin's GPU 0 for 50 Epochs 
-self.InitNeurons = 13  
-self.ExpansionFactor = 2.0  
-self.DropOutRate = 0.7  
-self.NumBlocks = 3  
-?? FPS on BS = 1, Nitin's PC All Cores i7  
-NumFlops = 55175035536  
-NumParams = 2119578  
-Expected Model Size = 24.268951416 MB  
-Network Used: Network.ResNet3  
-Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
-warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [50EpochModel]() Training on Nitin's GPU 1 for 50 Epochs 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) ResNet [50EpochModel](https://drive.google.com/open?id=1jT7kfmUtdMdLisf7851-t1umaKSSDBPv) 
 self.InitNeurons = 13  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -142,7 +130,7 @@ Network Used: Network.ResNet3
 Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel]() Training on PRGUMD's GPU 0 for 50 Epochs 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1psmiRJwUj_iZ_2qA-wRGmjVrlXEBPmFz) [100EpochModel]() Currently Training 100 Epoch Model on Nitin's GPU 1 
 self.InitNeurons = 12    
 self.ExpansionFactor = 1.2 
 self.DropOutRate = 0.7  
@@ -152,6 +140,19 @@ NumFlops = 209774502264
 NumParams = 2120962  
 Expected Model Size = 24.2732849121 MB  
 Network Used: Network.SqueezeNet3    
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
+warpType = ['translation', 'translation', 'scale', 'scale']  
+
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) MobileNetv1 [50EpochModel]() [100EpochModel]() Currently Training 50 Epoch Model on Nitin's GPU 0 
+self.InitNeurons = 14   
+self.ExpansionFactor = 1.95 
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 37762557976  
+NumParams = 2041798  
+Expected Model Size = 23.389084 MB  
+Network Used: Network.MobileNetv13    
 Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
