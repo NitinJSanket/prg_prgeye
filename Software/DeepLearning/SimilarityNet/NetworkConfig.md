@@ -175,7 +175,7 @@ warpType = ['translation', 'translation', 'scale', 'scale']
 - No Data Augmentation on MSCOCO  
 - Train on  LR = 1e-4, BatchSize = 32, NumEpochs = 100  
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) VanillaNet: [50EpochModel](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) VanillaNet: [50EpochModel]() Currently Training On Chahat's GPU 0
 self.InitNeurons = 10  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -188,7 +188,7 @@ Network Used: Network.VanillaNet3Small
 Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ResNet [50EpochModel]() 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [50EpochModel]() Currently Training On Chahat's GPU 1
 self.InitNeurons = 8 
 self.ExpansionFactor = 1.95 
 self.DropOutRate = 0.7  
@@ -202,7 +202,7 @@ Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) SqueezeNet [50EpochModel]() 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel]() Currently Training On PRGUMD's GPU 0
 self.InitNeurons = 10    
 self.ExpansionFactor = 1.15 
 self.DropOutRate = 0.7  
