@@ -102,7 +102,7 @@ warpType = ['translation', 'scale']
 - No Data Augmentation on MSCOCO  
 - Train on  LR = 1e-4, BatchSize = 32, NumEpochs = 100  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ResNet [50EpochModel](https://drive.google.com/open?id=1CVcOdikijaZzUGBUeTwCtMZJ7k2M8Az5) [100EpochModel](https://drive.google.com/open?id=1q2vSRg2_LSkkEkL9X46Lz4TVkKlSrQbY) 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) ResNet [50EpochModel](https://drive.google.com/open?id=1CVcOdikijaZzUGBUeTwCtMZJ7k2M8Az5) [100EpochModel](https://drive.google.com/open?id=1q2vSRg2_LSkkEkL9X46Lz4TVkKlSrQbY) 
 self.InitNeurons = 13  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
@@ -142,7 +142,7 @@ Network Used: Network.SqueezeNet3
 Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) MobileNetv1 [50EpochModel]() [100EpochModel]() Currently Training 50 Epoch Model on Nitin's GPU 0 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) MobileNetv1 [50EpochModel](https://drive.google.com/open?id=1wHxVJJxk1uKW3W4vOnisXPWzNSGtag31) [100EpochModel]() Currently Training 100 Epoch Model on Nitin's GPU 0 
 self.InitNeurons = 14   
 self.ExpansionFactor = 1.95 
 self.DropOutRate = 0.7  
