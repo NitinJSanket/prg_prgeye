@@ -76,7 +76,7 @@ def SetupAll(ReadPath, warpType):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    MaxParams = np.array([0.5, 0.4, 0.4]) # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
+    MaxParams = np.array([0.25, 0.2, 0.2]) # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
     
     return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
@@ -178,7 +178,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.MobileNetv1(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.ResNet(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     prH, prParams, _ = VN.Network()
 
@@ -317,7 +317,7 @@ def main():
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
-    InitNeurons = 14
+    InitNeurons = 8
     warpType = ['translation', 'translation', 'scale', 'scale'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj = SetupAll(ReadPath, warpType)

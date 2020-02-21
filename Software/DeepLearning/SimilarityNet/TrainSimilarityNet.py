@@ -39,7 +39,9 @@ from Misc.Decorators import *
 # Import of network is done in main code
 import importlib
 from datetime import datetime
+import getpass
 
+# TODO: Add LR
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -118,8 +120,11 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelP
 
 def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda, VN, OverideKbInput=False):
     # TODO: Write to file?
+    Username = getpass.getuser()
+    cprint('Running on {}'.format(Username), 'yellow')
     cprint('Network Statistics', 'yellow')
     cprint('Network Used: {}'.format(Args.NetworkName), 'yellow')
+    cprint('Learning Rate: {}'.format(Args.LR), 'yellow')
     cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate), 'yellow')
     cprint('Num Params: {}'.format(NumParams), 'green')
     cprint('Num FLOPs: {}'.format(NumFlops), 'green')
@@ -140,6 +145,8 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
         with open(FileName, 'a+') as RunCommand:
             RunCommand.write('\n\n')
             RunCommand.write('{}\n'.format(datetime.now()))
+            RunCommand.write('Username: {}\n'.format(Username))
+            RunCommand.write('Learning Rate: {}\n'.format(Args.LR))
             RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
             RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
             RunCommand.write('Num Params: {}\n'.format(NumParams))
@@ -340,7 +347,7 @@ def main():
 
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
-    InitNeurons = 14
+    InitNeurons = 8
     warpType = ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
