@@ -68,7 +68,8 @@ def ConvertOperation(PatchPH, PerturbParamsPH, PatchSize, ModelPath, WritePath, 
     
     with tf.Session() as sess:
         # Restore Model
-        Saver.restore(sess, ModelPath)
+        # Saver.restore(sess, ModelPath)
+        sess.run(tf.global_variables_initializer())
         # Print out Number of parameters
         NumParams = tu.FindNumParams(1)
         # Print out Number of Flops
@@ -85,6 +86,8 @@ def ConvertOperation(PatchPH, PerturbParamsPH, PatchSize, ModelPath, WritePath, 
 
         converter = tf.lite.TFLiteConverter.from_session(sess, [PatchPH], [prParams])
         converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] #[tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+        converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS,
+                                       tf.lite.OpsSet.SELECT_TF_OPS]
         # converter.representative_dataset = representative_dataset_gen
         # input_arrays = converter.get_input_arrays()
         # converter.quantized_input_stats = {input_arrays[0] : (0., 1.)}  # mean, std_dev
@@ -94,7 +97,7 @@ def ConvertOperation(PatchPH, PerturbParamsPH, PatchSize, ModelPath, WritePath, 
         tflite_model = converter.convert()
         FileName = WritePath + os.sep + WriteName + '.tflite'
         open(FileName, "wb").write(tflite_model)
-        print('TFLite Model Written in {}....',fromat(FileName))
+        print('TFLite Model Written in {}....'.format(FileName))
 
 def main():
     """
@@ -116,7 +119,7 @@ def main():
     Parser.add_argument('--WriteName', dest='WriteName', default='NETWORKNAME',\
                                                                              help='Path to load images from, Default:NETWORKNAME')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
-    Parser.add_argument('--NetworkName', default='Network.MobileNetv13', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--NetworkName', default='Network.MobileNetv1TFLite', help='Name of network file, Default: Network.VanillaNet')
 
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
@@ -135,7 +138,7 @@ def main():
 
     # Setup all needed parameters including file reading
     InitNeurons = 8
-    warpType = ['translation', 'translation', 'scale', 'scale'] 
+    warpType = ['pseudosimilarity', 'pseudosimilarity']#['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity']
     # Homography Perturbation Parameters
     PatchSize = np.array([128, 128, 3])
 

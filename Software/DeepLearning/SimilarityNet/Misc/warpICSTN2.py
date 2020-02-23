@@ -79,9 +79,10 @@ def compose(opt,pMtrx,dpMtrx):
                 # pMtrx = vec2mtrx(opt,p)
                 # dpMtrx = vec2mtrx(opt,dp)
                 pMtrxNew = tf.matmul(dpMtrx,pMtrx)
+                # pMtrxNew = tf.divide(pMtrxNew, pMtrxNew[:,2:3,2:3])
                 pMtrxNew /= pMtrxNew[:,2:3,2:3]
                 # pNew = mtrx2vec(opt,pMtrxNew)
-        return pMtrxNew
+        return pMtrxNew 
 
 # compute inverse of warp parameters
 def inverse(opt,p):

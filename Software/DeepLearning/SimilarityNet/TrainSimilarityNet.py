@@ -41,15 +41,13 @@ import importlib
 from datetime import datetime
 import getpass
 
-# TODO: Add LR
-
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
 @Scope
 def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
-    Lambda = [1.0, 1.0, 1.0]
+    Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
 
     # Choice of Loss Function
@@ -188,7 +186,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.ShuffleNetv2(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, WarpI1Patch = VN.Network()

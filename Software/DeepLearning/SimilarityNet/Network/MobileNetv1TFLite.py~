@@ -18,7 +18,7 @@ import Misc.MiscUtils as mu
 class MobileNetv1(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
                  Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None):
-        super(MobileNetv1, self).__init__()
+        super(VanillaNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
@@ -30,9 +30,9 @@ class MobileNetv1(BaseLayers):
         if(InitNeurons is None):
             InitNeurons = 16
         if(ExpansionFactor is None):
-            ExpansionFactor =  1.95
+            ExpansionFactor =  2.0
         if(NumBlocks is None):
-            NumBlocks = 2
+            NumBlocks = 3
         self.InitNeurons = InitNeurons
         self.ExpansionFactor = ExpansionFactor
         self.DropOutRate = 0.7
@@ -83,7 +83,7 @@ class MobileNetv1(BaseLayers):
         return Net
         
     def _arg_scope(self):
-        with arg_scope([ self.DepthwiseConvBNReLU, self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.DepthwiseConvBNReLU, self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
@@ -93,17 +93,14 @@ class MobileNetv1(BaseLayers):
                     pNow = self.Opt.pInit
                     pMtrxNow = warp2.vec2mtrx(self.Opt, pNow)
                 with tf.variable_scope('ICTSNBlock' + str(count)):
+                    # Warp Original Image based on previous composite warp parameters
+                    if(self.Training):
+                        ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
+
                     # Compute current warp parameters
                     dpNow = self.MobileNetv1Block(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
                     dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)    
                     pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow) 
-
-                    # MODIFY THIS DEPENDING ON ARCH!
-                    if(count == 1):
-                        # Numpy like indexing directly doesn't work on Tensors
-                        # https://stackoverflow.com/questions/37670886/how-do-i-select-certain-columns-of-a-2d-tensor-in-tensorflow
-                        # print(self.Opt.warpDim[self.Opt.currBlock])
-                        pReta =  warp2.mtrx2vec(self.Opt, pMtrxNow)
 
                     # Update counter used for looping over warpType
                     self.Opt.currBlock += 1
@@ -112,12 +109,12 @@ class MobileNetv1(BaseLayers):
                         # Decrement counter so you use last warp Type
                         self.Opt.currBlock -= 1
                         pNow = warp2.mtrx2vec(self.Opt, pMtrxNow) 
-                        # MODIFY THIS DEPENDING ON ARCH!
-                        pRetb = warp2.mtrx2vec(self.Opt, pMtrxNow)
-                        pRet = pNow # tf.concat([pRetb, pReta], axis=1)
-                    # pRet = pNow
-
-        return pRet
+                        if(self.Training):
+                            ImgWarp = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow) # Final Image Warp
+                        else:
+                            ImgWarp = None
+            
+        return pMtrxNow, pNow, ImgWarp
 
 # def main():
 #    tu.SetGPU(0)

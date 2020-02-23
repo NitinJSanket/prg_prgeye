@@ -1076,3 +1076,54 @@ Loss Function Weights: [1.0, 1.0, 1.0]
 CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
 Logs are saved in: /home/nitin/PRGEye/Logs/
 Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-23 09:55:18.911722
+Username: nitin
+Learning Rate: 1e-05
+Network Used: Network.ShuffleNetv23Small
+Init Neurons 8.0, Expansion Factor 1.6, NumBlocks 2, DropOutFactor 0.7
+Num Params: 213654
+Num FLOPs: 11372248912
+Estimated Model Size (MB): 2.4493560791
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 1.0, 1.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-23 12:11:05.292506
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260924
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-23 12:26:56.615766
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260924
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
