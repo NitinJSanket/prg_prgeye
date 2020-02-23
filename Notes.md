@@ -7,6 +7,7 @@
 - PS 4x training now with BS = 32 and LR = 1e-4 on Nitin's GPU1; No Aug
 - PS 2x training now with BS = 32 and LR = 1e-4 on PRGUMD's GPU0; No Aug
 - Best combination is  
+- Hello
 
 ## Step 2: Search for best Architecture using Step 1 output
 
