@@ -17,15 +17,11 @@
 # Tensorboard logging of images
 
 import tensorflow as tf
-import cv2
 import sys
 import os
 import glob
 import Misc.ImageUtils as iu
 import Misc.MiscUtils as mu
-import random
-from skimage import data, exposure, img_as_float
-import matplotlib.pyplot as plt
 from Network.HomographyNetICSTNSimpler import  ICSTN
 from Misc.MiscUtils import *
 import numpy as np
@@ -50,7 +46,7 @@ import importlib
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
-def ConvertOperation(PatchPH,  PerturbParamsPH,   PatchSize, ModelPath, WritePath,  warpType,  HObj,  opt,  Net,  InitNeurons, WriteName):
+def ConvertOperation(PatchPH, PerturbParamsPH, PatchSize, ModelPath, WritePath,  warpType, opt, Net, InitNeurons, WriteName):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -63,9 +59,9 @@ def ConvertOperation(PatchPH,  PerturbParamsPH,   PatchSize, ModelPath, WritePat
     """
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.SqueezeNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.MobileNetv1(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
-    prH, prParams, _ = VN.Network()
+    prParams = VN.Network()
 
     # Setup Saver
     Saver = tf.train.Saver()
@@ -82,24 +78,24 @@ def ConvertOperation(PatchPH,  PerturbParamsPH,   PatchSize, ModelPath, WritePat
         print('Expected Model Size is %f' % ModelSize)
 
         def representative_dataset_gen():
-            for _ in range(10):
+            for _ in range(100):
                 # Get sample input data as a numpy array in a method of your choosing.
-                input = np.float32(2.*(np.random.rand(MiniBatchSize, ImageSize[0], ImageSize[1], 2*ImageSize[2]) - 0.5))
+                input = np.float32(2.*(np.random.rand(1, PatchSize[0], PatchSize[1], 2*PatchSize[2]) - 0.5))
                 yield [input]
 
-            converter = tf.lite.TFLiteConverter.from_session(sess, [ImgPH], [prHVal])
-            converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] #[tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
-            # converter.representative_dataset = representative_dataset_gen
-            # input_arrays = converter.get_input_arrays()
-            # converter.quantized_input_stats = {input_arrays[0] : (0., 1.)}  # mean, std_dev
-            # converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-            # converter.inference_input_type = tf.uint8
-            # converter.inference_output_type = tf.uint8
-            tflite_model = converter.convert()
-            FileName = WritePath + WriteName + '.tflite'
-            open(FileName, "wb").write(tflite_model)
-            print('TFLite Model Written in {}....',fromat(FileName))
-                    
+        converter = tf.lite.TFLiteConverter.from_session(sess, [PatchPH], [prParams])
+        converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] #[tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+        # converter.representative_dataset = representative_dataset_gen
+        # input_arrays = converter.get_input_arrays()
+        # converter.quantized_input_stats = {input_arrays[0] : (0., 1.)}  # mean, std_dev
+        # converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+        # converter.inference_input_type = tf.uint8
+        # converter.inference_output_type = tf.uint8
+        tflite_model = converter.convert()
+        FileName = WritePath + os.sep + WriteName + '.tflite'
+        open(FileName, "wb").write(tflite_model)
+        print('TFLite Model Written in {}....',fromat(FileName))
+
 def main():
     """
     Inputs: 
@@ -138,22 +134,22 @@ def main():
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
-    InitNeurons = 12
+    InitNeurons = 8
     warpType = ['translation', 'translation', 'scale', 'scale'] 
     # Homography Perturbation Parameters
     PatchSize = np.array([128, 128, 3])
 
-    opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
+    opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=1, warpType = warpType) # ICSTN Options
      
     # Define PlaceHolder variables for Input and Predicted output
     PatchPH = tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]*2), name='Input')
-    PerturbParamsPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3), name='PerturbParams')
+    PerturbParamsPH = tf.placeholder(tf.float32, shape=(1, 3), name='PerturbParams')
 
     if(not os.path.exists(WritePath)):
         cprint("WARNING: %s doesnt exist, Creating it."%WritePath, 'yellow')
         os.mkdir(WritePath)
 
-    TestOperation(PatchPH,  PerturbParamsPH,   PatchSize, ModelPath, WritePath,  warpType,  HObj,  opt,  Net,  InitNeurons, WriteName)
+    ConvertOperation(PatchPH, PerturbParamsPH, PatchSize, ModelPath, WritePath, warpType, opt, Net, InitNeurons, WriteName)
 
      
 if __name__ == '__main__':
