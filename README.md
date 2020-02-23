@@ -14,12 +14,12 @@ Tri-camera module with IMU and dual/triple Cortex M7
   - [x]  2 scale 2 translation (half size each)
   - [x]  2 translation 2 scale (half size each) 
   - [x]  4 psudo-similarity (half size each) 
-- [ ] Architectures (Choose best Num ICSTN setup)
+- [x] Architectures (Choose best Num ICSTN setup)
   - [x]  Vanilla Net Arch
-  - [ ]  SqueezeNet 
-  - [ ]  ResNet 
-  - [ ]  MobileNet
-  - [ ]  ShuffleNetv2
+  - [x]  SqueezeNet 
+  - [x]  ResNet 
+  - [x]  MobileNet
+  - [x]  ShuffleNetv2
 - [ ] Loss Functions (Choose best ICSTN combination on best Arch)
    - [ ]  Supervised ICSTN 
    - [ ]  Unsupervised L1 

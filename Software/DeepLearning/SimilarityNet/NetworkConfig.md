@@ -129,7 +129,7 @@ Network Used: Network.ResNet3
 Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1psmiRJwUj_iZ_2qA-wRGmjVrlXEBPmFz) [100EpochModel](https://drive.google.com/open?id=1tHkZ8YW6I3jdolJQRZ1XyWE4kKE7vXTz) Retraining on Nitin's GPU 1 
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1pWipRE8KVd8vvkTkEXmrvKarg4rQDwvj) [100EpochModel](https://drive.google.com/open?id=126Q_1jvxzSVhUPPkDVTURtEz34wwnLFd)  
 self.InitNeurons = 12    
 self.ExpansionFactor = 1.2 
 self.DropOutRate = 0.7  
@@ -139,8 +139,7 @@ NumFlops = 209774502264
 NumParams = 2120962  
 Expected Model Size = 24.2732849121 MB  
 Network Used: Network.SqueezeNet3    
-Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
-Retrain at Lambda = [1.0, 1.0, 1.0] # [Scale, Translation] at LR 1e-5
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation] at LR 1e-4
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 ## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) MobileNetv1 [50EpochModel](https://drive.google.com/open?id=1wHxVJJxk1uKW3W4vOnisXPWzNSGtag31) [100EpochModel](https://drive.google.com/open?id=1Yd5lF0pnGivFd81kSdk4c8ZEVg_Io_JH)
@@ -218,7 +217,7 @@ Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 
-## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) MobileNetv1 [50EpochModel]() Need to Upload
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) MobileNetv1 [50EpochModel](https://drive.google.com/open?id=1ItLc5uGO5CDfVArHOGS1mhkFkWcXbbpZ) 
 self.InitNeurons = 8    
 self.ExpansionFactor = 1.95 
 self.DropOutRate = 0.7  
@@ -232,7 +231,7 @@ Lambda = [1.0, 1.0, 1.0] # [Scale, Translation] trains at LR = 1e-5
 warpType = ['translation', 'translation', 'scale', 'scale'] 
 
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) ShuffleNetv2 [50EpochModel]() 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) ShuffleNetv2 [50EpochModel]() Currently Training on Nitin's GPU 1
 self.InitNeurons = 8  
 self.ExpansionFactor = 1.6
 self.DropOutRate = 0.7  
@@ -247,9 +246,9 @@ warpType = ['translation', 'translation', 'scale', 'scale']
 
 
 
-- ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) `#f03c15` Red  
-- ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) `#c5f015` Green   
-- ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) `#1589F0` Blue  
+- ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) `#f03c15` Red Not staged to be Trained
+- ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) `#c5f015` Green  Trained
+- ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) `#1589F0` Blue  Training
 
 
 <!-- 

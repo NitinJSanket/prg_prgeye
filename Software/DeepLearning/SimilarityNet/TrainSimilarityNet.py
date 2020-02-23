@@ -188,7 +188,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.MobileNetv1(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.ShuffleNetv2(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, WarpI1Patch = VN.Network()
@@ -318,6 +318,7 @@ def main():
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--DataAug', type=int, default=0, help='Do you want to do Data augmentation?, Default:0')
     Parser.add_argument('--LR', type=float, default=1e-4, help='Learning Rate, Default: 1e-4')
+    Parser.add_argument('--InitNeurons', type=float, default=8, help='Learning Rate, Default: 8')
     
     Args = Parser.parse_args()
     NumEpochs = Args.NumEpochs
@@ -347,7 +348,7 @@ def main():
 
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
-    InitNeurons = 8
+    InitNeurons = Args.InitNeurons
     warpType = ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
