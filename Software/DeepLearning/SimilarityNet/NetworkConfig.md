@@ -129,7 +129,7 @@ Network Used: Network.ResNet3
 Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1psmiRJwUj_iZ_2qA-wRGmjVrlXEBPmFz) [100EpochModel](https://drive.google.com/open?id=1tHkZ8YW6I3jdolJQRZ1XyWE4kKE7vXTz) Retreaining on Nitin's GPU 1 
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) SqueezeNet [50EpochModel](https://drive.google.com/open?id=1psmiRJwUj_iZ_2qA-wRGmjVrlXEBPmFz) [100EpochModel](https://drive.google.com/open?id=1tHkZ8YW6I3jdolJQRZ1XyWE4kKE7vXTz) Retraining on Nitin's GPU 1 
 self.InitNeurons = 12    
 self.ExpansionFactor = 1.2 
 self.DropOutRate = 0.7  
@@ -218,7 +218,7 @@ Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) MobileNetv1 [50EpochModel]() Training on Nitin's GPU 0
+## ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) MobileNetv1 [50EpochModel]() Need to Upload
 self.InitNeurons = 8    
 self.ExpansionFactor = 1.95 
 self.DropOutRate = 0.7  
