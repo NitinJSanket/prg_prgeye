@@ -56,14 +56,14 @@ def Loss(I1PH, I2PH, LabelPH, WarpI1Patch, prHVal, prVal, MiniBatchSize, PatchSi
         lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, LambdaStack)))
     elif(Args.LossFuncName == 'PhotoL1'):        
         # Self-supervised Photometric L1 Losses
-        DiffImg = WarpI1Patch - I2PH
-        lossPhoto = tf.reduce_mean(tf.abs(tf.multiply(DiffImg, LambdaStack)))
+        DiffImg = WarpI1Patch[:,:,:,0:3] - I2PH
+        lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
     elif(Args.LossFuncName == 'PhotoChab'):
         # Self-supervised Photometric Chabonier Loss
-        DiffImg = WarpI1Patch - I2PH
+        DiffImg = WarpI1Patch[:,:,:,0:3] - I2PH
         epsilon = 1e-3
         alpha = 0.45
-        lossPhoto = tf.reduce_mean(tf.pow(tf.square(tf.multiply(DiffImg, LambdaStack)) + tf.square(epsilon), alpha))
+        lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
     elif(Args.LossFuncName == 'PhotoRobust'):
         print('ERROR: Not implemented yet!')
         sys.exit(0)
@@ -85,7 +85,7 @@ def Loss(I1PH, I2PH, LabelPH, WarpI1Patch, prHVal, prVal, MiniBatchSize, PatchSi
     
     # loss = lossPhoto + lossReg
 
-    return lossPhoto, WarpI1Patch, Lambda
+    return lossPhoto, Lambda
 
 @Scope
 def Optimizer(OptimizerParams, loss):

@@ -258,6 +258,34 @@ Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]
 warpType = ['translation', 'translation', 'scale', 'scale']  
 
 
+# Choosing Best Loss Function for VanillaNet Large Network Architecture (Model Size <= 25 MB and Model FPS >= 20 FPS on All Cores i7)
+- Running on Image Size of 128x128x(3x2)  
+- No Data Augmentation on MSCOCO  
+- Train on  LR = 1e-4, BatchSize = 32, NumEpochs = 100  
+- Network Config:
+VanillaNet 
+self.InitNeurons = 18  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 43744396604  
+NumParams = 2079870  
+Expected Model Size = 23.8192596436 MB  
+Network Used: Network.VanillaNet3  
+Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
+warpType = ['translation', 'translation', 'scale', 'scale']
+
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) Photo L1 [50EpochModel]() [100EpochModel]() Currently Training On Nitin's GPU 1 
+
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Photo Chab [50EpochModel]() [100EpochModel]() 
+
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Photo L1 + Reg L1 (Cornerness) [50EpochModel]() [100EpochModel]() 
+
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Photo Chab + Reg Chab (Cornerness) [50EpochModel]() [100EpochModel]() 
+
+## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Photo L1 + Reg Robust (Cornerness) [50EpochModel]() [100EpochModel]() 
+
 
 - ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) `#f03c15` Red Not staged to be Trained
 - ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) `#c5f015` Green  Trained
