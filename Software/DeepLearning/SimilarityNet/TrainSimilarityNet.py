@@ -226,7 +226,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
             if LatestFile is not None:
                 Saver.restore(sess, CheckPointPath + LatestFile + '.ckpt')
                 # Extract only numbers from the name
-                StartEpoch = int(''.join(c for c in LatestFile.split('a')[0] if c.isdigit()))
+                StartEpoch = int(''.join(c for c in LatestFile.split('a')[0] if c.isdigit())) + 1
                 print('Loaded latest checkpoint with the name ' + LatestFile + '....')
             else:
                 sess.run(tf.global_variables_initializer())

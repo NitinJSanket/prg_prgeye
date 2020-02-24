@@ -76,7 +76,7 @@ def SetupAll(ReadPath, warpType):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    MaxParams = np.array([0.5, 0.4, 0.4]) # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
+    MaxParams = np.array([0.5, 0.4, 0.4])/2.0 # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
     
     return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
