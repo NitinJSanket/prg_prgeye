@@ -45,8 +45,8 @@ import getpass
 sys.dont_write_bytecode = True
 
 @Scope
-def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
-    WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
+def Loss(I1PH, I2PH, LabelPH, WarpI1Patch, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
+    # WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
 
@@ -57,11 +57,10 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args
     elif(Args.LossFuncName == 'PhotoL1'):        
         # Self-supervised Photometric L1 Losses
         DiffImg = WarpI1Patch - I2PH
-
-        # Self-supervised Photometric L1 Loss
         lossPhoto = tf.reduce_mean(tf.abs(tf.multiply(DiffImg, LambdaStack)))
     elif(Args.LossFuncName == 'PhotoChab'):
         # Self-supervised Photometric Chabonier Loss
+        DiffImg = WarpI1Patch - I2PH
         epsilon = 1e-3
         alpha = 0.45
         lossPhoto = tf.reduce_mean(tf.pow(tf.square(tf.multiply(DiffImg, LambdaStack)) + tf.square(epsilon), alpha))
@@ -210,7 +209,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
-    loss, WarpI1PatchRet, Lambda = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
+    loss, Lambda = Loss(I1PH, I2PH, LabelPH, WarpI1Patch, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
 
     # Run Backprop and Gradient Update
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
