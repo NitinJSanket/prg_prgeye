@@ -102,7 +102,7 @@ warpType = ['translation', 'scale']
 - No Data Augmentation on MSCOCO  
 - Train on  LR = 1e-4, BatchSize = 32, NumEpochs = 100  
 
-## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) VanillaNet [50EpochModel]() [100EpochModel](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) Currently Training 50 Epoch Model on Nitin's GPU 1
+## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) VanillaNet [50EpochModel](https://drive.google.com/open?id=1IAu6idOuJp0-4TMCpnDYFgIVZ4Xa3Glg) [100EpochModel](https://drive.google.com/open?id=1aYApkJEegeV6jE0n5MJQr3Ures3bjVeR) Currently Retraining on Nitin's GPU 1 for 100 Epochs
 self.InitNeurons = 18  
 self.ExpansionFactor = 2.0  
 self.DropOutRate = 0.7  
