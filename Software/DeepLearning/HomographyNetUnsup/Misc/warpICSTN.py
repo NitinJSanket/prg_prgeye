@@ -26,7 +26,8 @@ class Options:
                 elif val == 'affine':
                     self.warpDim.append(6)
                 elif val == 'homography':
-                    self.warpDim.append(8)
+                    # self.warpDim.append(8)
+                    self.warpDim.append(3)
             self.pInit = tf.zeros([MiniBatchSize, self.warpDim[0]])
         else:
             self.warpType = warpType
@@ -41,7 +42,8 @@ class Options:
             elif self.warpType == 'affine':
                 self.warpDim = 6
             elif self.warpType == 'homography':
-                self.warpDim = 8
+                # self.warpDim = 8
+                self.warpDim = 3
             self.pInit = tf.zeros([MiniBatchSize, self.warpDim])
         self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
         self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
@@ -108,8 +110,10 @@ def vec2mtrx(opt,p):
                        p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
                        pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]),perm=[2,0,1])
                 if CompareVal == "homography":
-                       p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
-                       pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]),perm=[2,0,1])
+                       # p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
+                       # pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]),perm=[2,0,1])
+                       scale,tx,ty = tf.unstack(p,axis=1)
+                       pMtrx = tf.transpose(tf.stack([[I+scale,O,tx],[O,I+scale,ty],[O,O,I]]),perm=[2,0,1])
         return pMtrx
 
 # convert warp matrix to parameters
@@ -130,7 +134,7 @@ def mtrx2vec(opt,pMtrx):
                 if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
                 if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
                 if CompareVal == "affine": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12],axis=1)
-                if CompareVal == "homography": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12,e20,e21],axis=1)
+                if CompareVal == "homography": p = tf.stack([e00-1,e02,e12],axis=1) #  p = tf.stack([e00-1,e01,e02,e10,e11-1,e12,e20,e21],axis=1)
         return p
 
 # warp the image

@@ -59,17 +59,17 @@ def ConvertOperation(PatchPH, PerturbParamsPH, PatchSize, ModelPath, WritePath, 
     """
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.MobileNetv1(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.VanillaNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
-    prParams = VN.Network()
+    _, prParams, _ = VN.Network()
 
     # Setup Saver
     Saver = tf.train.Saver()
     
     with tf.Session() as sess:
         # Restore Model
-        # Saver.restore(sess, ModelPath)
-        sess.run(tf.global_variables_initializer())
+        Saver.restore(sess, ModelPath)
+        # sess.run(tf.global_variables_initializer())
         # Print out Number of parameters
         NumParams = tu.FindNumParams(1)
         # Print out Number of Flops
@@ -137,8 +137,8 @@ def main():
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
-    InitNeurons = 8
-    warpType = ['pseudosimilarity', 'pseudosimilarity']#['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity']
+    InitNeurons = 36
+    warpType = ['pseudosimilarity']#, 'pseudosimilarity']#['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity']
     # Homography Perturbation Parameters
     PatchSize = np.array([128, 128, 3])
 

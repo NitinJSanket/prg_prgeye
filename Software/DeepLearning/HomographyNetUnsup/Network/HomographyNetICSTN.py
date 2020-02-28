@@ -42,7 +42,7 @@ def ICSTNBlock(Img, ImageSize, MiniBatchSize, AppendNum=''):
         fc1 = tf.nn.relu(flatdrop, name='relu'+AppendNum)
 
         # fc2
-        fc2 = tf.layers.dense(fc1, units=8, activation=None, name='fc2'+AppendNum)
+        fc2 = tf.layers.dense(fc1, units=3, activation=None, name='fc2'+AppendNum)
 
     return fc2
 

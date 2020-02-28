@@ -45,8 +45,8 @@ import getpass
 sys.dont_write_bytecode = True
 
 @Scope
-def Loss(I1PH, I2PH, LabelPH, WarpI1Patch, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
-    # WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
+def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
+    WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
 
@@ -56,7 +56,7 @@ def Loss(I1PH, I2PH, LabelPH, WarpI1Patch, prHVal, prVal, MiniBatchSize, PatchSi
         lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, LambdaStack)))
     elif(Args.LossFuncName == 'PhotoL1'):        
         # Self-supervised Photometric L1 Losses
-        DiffImg = WarpI1Patch[:,:,:,0:3] - I2PH
+        DiffImg = WarpI1Patch - I2PH # iu.StandardizeInputsTF(WarpI1Patch[:,:,:,0:3] - I2PH)
         lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
     elif(Args.LossFuncName == 'PhotoChab'):
         # Self-supervised Photometric Chabonier Loss
@@ -85,7 +85,7 @@ def Loss(I1PH, I2PH, LabelPH, WarpI1Patch, prHVal, prVal, MiniBatchSize, PatchSi
     
     # loss = lossPhoto + lossReg
 
-    return lossPhoto, Lambda
+    return lossPhoto, WarpI1Patch, Lambda
 
 @Scope
 def Optimizer(OptimizerParams, loss):
@@ -188,7 +188,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
-    prHVal, prVal, WarpI1Patch = VN.Network()
+    prHVal, prVal, _ = VN.Network()
 
     # TODO: Warp Patch here
     # Maybe Asmall * AbigInv * H * Abig
@@ -209,7 +209,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
-    loss, Lambda = Loss(I1PH, I2PH, LabelPH, WarpI1Patch, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
+    loss, WarpI1Patch, Lambda = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
 
     # Run Backprop and Gradient Update
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
@@ -309,7 +309,7 @@ def main():
     Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
     Parser.add_argument('--RegFuncName', default='None', help='Choice of regularization function, choose from None, C (Cornerness). Default:None')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet3', help='Name of network file, Default: Network.VanillaNet2')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet2')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
     Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
@@ -346,7 +346,7 @@ def main():
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
     InitNeurons = Args.InitNeurons
-    warpType = ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
+    warpType = ['homography'] # ['pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)

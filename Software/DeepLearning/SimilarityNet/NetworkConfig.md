@@ -274,7 +274,24 @@ NumParams = 2079870
 Expected Model Size = 23.8192596436 MB  
 Network Used: Network.VanillaNet3  
 Lambda = [1.0, 10.0, 10.0] # [Scale, Translation]  
+LR = 1e-4 oscillates a lot and doesn't train, trying LR = 1e-5 DOESNT TRAIN!
 warpType = ['translation', 'translation', 'scale', 'scale']
+
+Trying!
+self.InitNeurons = 26  
+self.ExpansionFactor = 2.0  
+self.DropOutRate = 0.7  
+self.NumBlocks = 3  
+?? FPS on BS = 1, Nitin's PC All Cores i7  
+NumFlops = 40148554316  
+NumParams = 2171890  
+Expected Model Size = 24.8676147461 MB  
+Network Used: Network.VanillaNet  
+Lambda = [1.0, 1.0, 1.0] # [Scale, Translation]  
+warpType = ['pseudosimilarity', 'pseudosimilarity']  DOESNT TRAIN!
+
+Trying S for 10 Epochs then FT.
+
 
 ## ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) Photo L1 [50EpochModel]() [100EpochModel]() Currently Training On Nitin's GPU 1 
 

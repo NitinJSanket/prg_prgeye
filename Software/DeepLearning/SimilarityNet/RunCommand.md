@@ -1195,3 +1195,207 @@ Loss Function Weights: [1.0, 10.0, 10.0]
 CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
 Logs are saved in: /home/nitin/PRGEye/Logs/
 Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 10:39:23.770533
+Username: nitin
+Learning Rate: 1e-05
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43809407030
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 11:58:02.560251
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet
+Init Neurons 26.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 4343780
+Num FLOPs: 80028663344
+Estimated Model Size (MB): 49.7352218628
+Warp Types used: ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:02:34.817907
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet
+Init Neurons 26.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 4343780
+Num FLOPs: 79934292502
+Estimated Model Size (MB): 49.7352218628
+Warp Types used: ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:05:21.797613
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43809407030
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:05:23.282138
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43809407030
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:05:44.280408
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43809407030
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:11:59.020351
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43829854260
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:15:02.005687
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43829854260
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:18:30.578824
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet
+Init Neurons 26.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2171890
+Num FLOPs: 40234012260
+Estimated Model Size (MB): 24.8676147461
+Warp Types used: ['pseudosimilarity', 'pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:23:25.882292
+Username: nitin
+Learning Rate: 1e-07
+Network Used: Network.VanillaNet
+Init Neurons 26.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2171890
+Num FLOPs: 40234012260
+Estimated Model Size (MB): 24.8676147461
+Warp Types used: ['pseudosimilarity', 'pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-24 12:30:27.879365
+Username: nitin
+Learning Rate: 1e-05
+Network Used: Network.VanillaNet
+Init Neurons 26.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2171890
+Num FLOPs: 40234012260
+Estimated Model Size (MB): 24.8676147461
+Warp Types used: ['pseudosimilarity', 'pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-02-25 05:43:03.808347
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet
+Init Neurons 26.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2171890
+Num FLOPs: 40233487972
+Estimated Model Size (MB): 24.8676147461
+Warp Types used: ['pseudosimilarity', 'pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: PhotoL1
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
