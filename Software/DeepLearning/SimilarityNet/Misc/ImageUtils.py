@@ -7,6 +7,7 @@ import skimage
 import PIL
 import sys
 import tensorflow as tf
+import Misc.MiscUtils as mu
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
@@ -137,7 +138,18 @@ def StandardizeInputsTF(I):
     I = tf.math.multiply(tf.math.subtract(tf.math.divide(I, 255.0), 0.5), 2.0)
     return I
 
-def HPFilter(I, Radius = 10):
+def HPFilterBatch(IBatch, Radius = 10):
+    BatchSize = np.shape(IBatch)[0]
+    HPBatch = []
+    for count in range(BatchSize):
+        INow = HPFilter(np.squeeze(IBatch[count, :, :, :]), Radius = Radius)
+        INow = np.uint8(mu.remap(INow, 0., 255.))
+        HPBatch.append(INow)
+
+    return HPBatch
+        
+
+def HPFilter(I, Radius = 25):
     # Code adapted from: https://akshaysin.github.io/fourier_transform.html#.XSYBbnVKhhF
     if(len(np.shape(I)) == 3):
         I = cv2.cvtColor(I, cv2.COLOR_BGR2GRAY)
@@ -158,6 +170,8 @@ def HPFilter(I, Radius = 10):
     FFilt = np.fft.ifftshift(FShiftFilt)
     IFilt = cv2.idft(FFilt)
     IFilt = cv2.magnitude(IFilt[:, :, 0], IFilt[:, :, 1])
+    IFilt = np.tile(IFilt[:,:,np.newaxis], (1,1,3))
+        
     return IFilt
 
 def rgb2gray(rgb):

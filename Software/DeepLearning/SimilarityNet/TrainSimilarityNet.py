@@ -49,22 +49,22 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
-
+    LossFuncName = Args.LossFuncName.replace('HP', '')
     # Choice of Loss Function
-    if(Args.LossFuncName == 'SL2'):
+    if(LossFuncName == 'SL2'):
         # Supervised L2 loss
         lossPhoto = tf.reduce_mean(tf.square(tf.multiply(prVal - LabelPH, LambdaStack)))
-    elif(Args.LossFuncName == 'PhotoL1'):        
+    elif(LossFuncName == 'PhotoL1'):        
         # Self-supervised Photometric L1 Losses
         DiffImg = WarpI1Patch - I2PH # iu.StandardizeInputsTF(WarpI1Patch[:,:,:,0:3] - I2PH)
         lossPhoto = tf.reduce_mean(tf.abs(DiffImg))
-    elif(Args.LossFuncName == 'PhotoChab'):
+    elif(LossFuncName == 'PhotoChab'):
         # Self-supervised Photometric Chabonier Loss
         DiffImg = WarpI1Patch[:,:,:,0:3] - I2PH
         epsilon = 1e-3
         alpha = 0.45
         lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
-    elif(Args.LossFuncName == 'PhotoRobust'):
+    elif(LossFuncName == 'PhotoRobust'):
         print('ERROR: Not implemented yet!')
         sys.exit(0)
 
@@ -185,7 +185,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.SqueezeNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
@@ -253,7 +253,13 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
                 for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
                     IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
                     # P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
-
+                    if Args.LossFuncName.endswith('HP'):
+                        try:
+                            P1Batch = iu.HPFilterBatch(P1Batch)
+                            P2Batch = iu.HPFilterBatch(P2Batch)
+                        except:
+                            pass
+                        
                     FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
                     _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                     # _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
@@ -346,7 +352,7 @@ def main():
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
     InitNeurons = Args.InitNeurons
-    warpType = ['homography'] # ['pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
+    warpType =  ['pseudosimilarity']#, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)

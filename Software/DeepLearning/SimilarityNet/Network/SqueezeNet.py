@@ -7,19 +7,16 @@ import inspect
 from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
-# Required to import ..Misc so you don't have to run as package with -m flag
-sys.path.insert(0, '../Misc/')
-import TFUtils as tu
-from Decorators import *
-import warpICSTN2 as warp2
-from BaseLayers import *
-import MiscUtils as mu
-from tqdm import tqdm
+import Misc.TFUtils as tu
+from Misc.Decorators import *
+import Misc.warpICSTN2 as warp2
+from Network.BaseLayers import *
+import Misc.MiscUtils as mu
 
 # TODO: Add training flag
 
 class SqueezeNet(BaseLayers):
-    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, NumFire = None, NumFireConv = None):
+    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, InitNeurons = None, NumFire = None, NumBlocks = None):
         super(SqueezeNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
@@ -28,7 +25,9 @@ class SqueezeNet(BaseLayers):
             print('ERROR: Options cannot be empty!')
             sys.exit(0)
         self.InputPH = InputPH
-        self.InitNeurons = 4
+        if(InitNeurons is None):
+          InitNeurons = 4
+        self.InitNeurons = InitNeurons
         self.Training = Training
         self.ExpansionFactor = 1.2
         self.DropOutRate = 0.7
@@ -38,10 +37,11 @@ class SqueezeNet(BaseLayers):
         self.Opt = Opt
         if(NumFire is None):
             NumFire =  2
-        if(NumFireConv is None):
-            NumFireConv = 2
-        self.NumFireConv = NumFireConv
+        if(NumBlocks is None):
+            NumBlocks = 2
+        self.NumBlocks = NumBlocks
         self.NumFire = NumFire
+
 
     @CountAndScope
     @add_arg_scope
@@ -87,7 +87,7 @@ class SqueezeNet(BaseLayers):
         Net = self.ConvBNReLUBlock(inputs = Net, padding = self.Padding, filters = NumFilters, kernel_size = (5,5))
 
         # 3 x FireConv blocks
-        for count in range(self.NumFireConv):
+        for count in range(self.NumBlocks):
             NumFilters = int(NumFilters*self.ExpansionFactor)
             Net = self.FireConvBlock(inputs = Net, filters = NumFilters, Bypass = False, NumFire = self.NumFire)
 

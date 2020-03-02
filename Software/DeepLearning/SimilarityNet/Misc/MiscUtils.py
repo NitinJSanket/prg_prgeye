@@ -16,11 +16,17 @@ def tic():
 def toc(StartTime):
     return time.time() - StartTime
 
-def remap(x, oMin, oMax, iMin, iMax):
+def remap(x, oMin, oMax, iMin = None, iMax = None):
     #range check
     if oMin == oMax:
         print("Warning: Zero output range")
         return None
+
+    if iMin is None:
+          iMin = np.amin(x)
+
+    if iMax is None:
+          iMax = np.amax(x)
 
     if iMin == iMax:
         print("Warning: Zero input range")

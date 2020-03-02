@@ -8,28 +8,28 @@ from functools import wraps
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
 # Required to import ..Misc so you don't have to run as package with -m flag
-sys.path.insert(0, '../Misc/')
-import TFUtils as tu
-from Decorators import *
-import warpICSTN2 as warp2
-from BaseLayers import *
-import MiscUtils as mu
-from tqdm import tqdm
+import Misc.TFUtils as tu
+from Misc.Decorators import *
+import Misc.warpICSTN2 as warp2
+from Network.BaseLayers import *
+import Misc.MiscUtils as mu
 
 # TODO: Add training flag
 
 class ResNet(BaseLayers):
     # http://torch.ch/blog/2016/02/04/resnets.html
-    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, NumRes = None):
+    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, NumBlocks = None, InitNeurons = None):
         super(ResNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
-        if( Opt is None):
+        if(Opt is None):
             print('ERROR: Options cannot be empty!')
             sys.exit(0)
         self.InputPH = InputPH
-        self.InitNeurons = 16
+        if(InitNeurons is None):
+            InitNeurons = 16
+        self.InitNeurons = InitNeurons
         self.Training = Training
         self.ExpansionFactor = 2
         self.DropOutRate = 0.7
@@ -37,9 +37,9 @@ class ResNet(BaseLayers):
             Padding = 'same'
         self.Padding = Padding
         self.Opt = Opt
-        if(NumRes is None):
-            NumRes =  4
-        self.NumRes = NumRes
+        if(NumBlocks is None):
+            NumBlocks =  3
+        self.NumBlocks = NumBlocks
 
     @CountAndScope
     @add_arg_scope
@@ -75,7 +75,7 @@ class ResNet(BaseLayers):
         Net = self.ConvBNReLUBlock(inputs = Net, padding = self.Padding, filters = NumFilters, kernel_size = (5,5))
 
         # 3 x Res blocks
-        for count in range(self.NumRes):
+        for count in range(self.NumBlocks):
             Net = self.ResBlock(inputs = Net, filters = NumFilters)
             NumFilters = int(NumFilters*self.ExpansionFactor)
             # Extra Conv for downscaling
