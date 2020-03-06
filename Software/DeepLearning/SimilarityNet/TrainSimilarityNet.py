@@ -46,7 +46,7 @@ sys.dont_write_bytecode = True
 
 @Scope
 def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
-    Beta = [0.0, 1.0, 1.0]
+    Beta = [1.0, 1.0, 1.0]
     BetaStack = np.tile(Beta, (MiniBatchSize, 1))
     prHVal = warp2.vec2mtrx(opt, tf.multiply(prVal, BetaStack)) 
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
@@ -86,8 +86,8 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args
 
         DiffImg = WarpI1Patch - I2PH
 
-        Alpha = 0.1
-        lossPhoto = tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1) + Alpha*DiffImg)
+        Alpha = 0.005
+        lossPhoto = tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1) + Alpha*tf.abs(DiffImg))
     
     elif(LossFuncName == 'PhotoRobust'):
         print('ERROR: Not implemented yet!')
