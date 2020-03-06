@@ -1,0 +1,96 @@
+import Misc.ImageUtils as iu
+
+
+def SetupAll(BasePath, LearningRate):
+    """
+    Inputs: 
+    BasePath is the base path where Images are saved without "/" at the end
+    Outputs:
+    DirNames - Full path to all image files without extension
+    Train/Val/Test - Idxs of all the images to be used for training/validation (held-out testing in this case)/testing
+    Ratios - Ratios is a list of fraction of data used for [Train, Val, Test]
+    CheckPointPath - Path to save checkpoints/model
+    OptimizerParams - List of all OptimizerParams: depends on Optimizer
+    SaveCheckPoint - Save checkpoint every SaveCheckPoint iteration in every epoch, checkpoint saved automatically after every epoch
+    ImageSize - Size of the image
+    NumTrain/Val/TestSamples - length(Train/Val/Test)
+    NumTestRunsPerEpoch - Number of passes of Val data with MiniBatchSize 
+    Train/Val/TestLabels - Labels corresponding to Train/Val/Test
+    """
+    # Setup DirNames
+    DirNamesPath = BasePath + os.sep + 'DirNames.txt'
+    # LabelNamesPath = BasePath + os.sep + 'Labels.txt'
+    TrainPath = BasePath + os.sep + 'Train.txt'
+    ValPath = BasePath + os.sep + 'Val.txt'
+    TestPath = BasePath + os.sep + 'Test.txt'
+    DirNames, TrainNames, ValNames, TestNames=\
+              ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath)
+
+
+    # Setup Neural Net Params
+    # List of all OptimizerParams: depends on Optimizer
+    # For ADAM Optimizer: [LearningRate, Beta1, Beta2, Epsilion]
+    UseDefaultFlag = 0 # Set to 0 to use your own params, do not change default parameters
+    if UseDefaultFlag:
+        # Default Parameters
+        OptimizerParams = [1e-3, 0.9, 0.999, 1e-8]
+    else:
+        # Custom Parameters
+        OptimizerParams = [LearningRate, 0.9, 0.999, 1e-8]   
+        
+    # Save checkpoint every SaveCheckPoint iteration in every epoch, checkpoint saved automatically after every epoch
+    SaveCheckPoint = 100 
+    # Number of passes of Val data with MiniBatchSize 
+    NumTestRunsPerEpoch = 5
+    
+    # Image Input Shape
+    OriginalImageSize = np.array([300, 300, 3])
+    PatchSize = np.array([128, 128, 3])
+    Rho = 25
+    NumTrainSamples = len(TrainNames)
+    NumValSamples = len(ValNames)
+    NumTestSamples = len(TestNames)
+    # Homography Perturbation Parameters
+    HObj = iu.Homography(ImageSize = OriginalImageSize, MaxT = np.array([[0.025], [0.025], [0.025]]), MaxYaw = 1.2, MaxMinScale = np.array([0.97, 1.03]))
+
+    
+    return TrainNames, ValNames, TestNames, OptimizerParams,\
+        SaveCheckPoint, PatchSize, Rho, NumTrainSamples, NumValSamples, NumTestSamples,\
+        NumTestRunsPerEpoch, OriginalImageSize, HObj      
+
+
+def ReadDirNames(DirNamesPath, TrainPath, ValPath, TestPath):
+    """
+    Inputs: 
+    Path is the path of the file you want to read
+    Outputs:
+    DirNames is the data loaded from ./TxtFiles/DirNames.txt which has full path to all image files without extension
+    """
+    # Read DirNames and LabelNames files
+    DirNames = open(DirNamesPath, 'r')
+    DirNames = DirNames.read()
+    DirNames = DirNames.split()
+    
+    # Read Train, Val and Test Idxs
+    TrainIdxs = open(TrainPath, 'r')
+    TrainIdxs = TrainIdxs.read()
+    TrainIdxs = TrainIdxs.split()
+    TrainIdxs = [int(val) for val in TrainIdxs]
+    TrainNames = [DirNames[i] for i in TrainIdxs]
+    # TrainLabels = [LabelNames[i] for i in TrainIdxs]
+
+    ValIdxs = open(ValPath, 'r')
+    ValIdxs = ValIdxs.read()
+    ValIdxs = ValIdxs.split()
+    ValIdxs = [int(val) for val in ValIdxs]
+    ValNames = [DirNames[i] for i in ValIdxs]
+    # ValLabels = [LabelNames[i] for i in ValIdxs]
+
+    TestIdxs = open(TestPath, 'r')
+    TestIdxs = TestIdxs.read()
+    TestIdxs = TestIdxs.split()
+    TestIdxs = [int(val) for val in TestIdxs]
+    TestNames = [DirNames[i] for i in TestIdxs]
+    # TestLabels = [LabelNames[i] for i in TestIdxs]
+
+    return DirNames, TrainNames, ValNames, TestNames
