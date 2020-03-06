@@ -46,6 +46,9 @@ sys.dont_write_bytecode = True
 
 @Scope
 def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
+    Beta = [0.0, 1.0, 1.0]
+    BetaStack = np.tile(Beta, (MiniBatchSize, 1))
+    prHVal = warp2.vec2mtrx(opt, tf.multiply(prVal, BetaStack)) 
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
@@ -64,12 +67,35 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args
         epsilon = 1e-3
         alpha = 0.45
         lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
+    elif(LossFuncName == 'SSIM'):
+        # Adapted from: https://github.com/yzcjtr/GeoNet/blob/master/geonet_model.py
+        C1 = 0.01 ** 2
+        C2 = 0.03 ** 2
+
+        mu_x = tf.nn.avg_pool(WarpI1Patch, ksize = (3,3), strides=(1,1), padding='SAME')
+        mu_y = tf.nn.avg_pool(I2PH, ksize = (3,3), strides=(1,1), padding='SAME')
+
+        sigma_x  = tf.nn.avg_pool(WarpI1Patch ** 2, ksize = (3,3), strides=(1,1), padding='SAME') - mu_x ** 2
+        sigma_y  = tf.nn.avg_pool(I2PH ** 2, ksize = (3,3), strides=(1,1), padding='SAME') - mu_y ** 2
+        sigma_xy = tf.nn.avg_pool(WarpI1Patch * I2PH , ksize = (3,3), strides=(1,1), padding='SAME') - mu_x * mu_y
+
+        SSIM_n = (2 * mu_x * mu_y + C1) * (2 * sigma_xy + C2)
+        SSIM_d = (mu_x ** 2 + mu_y ** 2 + C1) * (sigma_x + sigma_y + C2)
+
+        SSIM = SSIM_n / SSIM_d
+
+        DiffImg = WarpI1Patch - I2PH
+
+        Alpha = 0.1
+        lossPhoto = tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1) + Alpha*DiffImg)
+    
     elif(LossFuncName == 'PhotoRobust'):
         print('ERROR: Not implemented yet!')
         sys.exit(0)
 
     if(Args.RegFuncName == 'None'):
         lossReg = 0.
+    # elif(Args.RegFuncName == 'PhotoL1'):  
     elif(Args.RegFuncName == 'C'):
         # TODO: Cornerness Loss
         # WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
@@ -185,7 +211,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.SqueezeNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
