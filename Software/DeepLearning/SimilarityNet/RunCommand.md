@@ -2300,3 +2300,37 @@ Loss Function Weights: [1.0, 10.0, 10.0]
 CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints2/
 Logs are saved in: /home/nitin/PRGEye/Logs2/
 Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-03-11 14:52:57.609908
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.ResNet
+Init Neurons 24.0, Expansion Factor 2, NumBlocks 3, DropOutFactor 0.7
+Num Params: 1799019
+Num FLOPs: 42590729426
+Estimated Model Size (MB): 20.5938224792
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SSIM
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints/
+Logs are saved in: /home/chahatdeep/Logs/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed
+
+
+2020-03-11 14:56:12.873412
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.ResNet
+Init Neurons 18.0, Expansion Factor 2, NumBlocks 3, DropOutFactor 0.7
+Num Params: 1017273
+Num FLOPs: 25339371644
+Estimated Model Size (MB): 11.646030426
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SSIM
+Loss Function Weights: [1.0, 10.0, 10.0]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints/
+Logs are saved in: /home/chahatdeep/Logs/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed
