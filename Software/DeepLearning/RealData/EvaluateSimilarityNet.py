@@ -68,11 +68,11 @@ def TestOperation(PatchPH, PatchSize, ModelPath,\
     # Test Set Params
     NumImgs = 1000
     StartNum = 0
-    SkipNum = 5
+    SkipNum = 2
     ImgFormat = '.png'
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.ResNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     prH, prParams, _ = VN.Network()
 
@@ -105,7 +105,7 @@ def TestOperation(PatchPH, PatchSize, ModelPath,\
         if(not os.path.exists(WritePath)):
             os.makedirs(WritePath)
 
-        for TestNum in tqdm(range((NumImgs-StartNum)//SkipNum)):
+        for TestNum in tqdm(range(StartNum, NumImgs-SkipNum, SkipNum)):
             # Generate batch of I1 original images
             ImageName = ReadPath + os.sep +  'frame' + '%06d'%TestNum + ImgFormat
             ImagePairName = ReadPath + os.sep +  'frame' + '%06d'%(TestNum + SkipNum) + ImgFormat
@@ -156,7 +156,7 @@ def main():
                                                                              help='Path to load images from, Default:WritePath')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--NetworkName', default='Network.ResNet', help='Name of network file, Default: Network.VanillaNet')
 
     # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
     # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
@@ -184,8 +184,8 @@ def main():
 
 
     # Setup all needed parameters including file reading
-    InitNeurons = 36
-    warpType = ['pseudosimilarity']#, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    InitNeurons = 26
+    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
 
     opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options

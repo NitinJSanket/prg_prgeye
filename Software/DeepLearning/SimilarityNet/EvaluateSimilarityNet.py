@@ -78,7 +78,7 @@ def SetupAll(ReadPath, warpType):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    MaxParams = np.array([0.5, 0.4, 0.4])/2.0 # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
+    MaxParams = np.array([0.5, 0.4, 0.4])#/2.0 # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
     
     return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
@@ -180,7 +180,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.SqueezeNet(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     prH, prParams, _ = VN.Network()
 
@@ -295,7 +295,7 @@ def main():
                                                                              help='Path to load images from, Default:WritePath')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--NetworkName', default='Network.SqueezeNet', help='Name of network file, Default: Network.VanillaNet')
 
     # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
     # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
@@ -319,8 +319,8 @@ def main():
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
-    InitNeurons = 36
-    warpType = ['pseudosimilarity']#, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    InitNeurons = 24
+    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] #, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj = SetupAll(ReadPath, warpType)
 

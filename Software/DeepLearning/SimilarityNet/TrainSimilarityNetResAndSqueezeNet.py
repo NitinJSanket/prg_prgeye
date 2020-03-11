@@ -189,7 +189,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
     
 def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType, InitNeurons):
+                   DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, optSN, optRN, optdg, HObj, Net, Args, warpType, InitNeurons):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -211,22 +211,28 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.SqueezeNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    SN = Net.SqueezeNet(InputPH = ImgPH, Training = True, Opt = optSN, InitNeurons = InitNeurons)
+    RN = Net.ResNet(InputPH = ImgPH, Training = True, Opt = optRN, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
-    prHVal, prVal, _ = VN.Network()
+    prHValSN, prValSN, _ = SN.Network()
+    prHValRN, prValRN, _ = RN.Network()
 
     # TODO: Warp Patch here
     # Maybe Asmall * AbigInv * H * Abig
     # Warp I1 with ideal parameters for visual sanity check
     # MODIFY THIS DEPENDING ON ARCH!
-    opt2 = opt
+    opt2 = optSN
     opt2.warpType = 'pseudosimilarity'
+
+    prVal = tf.concat([prValSN, prValRN], axis=1)
+    prHVal = warp2.vec2mtrx(opt2, prVal) 
+    
     # optlarge = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = 'pseudosimilarity') # ICSTN Options
     # Alarge = tf.linalg.inv(optlarge.refMtrx)
     # HCorr = tf.matmul(Alarge, tf.matmul(warp2.vec2mtrx(opt2, LabelPH), tf.linalg.inv(Alarge)))
     # WarpI1PatchIdeal = warp2.transformImage(opt, I1PH, HCorr)
-    WarpI1PatchIdeal = warp2.transformImage(opt, IOrgPH, warp2.vec2mtrx(opt2, LabelPH))
+    WarpI1PatchIdeal = warp2.transformImage(opt2, IOrgPH, warp2.vec2mtrx(opt2, LabelPH))
 
     # Data Generation
     # MODIFY THIS DEPENDING ON ARCH!
@@ -235,7 +241,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
-    loss, WarpI1Patch, Lambda = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
+    loss, WarpI1Patch, Lambda = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt2, Args)
 
     # Run Backprop and Gradient Update
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
@@ -269,7 +275,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
             ModelSize = tu.CalculateModelSize(1)
 
             # Pretty Print Stats
-            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, VN, OverideKbInput=False)
+            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, SN, OverideKbInput=False)
 
             # Tensorboard
             Writer = tf.summary.FileWriter(LogsPath, graph=tf.get_default_graph())
@@ -286,7 +292,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
                         except:
                             pass
                         
-                    FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
+                    FeedDict = {SN.InputPH: IBatch, RN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
                     _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                     # _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
                     # WarpI1PatchIdealRet = iu.CenterCrop(WarpI1PatchIdealRet, PatchSize)
@@ -341,7 +347,7 @@ def main():
     Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
     Parser.add_argument('--RegFuncName', default='None', help='Choice of regularization function, choose from None, C (Cornerness). Default:None')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet2')
+    Parser.add_argument('--NetworkName', default='Network.ResAndSqueezeNet', help='Name of network file, Default: Network.ResAndSqueezeNet')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
     Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
@@ -387,10 +393,11 @@ def main():
     if(not (os.path.isdir(CheckPointPath))):
        os.makedirs(CheckPointPath)
 
-    opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
+    optSN = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['scale']) # ICSTN Options
+    optRN = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['translation']) # ICSTN Options
     # opt = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
     # Data Generation Options, warpType should the same the last one in the previous command
-    optdg = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = [warpType[-1]]) 
+    optdg = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = ['pseudosimilarity']) 
     
     # Find Latest Checkpoint File
     if LoadCheckPoint==1:
@@ -413,7 +420,7 @@ def main():
 
     TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
-                       DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType, InitNeurons)
+                       DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, optSN, optRN, optdg, HObj, Net, Args, warpType, InitNeurons)
     
     
 if __name__ == '__main__':
