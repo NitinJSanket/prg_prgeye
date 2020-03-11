@@ -225,7 +225,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     opt2 = optSN
     opt2.warpType = 'pseudosimilarity'
 
-    prVal = tf.concat([prValSN, prValRN], axis=1)
+    prVal = tf.concat([prValRN, prValSN], axis=1) # [Scale, Translation]
     prHVal = warp2.vec2mtrx(opt2, prVal) 
     
     # optlarge = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = 'pseudosimilarity') # ICSTN Options
@@ -393,8 +393,8 @@ def main():
     if(not (os.path.isdir(CheckPointPath))):
        os.makedirs(CheckPointPath)
 
-    optSN = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['scale']) # ICSTN Options
-    optRN = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['translation']) # ICSTN Options
+    optSN = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['translation']) # ICSTN Options
+    optRN = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['scale']) # ICSTN Options
     # opt = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
     # Data Generation Options, warpType should the same the last one in the previous command
     optdg = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = ['pseudosimilarity']) 
