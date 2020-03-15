@@ -14,6 +14,7 @@ import cv2
 import sys
 import os
 import glob
+import re
 import Misc.ImageUtils as iu
 import random
 from skimage import data, exposure, img_as_float
@@ -45,14 +46,26 @@ import getpass
 sys.dont_write_bytecode = True
 
 @Scope
-def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
-    Beta = [1.0, 1.0, 1.0]
-    BetaStack = np.tile(Beta, (MiniBatchSize, 1))
-    prHVal = warp2.vec2mtrx(opt, tf.multiply(prVal, BetaStack)) 
+def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args):
+    # DEPRACATED: Beta weighs different parts of the prediction 
+    # Beta = [1.0, 1.0, 1.0]
+    # BetaStack = np.tile(Beta, (MiniBatchSize, 1))
+    # prHVal = warp2.vec2mtrx(opt, tf.multiply(prVal, BetaStack)) 
+    # WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
+    prHVal = warp2.vec2mtrx(opt, prVal)
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
+    # Lambda weighs the different components of the supervised loss
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
-    LossFuncName = Args.LossFuncName.replace('HP', '')
+    # Alpha Weighs the different parts of loss, i.e., loss = loss + alpha_i*Reg_i
+    Alpha = [10.0]
+    # Strip HP and SP to get loss function name
+    ReplaceList = ['HP', 'SP']
+    # HPLossFlag = ('HP' in Args.LossFuncName)
+    # HPRegFalg = ('HP' in Args.RegFuncName) 
+    # SPLossFlag = ('SP' in Args.LossFuncName)
+    # SPRegFlag = ('SP' in Args.RegFuncName)
+    LossFuncName = re.sub(r'|'.join(map(re.escape, ReplaceList)), '', Args.LossFuncName)
     # Choice of Loss Function
     if(LossFuncName == 'SL2'):
         # Supervised L2 loss
@@ -86,8 +99,8 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args
 
         DiffImg = WarpI1Patch - I2PH
 
-        Alpha = 0.005
-        lossPhoto = tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1) + Alpha*tf.abs(DiffImg))
+        AlphaSSIM = 0.005
+        lossPhoto = tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1) + AlphaSSIM*tf.abs(DiffImg))
     
     elif(LossFuncName == 'PhotoRobust'):
         print('ERROR: Not implemented yet!')
@@ -96,22 +109,16 @@ def Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args
     if(Args.RegFuncName == 'None'):
         lossReg = 0.
     # elif(Args.RegFuncName == 'PhotoL1'):  
-    elif(Args.RegFuncName == 'C'):
-        # TODO: Cornerness Loss
-        # WarpI1Patch = tf.boolean_mask(WarpI1, MaskPH)
-        # WarpI1PatchCornerness = tf.boolean_mask(WarpI1Cornerness, MaskPH), send this as input to function
-        # I2PatchCornerness = tf.boolean_mask(I2CornernessPH, MaskPH), send this as input to function
-        print('ERROR: Not implemented yet!')
-        sys.exit(0)
-    
+    elif(Args.RegFuncName == 'SP'):
+        WarpC1 = warp2.transformImage(opt, C1PH, prHVal)
+        lossReg = tf.reduce_mean(Alpha[0]*tf.math.multiply(WarpI1Patch, WarpC1/255.0) - tf.math.multiply(I2PH, C2PH/255.0))
     # TODO: HP Filter Loss
     # Lambda = [0.1, 1.0] # Photo, CornerPhoto
     # lossCornerPhoto = tf.math.multiply(WarpI1Patch, WarpI1PatchCornerness) - tf.math.multiply(I2Patch, I2PatchCornerness)
     # lossPhoto = tf.reduce_mean(Lambda[0]*tf.abs(DiffImg) + Lambda[1]*lossCornerPhoto)
     
-    # loss = lossPhoto + lossReg
-
-    return lossPhoto, WarpI1Patch, Lambda
+    loss = lossPhoto + lossReg
+    return loss, WarpI1Patch, Lambda, Alpha
 
 @Scope
 def Optimizer(OptimizerParams, loss):
@@ -123,12 +130,15 @@ def Optimizer(OptimizerParams, loss):
     # Optimizer = tf.train.MomentumOptimizer(learning_rate=1e-3, momentum=0.9, use_nesterov=True).minimize(loss)
     return OptimizerUpdate
 
-def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelPH):
+def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args):
     # Create a summary to monitor loss tensor
     tf.summary.scalar('LossEveryIter', loss)
     tf.summary.image('I1Patch', I1PH[:,:,:,0:3], max_outputs=3)
     tf.summary.image('I2Patch', I2PH[:,:,:,0:3], max_outputs=3)
     tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3], max_outputs=3)
+    if(Args.SuperPointFlag):
+         tf.summary.image('C1', C1PH[:,:,:,0:3], max_outputs=3)
+         tf.summary.image('C2', C2PH[:,:,:,0:3], max_outputs=3)
     I2PHGray = tf.image.rgb_to_grayscale(I2PH)
     WarpI1PatchGray = tf.image.rgb_to_grayscale(WarpI1Patch[:,:,:,0:3]*255.0)
     OverlayImg = tf.concat([tf.concat([I2PHGray, tf.zeros(np.shape(I2PHGray))], axis=3), WarpI1PatchGray], axis=3)
@@ -141,7 +151,7 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelP
     return MergedSummaryOP
 
 
-def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda, VN, OverideKbInput=False):
+def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda, Alpha, VN, OverideKbInput=False):
     # TODO: Write to file?
     Username = getpass.getuser()
     cprint('Running on {}'.format(Username), 'yellow')
@@ -156,6 +166,8 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
     cprint('Warp Types For Data Generation: {}'.format(warpTypedg), 'green')
     cprint('Loss Function used: {}'.format(Args.LossFuncName), 'green')
     cprint('Loss Function Weights: {}'.format(Lambda), 'green')
+    cprint('Reg Function used: {}'.format(Args.RegFuncName), 'green')
+    cprint('Reg Function Weights: {}'.format(Alpha), 'green')
     cprint('CheckPoints are saved in: {}'.format(Args.CheckPointPath), 'red')
     cprint('Logs are saved in: {}'.format(Args.LogsPath), 'red')
     cprint('Images used for Training are in: {}'.format(Args.BasePath), 'red')
@@ -179,6 +191,8 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
             RunCommand.write('Warp Types For Data Generation: {}\n'.format(warpTypedg))
             RunCommand.write('Loss Function used: {}\n'.format(Args.LossFuncName))
             RunCommand.write('Loss Function Weights: {}\n'.format(Lambda))
+            RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
+            RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
             RunCommand.write('CheckPoints are saved in: {}\n'.format(Args.CheckPointPath))
             RunCommand.write('Logs are saved in: {}\n'.format(Args.LogsPath))
             RunCommand.write('Images used for Training are in: {}\n'.format(Args.BasePath))
@@ -187,7 +201,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
         cprint('Log writing skipped', 'yellow')
         
     
-def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
+def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
                    DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType, InitNeurons):
     """
@@ -211,7 +225,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.ResNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
@@ -235,13 +249,13 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
-    loss, WarpI1Patch, Lambda = Loss(I1PH, I2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
+    loss, WarpI1Patch, Lambda, Alpha = Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
 
     # Run Backprop and Gradient Update
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
         
     # Tensorboard
-    MergedSummaryOP = TensorBoard(loss, WarpI1Patch, I1PH, I2PH, WarpI1PatchIdealPH, prVal, LabelPH)
+    MergedSummaryOP = TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args)
  
     # Setup Saver
     Saver = tf.train.Saver()
@@ -259,7 +273,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
                 print('New model initialized....')
 
             # Create Batch Generator Object
-            bg = BatchGeneration(sess, I2Gen, IOrgPH, HPH)
+            bg = BatchGeneration(sess, I2Gen, IOrgPH, HPH, SuperPointFlag = Args.SuperPointFlag)
 
             # Print out Number of parameters
             NumParams = tu.FindNumParams(1)
@@ -269,7 +283,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
             ModelSize = tu.CalculateModelSize(1)
 
             # Pretty Print Stats
-            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, VN, OverideKbInput=False)
+            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, Alpha, VN, OverideKbInput=False)
 
             # Tensorboard
             Writer = tf.summary.FileWriter(LogsPath, graph=tf.get_default_graph())
@@ -277,17 +291,20 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
             for Epochs in tqdm(range(StartEpoch, NumEpochs)):
                 NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
                 for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
-                    IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
+                    IBatch, I1Batch, I2Batch, P1Batch, P2Batch, C1Batch, C2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
                     # P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
-                    if Args.LossFuncName.endswith('HP'):
+                    if 'HP' in Args.LossFuncName:
                         try:
                             P1Batch = iu.HPFilterBatch(P1Batch)
                             P2Batch = iu.HPFilterBatch(P2Batch)
                         except:
                             pass
-                        
-                    FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
-                    _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                    if Args.SuperPointFlag:
+                        FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, C1PH: C1Batch, C2PH:C2Batch}
+                        _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                    else:
+                        FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
+                        _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                     # _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
                     # WarpI1PatchIdealRet = iu.CenterCrop(WarpI1PatchIdealRet, PatchSize)
                     # FeedDict = {WarpI1PatchIdealPH: WarpI1PatchIdealRet, VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
@@ -317,11 +334,11 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
                 print(SaveName + ' Model Saved...')
 
         # Pretty Print Stats before exiting
-        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, VN, OverideKbInput=True)
+        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, Alpha, VN, OverideKbInput=True)
     
     except KeyboardInterrupt:
         # Pretty Print Stats before exitting
-        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda)
+        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, Alpha, VN)
 
 def main():
     """
@@ -348,6 +365,7 @@ def main():
     Parser.add_argument('--DataAug', type=int, default=0, help='Do you want to do Data augmentation?, Default:0')
     Parser.add_argument('--LR', type=float, default=1e-4, help='Learning Rate, Default: 1e-4')
     Parser.add_argument('--InitNeurons', type=float, default=8, help='Learning Rate, Default: 8')
+    Parser.add_argument('--Input', default='I', help='Input, choose from I: RGB Images, G: Grayscale Images, HP: HP Grayscale Images, SP: Cornerness, Default: I')
     
     Args = Parser.parse_args()
     NumEpochs = Args.NumEpochs
@@ -365,6 +383,7 @@ def main():
     NetworkName = Args.NetworkName
     DataAug = Args.DataAug
     RegFuncName = Args.RegFuncName
+    Args.SuperPointFlag = ('SP' in Args.LossFuncName) or ('SP' in Args.RegFuncName)
 
     # Import Network Module
     Net = importlib.import_module(NetworkName)
@@ -404,6 +423,8 @@ def main():
     # PH for losses
     I1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1')
     I2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I2')
+    C1PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='C1')
+    C2PH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='C2')
     WarpI1PatchIdealPH =  tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='I1WarpIdeal')
     # MODIFY THIS DEPENDING ON ARCH!
     LabelPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3), name='Label')
@@ -411,7 +432,7 @@ def main():
     IOrgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, OriginalImageSize[0], OriginalImageSize[1], OriginalImageSize[2]), name='IOrg') 
     HPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, 3, 3), name='LabelH')
 
-    TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
+    TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, TrainNames, TestNames, NumTrainSamples, PatchSize,
                    NumEpochs, MiniBatchSize, OptimizerParams, SaveCheckPoint, CheckPointPath, NumTestRunsPerEpoch,
                        DivTrain, LatestFile, LossFuncName, NetworkType, BasePath, LogsPath, OriginalImageSize, opt, optdg, HObj, Net, Args, warpType, InitNeurons)
     

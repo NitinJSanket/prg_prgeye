@@ -323,7 +323,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, LabelPH, IOrgPH, HPH, WarpI1PatchIdealPH, 
                 print(SaveName + ' Model Saved...')
 
         # Pretty Print Stats before exiting
-        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, VN, OverideKbInput=True)
+        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, RN, OverideKbInput=True)
     
     except KeyboardInterrupt:
         # Pretty Print Stats before exitting
