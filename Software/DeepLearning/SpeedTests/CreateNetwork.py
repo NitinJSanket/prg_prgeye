@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 from Network.EVHomographyNetUnsupSmall import EVHomographyNetUnsupSmall
 from Network.EVHomographyNetUnsupSmallMaixPy import EVHomographyNetUnsupSmallMaixPy
 from Network.EVHomographyNetUnsup import EVHomographyNetUnsup
+from Network.EVHomographyNetUnsupSmallTRT import EVHomographyNetUnsupSmallTRT
 from Misc.MiscUtils import *
 import numpy as np
 import time
@@ -50,7 +51,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, Mi
     if(NetworkType == 'Small'):
         prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
     elif(NetworkType == 'Large'):
-        prHVal = EVHomographyNetUnsupSmallMaixPy(ImgPH, ImageSize, MiniBatchSize)
+        prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
             
     # Setup Saver
     Saver = tf.train.Saver()
@@ -58,6 +59,8 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, Mi
     with tf.Session() as sess:       
         sess.run(tf.global_variables_initializer())
         print('New model initialized....')
+
+        # Summary_writer = tf.summary.FileWriter("logs_viz",graph=tf.get_default_graph())
 
         # Print Number of parameters in the network    
         tu.FindNumParams(1)
@@ -110,13 +113,13 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
     for count2 in range(StartIdx, MiniBatchSize, MiniBatchSizeIncrement):
         MiniBatchSizeNow = count2 + 1
         print('Testing MiniBatchSize {} ....'.format(MiniBatchSizeNow))
-        ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSizeNow, ImageSize[0], ImageSize[1], 2*ImageSize[2]), name='Input')
+        ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSizeNow, ImageSize[0], ImageSize[1], ImageSize[2]), name='Input')
             
         # Predict output with forward pass
         if(NetworkType == 'Small'):
-            prHVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
+            prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
         elif(NetworkType == 'Large'):
-            prHVal = EVHomographyNetUnsupSmallMaixPy(ImgPH, ImageSize, MiniBatchSize)
+            prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
 
         # Setup Saver
         Saver = tf.train.Saver()
@@ -146,7 +149,7 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
             print('Loaded weights from ' + LoadName + '....')
 
             # Run once to setup graph
-            RandImg = np.random.rand(ImageSize[0], ImageSize[1], 2*ImageSize[2])
+            RandImg = np.random.rand(ImageSize[0], ImageSize[1], ImageSize[2])
             RandImg = RandImg[np.newaxis, :, :, :]
 
             RandImgBatch = np.tile(RandImg, (MiniBatchSizeNow,1,1,1))
@@ -212,7 +215,7 @@ def main():
     tu.SetGPU(GPUDevice)
 
     # Placeholders
-    ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, ImageSize[0], ImageSize[1], 2*ImageSize[2]), name='Input')
+    ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, ImageSize[0], ImageSize[1], ImageSize[2]), name='Input')
     
     # Generate the model and save        
     if(Mode == 'Train'):

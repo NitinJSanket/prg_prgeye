@@ -101,46 +101,50 @@ class DataAugmentationNP:
 
     def RandPerturbBatch(self, I):
         IRet = []
-        for count in range(np.shape(I1)[0]):
-            for perturb in Augmentations:
-                INow = np.squeeze(I[count, :, :, :])
+        for count in range(np.shape(I)[0]):
+            for perturb in self.Augmentations:
+                INow = np.squeeze(I[count])
                 if perturb == 'Brightness':
-                    INow = ShiftBrightness(INow, MaxShift = 30)
+                    INow = self.ShiftBrightness(INow, MaxShift = 30)
                 elif(perturb == 'Contrast'):
-                    INow = ShiftContrast(INow, ContrastFactor = 2.0)
+                    INow = self.ShiftContrast(INow, ContrastFactor = 2.0)
                 elif(perturb == 'Hue'):
-                    INow = ShiftHue(INow, MaxShift = 30)
+                    INow = self.ShiftHue(INow, MaxShift = 30)
                 elif(perturb == 'Saturation'):
-                    INow = ShiftSaturation(INow, MaxShift = 30)
+                    INow = self.ShiftSaturation(INow, MaxShift = 30)
                 elif(perturb == 'Gamma'):
-                    INow = ShiftGamma(INow, MaxShift = 2.5)
+                    INow = self.ShiftGamma(INow, MaxShift = 2.5)
                 elif(perturb == 'Gaussian'):
-                    INow = GaussianNoise(INow, MaxShift = 0.01)
+                    INow = self.GaussianNoise(INow, MaxShift = 0.01)
             IRet.append(INow)
         return IRet
 
+    @staticmethod
     def ShiftContrast(I, ContrastFactor = 2.0):
         Mean = np.mean(I, axis=(0,1))
         I = (I - Mean)*ContrastFactor + Mean
         I = np.uint8(np.clip(I, 0, 255))
         return I
-    
+
+    @staticmethod
     def GaussianNoise(I, MaxShift = 0.01):
         IN1 = skimage.util.random_noise(I, mode = 'gaussian', var = MaxShift)
         IN1 = np.uint8(IN1*255)
         return (IN1)
 
+    @staticmethod
     def ShiftHue(I, MaxShift = 30):
-        if(np.shape(I)[3] != 3):
+        if(np.shape(I)[2] != 3):
             return I
         IHSV = cv2.cvtColor(I, cv2.COLOR_BGR2HSV)
         RandShift = random.randint(-MaxShift, MaxShift)
         IHSV[:, :, 0] = IHSV[:, :, 0] + RandShift
-        IHSV = np.uint8(np.clip(IHSV1, 0, 255))
+        IHSV = np.uint8(np.clip(IHSV, 0, 255))
         return (cv2.cvtColor(IHSV, cv2.COLOR_HSV2BGR))
 
+    @staticmethod
     def ShiftSaturation(I, MaxShift = 30):
-        if(np.shape(I)[3] != 3):
+        if(np.shape(I)[2] != 3):
             return I
         IHSV = cv2.cvtColor(I, cv2.COLOR_BGR2HSV)
         RandShift = random.randint(-MaxShift, MaxShift)
@@ -149,15 +153,16 @@ class DataAugmentationNP:
         IHSV = np.uint8(np.clip(IHSV, 0, 255))
         return (cv2.cvtColor(IHSV, cv2.COLOR_HSV2BGR))
 
+    @staticmethod
     def ShiftBrightness(I, MaxShift = 30):
-        if(np.shape(I)[3] == 3):
+        if(np.shape(I)[2] == 3):
             IHSV = cv2.cvtColor(I, cv2.COLOR_BGR2HSV)
             RandShift = random.randint(-MaxShift, MaxShift)
             IHSV = np.int_(IHSV)
             IHSV[:, :, 1] = IHSV[:, :, 1] + RandShift
             IHSV = np.uint8(np.clip(IHSV, 0, 255))
             return (cv2.cvtColor(IHSV, cv2.COLOR_HSV2BGR))
-        elif(np.shape(I)[3] == 1):
+        elif(np.shape(I)[2] == 1):
             RandShift = random.randint(-MaxShift, MaxShift)
             IHSV = np.int_(IHSV)
             IHSV[:, :, 1] = IHSV[:, :, 1] + RandShift
@@ -166,6 +171,7 @@ class DataAugmentationNP:
         else:
             return I
 
+    @staticmethod
     def ShiftGamma(I, MaxShift = 2.5):
         RandShift = random.uniform(0, MaxShift)
         IG = skimage.exposure.adjust_gamma(I, RandShift)

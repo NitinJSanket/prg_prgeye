@@ -58,7 +58,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
     # Alpha Weighs the different parts of loss, i.e., loss = loss + alpha_i*Reg_i
-    Alpha = [2.0]
+    Alpha = [0.1]
     # Strip HP and SP to get loss function name
     ReplaceList = ['HP', 'SP']
     # HPLossFlag = ('HP' in Args.LossFuncName)
@@ -101,7 +101,21 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
 
         AlphaSSIM = 0.005
         lossPhoto = tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1) + AlphaSSIM*tf.abs(DiffImg))
-    
+    elif(LossFuncName == 'SSIMTF'):
+        # TF's official SSIM
+        SSIM = tf.image.ssim(tf.image.rgb_to_grayscale(WarpI1Patch), tf.image.rgb_to_grayscale(I2PH), max_val=255, filter_size=11,\
+                              filter_sigma=1.5, k1=0.01, k2=0.03)
+        DiffImg = WarpI1Patch - I2PH
+        AlphaSSIM = 0.005
+        lossPhoto = tf.reduce_mean(tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1)) + tf.reduce_mean(AlphaSSIM*tf.abs(DiffImg)))
+    # elif(LossFuncName == 'SSIMMSTF'):
+    #     # TF's official SSIM MultiScale
+    #     SSIM = tf.image.ssim_multiscale(tf.image.rgb_to_grayscale(WarpI1Patch), tf.image.rgb_to_grayscale(I2PH), power_factors=(0.2, 0.5, 0.3), max_val=255,\
+    #                                     filter_size=11, filter_sigma=1.5, k1=0.01, k2=0.03)
+    #     DiffImg = WarpI1Patch - I2PH
+    #     AlphaSSIM = 0.005
+    #     lossPhoto = tf.reduce_mean(tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1)) + tf.reduce_mean(AlphaSSIM*tf.abs(DiffImg)))   
+        
     elif(LossFuncName == 'PhotoRobust'):
         print('ERROR: Not implemented yet!')
         sys.exit(0)

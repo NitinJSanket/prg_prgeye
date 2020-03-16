@@ -62,5 +62,7 @@ def EVHomographyNetUnsup(Img, ImageSize, MiniBatchSize):
     # fc2
     fc2 = tf.layers.dense(fc1, units=8, activation=None, name='fc2')
 
-    return fc2
+    Output = tf.identity(fc2, name='Output')
+
+    return Output
 
