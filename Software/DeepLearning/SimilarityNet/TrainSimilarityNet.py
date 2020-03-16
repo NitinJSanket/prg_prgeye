@@ -291,7 +291,8 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
             for Epochs in tqdm(range(StartEpoch, NumEpochs)):
                 NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
                 for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
-                    IBatch, I1Batch, I2Batch, P1Batch, P2Batch, C1Batch, C2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize)
+                    IBatch, I1Batch, I2Batch, P1Batch, P2Batch, C1Batch, C2Batch, HBatch, ParamsBatch =\
+                        bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args)
                     # P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
                     if 'HP' in Args.LossFuncName:
                         try:
@@ -299,6 +300,9 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
                             P2Batch = iu.HPFilterBatch(P2Batch)
                         except:
                             pass
+                    elif 'SP' in Args.LossFuncName:
+                        P1Batch = C1Batch
+                        P2Batch = C2Batch
                     if Args.SuperPointFlag:
                         FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, C1PH: C1Batch, C2PH:C2Batch}
                         _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)

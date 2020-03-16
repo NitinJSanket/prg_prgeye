@@ -91,7 +91,7 @@ class BatchGeneration():
         return I1, I2, P1, P2, C1, C2, H, Params
 
 
-    def GenerateBatchTF(self, TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize):
+    def GenerateBatchTF(self, TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args):
         """
         Inputs: 
         DirNames - Full path to all image files without extension
@@ -141,8 +141,21 @@ class BatchGeneration():
         # Similarity and Patch generation 
         I1Batch, I2Batch, P1Batch, P2Batch, C1Batch, C2Batch, HBatch, ParamsBatch = \
             self.RandSimilarityPerturbationTF(IOrgBatch, HObj, PatchSize, MiniBatchSize, Cornerness1Batch, ImageSize = None, Vis = False)
-            
+
+        if(Args.Input == 'G'):
+            P1Batch = np.tile(tf.image.rgb_to_grayscale(P1Batch), [1,1,1,3])
+            P2Batch = np.tile(tf.image.rgb_to_grayscale(P2Batch), [1,1,1,3])
+        elif(Args.Input == 'HP'):
+            P1Batch = iu.HPFilterBatch(P1Batch)
+            P2Batch = iu.HPFilterBatch(P2Batch)
+        elif(Args.Input == 'SP'):
+            P1Batch = C1Batch
+            P2Batch = C2Batch
+        else:
+            print('ERROR: Unrecognized Input Type ')
+            os.exit()
         ICombined = np.concatenate((P1Batch[:,:,:,0:3], P2Batch[:,:,:,0:3]), axis=3)
+        
         # Normalize Dataset
         # https://stackoverflow.com/questions/42275815/should-i-substract-imagenet-pretrained-inception-v3-model-mean-value-at-inceptio
         IBatch = iu.StandardizeInputs(np.float32(ICombined))
