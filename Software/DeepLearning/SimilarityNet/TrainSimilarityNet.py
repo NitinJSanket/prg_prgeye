@@ -58,7 +58,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
     # Alpha Weighs the different parts of loss, i.e., loss = loss + alpha_i*Reg_i
-    Alpha = [10.0]
+    Alpha = [2.0]
     # Strip HP and SP to get loss function name
     ReplaceList = ['HP', 'SP']
     # HPLossFlag = ('HP' in Args.LossFuncName)
@@ -111,7 +111,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
     # elif(Args.RegFuncName == 'PhotoL1'):  
     elif(Args.RegFuncName == 'SP'):
         WarpC1 = warp2.transformImage(opt, C1PH, prHVal)
-        lossReg = tf.reduce_mean(Alpha[0]*tf.math.multiply(WarpI1Patch, WarpC1/255.0) - tf.math.multiply(I2PH, C2PH/255.0))
+        lossReg = tf.reduce_mean(Alpha[0]*tf.abs(tf.math.multiply(WarpI1Patch, WarpC1/255.0) - tf.math.multiply(I2PH, C2PH/255.0)))
     # TODO: HP Filter Loss
     # Lambda = [0.1, 1.0] # Photo, CornerPhoto
     # lossCornerPhoto = tf.math.multiply(WarpI1Patch, WarpI1PatchCornerness) - tf.math.multiply(I2Patch, I2PatchCornerness)
@@ -225,7 +225,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.ResNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()

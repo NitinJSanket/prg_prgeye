@@ -151,6 +151,8 @@ class BatchGeneration():
         elif(Args.Input == 'SP'):
             P1Batch = C1Batch
             P2Batch = C2Batch
+        elif(Args.Input == 'I'):
+            pass
         else:
             print('ERROR: Unrecognized Input Type ')
             os.exit()
