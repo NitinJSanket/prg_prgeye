@@ -105,13 +105,18 @@ def main():
     Parser = argparse.ArgumentParser()
     Parser.add_argument('--BasePath', default='/home/nitin/Datasets/MSCOCO/train2014', help='Base path of images, Default:/home/nitin/Datasets/MSCOCO/train2014')
     Parser.add_argument('--MiniBatchSize', type=int, default=1, help='MiniBatchSize, Default:1')
+    Parser.add_argument('--GPUDevice', type=int, default=-1, help='GPUDevice, Default:-1')
 
     Args = Parser.parse_args()
     BasePath = Args.BasePath
     MiniBatchSize = Args.MiniBatchSize
+    GPUDevice = Args.GPUDevice
+
+    tu.SetGPU(GPUDevice)
  
     TestNames, ImageSize, PatchSize, NumTestSamples = SetupAll(BasePath)
 
+    PatchSize = np.array([128, 128, 3])
     count = 0
     IBatch = []
     while(count < MiniBatchSize):
@@ -120,19 +125,39 @@ def main():
         if(I is None):
             continue
         count += 1
+        I = iu.CenterCrop(I, PatchSize) # np.ones(PatchSize, dtype=np.uint8)*255
         IBatch.append(I)
-        
+
+    ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), name='Input')
     Augmentations =  ['Brightness', 'Contrast', 'Hue', 'Saturation', 'Gamma', 'Gaussian']
-    da = iu.DataAugmentationNP(Augmentations = Augmentations)
-    Timer1 = mu.tic()
-    IPerturbBatch = da.RandPerturbBatch(IBatch)
-    print(mu.toc(Timer1))
+    da = iu.DataAugmentationTF(ImgPH, Augmentations)
+    DataAug = da.RandPerturbBatch()
+    # da = iu.DataAugmentationNP(Augmentations = Augmentations)
+    # Timer1 = mu.tic()
+    # IPerturbBatch = da.RandPerturbBatch(IBatch)
+    # print(mu.toc(Timer1))
     
+    # for count in range(MiniBatchSize):
+    #     cv2.imshow('I, IPerturb {}/{}'.format(count+1, MiniBatchSize), np.hstack((IBatch[count], IPerturbBatch[count])))
+    #     cv2.waitKey(0)
+    
+    # DataAug = tf.clip_by_value(tf.image.random_brightness(ImgPH, 20), 0.0, 255.0) # tf.image.adjust_brightness(ImgPH, 0.2)
+    # DataAug = tf.image.adjust_contrast(ImgPH, contrast_factor=0.6)
+    # DataAug = tf.image.adjust_hue(ImgPH, delta=0.4)
+    # DataAug = tf.image.adjust_saturation(ImgPH, 5)
+    # DataAug = tf.clip_by_value(ImgPH + tf.random.normal(shape = (MiniBatchSize, PatchSize[0], PatchSize[1], PatchSize[2]), mean = 0.0, stddev = 20.0), 0.0, 255.0)
+    with tf.Session() as sess:
+        FeedDict = {ImgPH: IBatch}
+        Timer1 = mu.tic()
+        IPerturbBatch = sess.run([DataAug], feed_dict=FeedDict)[0]
+        print(mu.toc(Timer1))
+
+    IPerturbBatch = IPerturbBatch.astype('uint8')
     for count in range(MiniBatchSize):
-        cv2.imshow('I, IPerturb {}'.format(MiniBatchSize), np.hstack((IBatch[count], IPerturbBatch[count])))
+        cv2.imshow('I, IPerturb {}/{}'.format(count+1, MiniBatchSize), np.hstack((IBatch[count], IPerturbBatch[count])))
         cv2.waitKey(0)
-    
-    
+
+
 if __name__ == '__main__':
     main()
 

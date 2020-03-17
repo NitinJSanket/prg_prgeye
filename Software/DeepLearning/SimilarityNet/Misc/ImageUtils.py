@@ -94,6 +94,29 @@ def StackImages(I1, I2):
 def UnstackImages(I, NumChannels=3):
     return I[:,:,:NumChannels], I[:,:,NumChannels:]
 
+class DataAugmentationTF:
+    def __init__(self, ImgPH, Augmentations =  ['Brightness', 'Contrast', 'Hue', 'Saturation', 'Gamma', 'Gaussian']):
+        self.Augmentations = Augmentations
+        self.ImgPH = ImgPH
+
+    def RandPerturbBatch(self):
+        IRet = self.ImgPH
+        for perturb in self.Augmentations:
+            if perturb == 'Brightness':
+                IRet = tf.clip_by_value(tf.image.random_brightness(IRet, max_delta = 20), 0.0, 255.0)
+            elif(perturb == 'Contrast'):
+                IRet = tf.clip_by_value(tf.image.random_contrast(IRet, lower = 0.5, upper = 1.5), 0.0, 255.0)
+            elif(perturb == 'Hue'):
+                IRet =  tf.clip_by_value(tf.image.random_hue(IRet, max_delta = 0.5), 0.0, 255.0)
+            elif(perturb == 'Saturation'):
+                IRet =  tf.clip_by_value(tf.image.random_saturation(IRet, lower = 0.5, upper = 1.5), 0.0, 255.0)
+            elif(perturb == 'Gamma'):
+                IRet =  tf.clip_by_value(tf.image.adjust_gamma(IRet, gamma=np.random.uniform(low = 0.9, high = 1.1), gain = 1), 0.0, 255.0)
+            elif(perturb == 'Gaussian'):
+                IRet = tf.clip_by_value(IRet + tf.random.normal(shape = tf.shape(IRet), mean = 0.0, stddev = 20.0), 0.0, 255.0)
+        return IRet
+
+    
 class DataAugmentationNP:
     def __init__(self, Augmentations =  ['Brightness', 'Contrast', 'Hue', 'Saturation', 'Gamma', 'Gaussian']):
         self.Augmentations = Augmentations
