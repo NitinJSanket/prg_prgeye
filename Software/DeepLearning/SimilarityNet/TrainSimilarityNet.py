@@ -58,7 +58,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
     # Alpha Weighs the different parts of loss, i.e., loss = loss + alpha_i*Reg_i
-    Alpha = [0.1]
+    Alpha = [10.0]
     # Strip HP and SP to get loss function name
     ReplaceList = ['HP', 'SP']
     # HPLossFlag = ('HP' in Args.LossFuncName)
@@ -239,7 +239,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.ResNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
