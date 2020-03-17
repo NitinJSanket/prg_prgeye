@@ -1,89 +1,49 @@
 # prg_prgeye
 Tri-camera module with IMU and dual/triple Cortex M7
 
-## TODO
-- Log Num Neurons as well
-- Test MobileNet
-- Test ShuffleNetv2
-- HP Filter in TF
-- Cornerness warp in TF
+## Code Structure
 
-## Checklist
-- [x] Num ICSTN Blocks and which warping function to use (On Vanilla Network)
-  - [x]  2 psudo-similarity 
-  - [x]  2 scale 2 translation (half size each)
-  - [x]  2 translation 2 scale (half size each) 
-  - [x]  4 psudo-similarity (half size each) 
-- [x] Architectures (Choose best Num ICSTN setup)
-  - [x]  Vanilla Net Arch
-  - [x]  SqueezeNet 
-  - [x]  ResNet 
-  - [x]  MobileNet
-  - [x]  ShuffleNetv2
-- [ ] Loss Functions (Choose best ICSTN combination on best Arch)
-   - [ ]  Supervised ICSTN 
-   - [ ]  Unsupervised L1 
-   - [ ]  Unsupervised L1 with Cornerness
-   - [ ]  Unsupervised L1 with HP
-   - [ ]  Unsupervised L1 with HP + Cornerness
-   - [ ]  Unsupervised Chab
-   - [ ]  Unsupervised Barron
-   - [ ]  Unsupervised Barron with best of Cornerness, HP, HP + Cornerness
-   - [ ]  Supervised Events DB + Chab
-- [ ] Compression (Bigger Network <= 25 MB, Smaller Network <= 2.5 MB)
-  - [ ]  Student Teacher on best Arch + ICSTN Num + Loss Func
-  - [ ]  Weight Pruning (tflite) on best Arch + ICSTN Num + Loss Func
-  - [ ]  Quantization (tflite) on best Arch + ICSTN Num + Loss Func
-  - [ ]  Model Distillation: Student Teacher with Projection Loss
-  - [ ]  Direct dropping number of weights
-- [ ] Speed Tests
-  - [ ] Desktop PC (CPU + GPU) on bigger and smaller network (most accurate from above), Batch Size of 1
-      - [ ]  TF (CPU) Smaller Network
-      - [ ]  TF (CPU) Bigger Network
-      - [ ]  TF-Lite (CPU) Smaller Network
-      - [ ]  TF-Lite (CPU) Bigger Network
-      - [ ]  TF (GPU) Smaller Network
-      - [ ]  TF (GPU) Bigger Network
-      - [ ]  TF-Lite (GPU) Smaller Network
-      - [ ]  TF-Lite (GPU) Bigger Network
-  - [ ] NanoPi Neo Core 2 on bigger and smaller network (most accurate from above), Batch Size of 1
-      - [ ]  TF (CPU) Smaller Network
-      - [ ]  TF (CPU) Bigger Network
-      - [ ]  TF-Lite (CPU) Smaller Network
-      - [ ]  TF-Lite (CPU) Bigger Network
-      - [ ]  Coral USB Stick Smaller Network
-      - [ ]  Coral USB Stick Bigger Network
-  - [ ]  Sipeed Maix on smaller network (most accurate from above), Batch Size of 1
-  - [ ]  Google Coral Dev Board bigger and smaller network (most accurate from above), Batch Size of 1
-    - [ ]  TF-Lite Smaller Network
-    - [ ]  TF-Lite Bigger Network
-  - [ ] Intel Up Board on bigger and smaller network (most accurate from above), Batch Size of 1
-	- [ ]  TF (CPU) Smaller Network
-    - [ ]  TF-Lite (CPU) Smaller Network
-    - [ ]  TF (CPU) Bigger Network
-    - [ ]  TF-Lite (CPU) Bigger Network
-  - [ ] NVIDIA Jetson TX2 on bigger and smaller network (most accurate from above), Batch Size of 1
-    - [ ]  TF (CPU) Smaller Network
-    - [ ]  TF (CPU) Bigger Network
-    - [ ]  TF-Lite (CPU) Smaller Network
-    - [ ]  TF-Lite (CPU) Bigger Network
-    - [ ]  TF (GPU) Smaller Network
-    - [ ]  TF (GPU) Bigger Network
-    - [ ]  TF-Lite (GPU) Smaller Network
-    - [ ]  TF-Lite (GPU) Bigger Network
-  - [ ]  Odometry Data for 5 sequences using Vicon
-  - [ ]  KF for fusion for odom
-  - [ ]  Grayscale vs RGB (Minor difference)
-  - [ ] Comparisons With normal images, error induced due to augmentation
-    - [ ]  Correlation Flow
-    - [ ]  Chatterjee Flow
-    - [ ]  SIFT
-    - [ ]  ORB
-    - [ ]  KLT 
+```
+Software
+└── DeepLearning 
+    ├── HomographyNetUnsup
+    |   └── *
+    ├── RealData
+    |   └── *
+    ├── SimilarityNet
+    |   └── *
+    ├── SuperPoint
+    |   └── *
+    └── SpeedTests
+        └── *
+```
 
-- How are Model Sizes Computed? (From Num. params or file size)?
+- `HomographyNetUnsup` has the depracated code from EVDodgeNet.
+- `RealData` has the code for evaluation on data from simulation and real world.
+- `SimilarityNet` has the code for training and evaluation for all the scenarios presented in the paper.
+- `SpeedTests` has the code for testing speed of various networks.
 
-Reference papers:
+### `SimilarityNet`
+To train use `TrainSimilarityNet.py`. The following command line flags can be used.
+- `--BasePath`: Base path from where images are loaded, eg., /home/nitin/Datasets/MSCOCO/train2014Processed.
+- `--NumEpochs`: Number of epochs the training will be done for
+- `--DivTrain`: Factor to reduce Train data by per epoch, used for debugging only or for super large datasets.
+- `--MiniBatchSize`: Size of the MiniBatch to use.
+- `--LoadCheckPoint`: Load Model from latest Checkpoint from CheckPointPath?
+- `--RemoveLogs`: Delete log Files from ./Logs? (BUGGY, DON'T USE).
+- `--LossFuncName`: Choice of Loss functions, choose from SL2 (Supervised L2 loss), PhotoL1 (Photometric L1), PhotoChab (Photometric Chabonnier), SSIM (SSIM Loss from GeoNet), SSIMTF (TF's Implementation of GeoNet's SSIM loss). Any loss can be suffixed with HP or SP to compute loss on Highpassed image or SuperPoint cornerness respectively.
+- `--RegFuncName`: Choice of regularization function, choose from None, SP (Cornerness from SuperPoint) or HP (Highpassed image). Total loss is computed as LossFunc + sum(Alpha_i * RegFunc_i)
+- `--NetworkType`: Choice of Network type, choose from Small, Large.
+- `--NetworkName`: Name of network file, eg., Network.VanillaNet. Change the line `VN = Net.xxx` in  `TrainOperation` function to use the correct class name of the network.
+- `--CheckPointPath`: Path to save checkpoints.
+- `--LogsPath`: Path to save Logs.
+- `--GPUDevice`: What GPU do you want to use? -1 for CPU.
+- `--DataAug`: Depracated, DO NOT USE. Instead Augment data before and create a dataset.
+- `--LR`: Learning Rate.
+- `--InitNeurons`: Number of Neurons in the first layer
+- `--Input`: Input, choose from I: RGB Images, G: Grayscale Images, HP: HP Grayscale Images, SP: Cornerness from SuperPoint.
+    
+## References for Images
 - [Benchmark Analysis of Representative Deep Neural Network Architectures](https://arxiv.org/abs/1810.00736)
 - [An Analysis Of Deep Neural Network Models For Practical Applications](https://arxiv.org/abs/1605.07678)
 
