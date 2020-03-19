@@ -143,8 +143,8 @@ class BatchGeneration():
             self.RandSimilarityPerturbationTF(IOrgBatch, HObj, PatchSize, MiniBatchSize, Cornerness1Batch, ImageSize = None, Vis = False)
 
         if(Args.Input == 'G'):
-            P1Batch = np.tile(tf.image.rgb_to_grayscale(P1Batch), [1,1,1,3])
-            P2Batch = np.tile(tf.image.rgb_to_grayscale(P2Batch), [1,1,1,3])
+            P1Batch = np.tile(tf.image.rgb_to_grayscale(P1Batch), (1,1,1,3))
+            P2Batch = np.tile(tf.image.rgb_to_grayscale(P2Batch), (1,1,1,3))
         elif(Args.Input == 'HP'):
             P1Batch = iu.HPFilterBatch(P1Batch)
             P2Batch = iu.HPFilterBatch(P2Batch)

@@ -51,7 +51,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, Mi
     if(NetworkType == 'Small'):
         prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
     elif(NetworkType == 'Large'):
-        prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
+        prHVal = EVHomographyNetUnsupSmallMaixPy(ImgPH, ImageSize, MiniBatchSize)
             
     # Setup Saver
     Saver = tf.train.Saver()
@@ -74,7 +74,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, Mi
         def representative_dataset_gen():
             for _ in range(10):
                 # Get sample input data as a numpy array in a method of your choosing.
-                input = np.float32(2.*(np.random.rand(MiniBatchSize, ImageSize[0], ImageSize[1], 2*ImageSize[2]) - 0.5))
+                input = np.float32(2.*(np.random.rand(MiniBatchSize, ImageSize[0], ImageSize[1], ImageSize[2]) - 0.5))
                 yield [input]
 
 
@@ -209,7 +209,7 @@ def main():
     ForceBatchSize1 = bool(Args.ForceBatchSize1)
 
     # Parameters
-    ImageSize = np.array([128, 128, 3])
+    ImageSize = np.array([224, 224, 3])
     
     # Set GPUDevice
     tu.SetGPU(GPUDevice)

@@ -21,20 +21,36 @@ def EVHomographyNetUnsupSmallMaixPy(Img, ImageSize, MiniBatchSize):
 
     # bn1 output is of size M/2 x N/2 x 64
     bn1 = tf.nn.relu(conv1, name='relu1T')
+
+    conv2 = tf.layers.conv2d(inputs=conv1, filters=16, kernel_size=[3, 3], strides=(2, 2), padding="same", activation=None, name='conv2T')#, kernel_initializer=KernelInit)
+
+    # bn1 output is of size M/2 x N/2 x 64
+    bn2 = tf.nn.relu(conv2, name='relu2T')
+
+    conv3 = tf.layers.conv2d(inputs=bn2, filters=16, kernel_size=[3, 3], strides=(2, 2), padding="same", activation=None, name='conv3T')#, kernel_initializer=KernelInit)
+
+    # bn1 output is of size M/2 x N/2 x 64
+    bn3 = tf.nn.relu(conv3, name='relu3T')
+
+    conv4 = tf.layers.conv2d(inputs=bn3, filters=16, kernel_size=[3, 3], strides=(2, 2), padding="same", activation=None, name='conv4T')#, kernel_initializer=KernelInit)
+
+    # bn1 output is of size M/2 x N/2 x 64
+    bn4 = tf.nn.relu(conv4, name='relu4T')
     
     # flat is of size 1 x M/16*N/16*128
-    # Shape = bn1.get_shape().as_list()       
-    # Dim = np.prod(Shape[1:])
+    Shape = bn4.get_shape().as_list()       
+    Dim = np.prod(Shape[1:])     
+    flat = tf.reshape(bn4, [-1, Dim])
 
     # print(Dim)
     # input('q')
-    flat = tf.reshape(bn1, [-1, 65536])
+    # Output = tf.reshape(bn1, [-1, 65536])
         
     # fc1 
-    # fc1 = tf.layers.dense(flat, units=256, activation=None, name='fc1T')
+    Output = tf.layers.dense(flat, units=1000, activation=None, name='fc1T')
 
     # fc2
-    Output = tf.contrib.layers.fully_connected(flat, num_outputs=8, activation_fn=None)#, name='fc2T')
+    # Output = tf.contrib.layers.fully_connected(flat, num_outputs=8, activation_fn=None)#, name='fc2T')
 
     # Output = tf.identity(fc2, name='Output')
 

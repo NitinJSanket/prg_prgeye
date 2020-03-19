@@ -58,7 +58,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
     # Alpha Weighs the different parts of loss, i.e., loss = loss + alpha_i*Reg_i
-    Alpha = [10.0]
+    Alpha = [0.02]
     # Strip HP and SP to get loss function name
     ReplaceList = ['HP', 'SP']
     # HPLossFlag = ('HP' in Args.LossFuncName)
@@ -239,7 +239,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.SqueezeNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
@@ -307,7 +307,8 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
                 for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
                     IBatch, I1Batch, I2Batch, P1Batch, P2Batch, C1Batch, C2Batch, HBatch, ParamsBatch =\
                         bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args)
-                    # P1BatchPad = iu.PadOutside(P1Batch, OriginalImageSize)
+
+                    # Parse for loss functions on different inputs
                     if 'HP' in Args.LossFuncName:
                         try:
                             P1Batch = iu.HPFilterBatch(P1Batch)
@@ -317,22 +318,19 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
                     elif 'SP' in Args.LossFuncName:
                         P1Batch = C1Batch
                         P2Batch = C2Batch
+                    elif 'G' in Args.LossFuncName:
+                        try:
+                            P1Batch = np.tile(iu.rgb2gray(P1Batch), (1,1,1,3))
+                            P2Batch = np.tile(iu.rgb2gray(P2Batch), (1,1,1,3))
+                        except:
+                            pass
                     if Args.SuperPointFlag:
                         FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, C1PH: C1Batch, C2PH:C2Batch}
                         _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                     else:
                         FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
                         _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
-                    # _, LossThisBatch, Summary, WarpI1PatchIdealRet = sess.run([OptimizerUpdate, loss, MergedSummaryOP, WarpI1PatchIdeal], feed_dict=FeedDict)
-                    # WarpI1PatchIdealRet = iu.CenterCrop(WarpI1PatchIdealRet, PatchSize)
-                    # FeedDict = {WarpI1PatchIdealPH: WarpI1PatchIdealRet, VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: P1BatchPad}
-                    # Summary = sess.run([MergedSummaryOP], feed_dict=FeedDict)
-
-                    # A = np.uint8(np.concatenate((P1Batch[0], P2Batch[0], WarpI1PatchIdealRet[0], np.abs(P2Batch[0]-WarpI1PatchIdealRet[0])), axis=1))
-                    # B = np.uint8(np.concatenate((I1Batch[0], I2Batch[0]), axis=1))
-                    # cv2.imshow('P1, P2, P1Warp', A)
-                    # cv2.imshow('I1, I2', B)
-                    # cv2.waitKey(0)
+                   
 
                     # Tensorboard
                     Writer.add_summary(Summary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
