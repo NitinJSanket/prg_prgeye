@@ -32,3 +32,27 @@ def Scope(func):
         with tf.variable_scope(func.__name__):
             return func(self, *args, **kwargs)
     return wrapped
+
+
+# def CountAndScope(func=None, Suffix=None):
+#     @wraps(func)
+#     def wrapped(self, *args, **kwargs):
+#         if(Suffix is not None):
+#             Name = func.__name__ + str(self.CurrBlock) + Suffix
+#         else:
+#             Name = func.__name__ + str(self.CurrBlock)
+#         with tf.variable_scope(Name):
+#             self.CurrBlock += 1
+#             return func(self, *args, **kwargs)
+#     return wrapped
+
+# def Scope(func=None, Suffix=None):
+#     @wraps(func)
+#     def wrapped(self, *args, **kwargs):
+#         if(Suffix is not None):
+#             Name = func.__name__ + Suffix
+#         else:
+#             Name = func.__name__ 
+#         with tf.variable_scope(Name):
+#             return func(self, *args, **kwargs)
+#     return wrapped

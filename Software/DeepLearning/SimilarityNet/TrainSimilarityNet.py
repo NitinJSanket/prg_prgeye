@@ -58,7 +58,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
     # Alpha Weighs the different parts of loss, i.e., loss = loss + alpha_i*Reg_i
-    Alpha = [0.02]
+    Alpha = [0.1]
     # Strip HP and SP to get loss function name
     ReplaceList = ['HP', 'SP']
     # HPLossFlag = ('HP' in Args.LossFuncName)
@@ -108,17 +108,51 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
         DiffImg = WarpI1Patch - I2PH
         AlphaSSIM = 0.005
         lossPhoto = tf.reduce_mean(tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1)) + tf.reduce_mean(AlphaSSIM*tf.abs(DiffImg)))
-    # elif(LossFuncName == 'SSIMMSTF'):
-    #     # TF's official SSIM MultiScale
-    #     SSIM = tf.image.ssim_multiscale(tf.image.rgb_to_grayscale(WarpI1Patch), tf.image.rgb_to_grayscale(I2PH), power_factors=(0.2, 0.5, 0.3), max_val=255,\
-    #                                     filter_size=11, filter_sigma=1.5, k1=0.01, k2=0.03)
-    #     DiffImg = WarpI1Patch - I2PH
-    #     AlphaSSIM = 0.005
-    #     lossPhoto = tf.reduce_mean(tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1)) + tf.reduce_mean(AlphaSSIM*tf.abs(DiffImg)))   
-        
+        # elif(LossFuncName == 'SSIMMSTF'):
+        #     # TF's official SSIM MultiScale
+        #     SSIM = tf.image.ssim_multiscale(tf.image.rgb_to_grayscale(WarpI1Patch), tf.image.rgb_to_grayscale(I2PH), power_factors=(0.2, 0.5, 0.3), max_val=255,\
+        #                                     filter_size=11, filter_sigma=1.5, k1=0.01, k2=0.03)
+        #     DiffImg = WarpI1Patch - I2PH
+        #     AlphaSSIM = 0.005
+        #     lossPhoto = tf.reduce_mean(tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1)) + tf.reduce_mean(AlphaSSIM*tf.abs(DiffImg)))
     elif(LossFuncName == 'PhotoRobust'):
-        print('ERROR: Not implemented yet!')
-        sys.exit(0)
+        def RobustLoss(x, a, c, e=1e-2):
+	    b = tf.abs(2.-a) + e
+	    d = tf.where(tf.greater_equal(a, 0.), a+e, a-e)
+	    return b/d*(tf.pow(tf.square(x/c)/b+1., 0.5*d)-1.)
+
+        def logZ1(a):
+            ps = [1.49130350, 1.38998350, 1.32393250,
+            1.26937670, 1.21922380, 1.16928990,
+            1.11524570, 1.04887590, 0.91893853]
+
+            ms = [-1.4264522e-01, -7.7125795e-02, -5.9283373e-02,
+            -5.2147767e-02, -5.0225594e-02, -5.2624177e-02,
+            -6.1122095e-02, -8.4174540e-02, -2.5111488e-01]
+
+            x = 8. * (tf.log(a + 2.) / tf.log(2.) - 1.)
+            i0 = tf.cast(tf.clip_by_value(x, 0., tf.cast(len(ps) - 2, tf.float32)), tf.int32)
+            p0 = tf.gather(ps, i0)
+            p1 = tf.gather(ps, i0 + 1)
+            m0 = tf.gather(ms, i0)
+            m1 = tf.gather(ms, i0 + 1)
+            t = x - tf.cast(i0, tf.float32)
+            h01 = t * t * (-2. * t + 3.)
+            h00 = 1. - h01
+            h11 = t * t * (t - 1.)
+            h10 = h11 + t * (1. - t)
+            return tf.where(t < 0., ms[0] * t + ps[0],
+            tf.where(t > 1., ms[-1] * (t - 1.) + ps[-1],
+            p0 * h00 + p1 * h01 + m0 * h10 + m1 * h11))
+
+        def nll(x, a, c, e=1e-2):
+            return RobustLoss(x, a, c, e) + logZ1(a) + tf.log(c)
+
+        Epsa = 1e-3
+        DiffImg = WarpI1Patch - I2PH
+        a = C2PH
+        a = tf.multiply((2.0 - 2.0*Epsa), tf.math.sigmoid(a)) + Epsa
+        lossPhoto = tf.reduce_mean(nll(DiffImg, a, c))
 
     if(Args.RegFuncName == 'None'):
         lossReg = 0.
