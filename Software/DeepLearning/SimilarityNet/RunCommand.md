@@ -3010,3 +3010,136 @@ Reg Function Weights: [0.1]
 CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
 Logs are saved in: /home/nitin/PRGEye/Logs/
 Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-03-20 01:57:03.307405
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260989
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: None
+Reg Function Weights: [0.1]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints/
+Logs are saved in: /home/chahatdeep/Logs/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-20 02:01:28.949715
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260989
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: None
+Reg Function Weights: [0.1]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints2/
+Logs are saved in: /home/chahatdeep/Logs2/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-20 02:02:27.737616
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260989
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: None
+Reg Function Weights: [0.1]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints2/
+Logs are saved in: /home/chahatdeep/Logs2/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-20 02:03:30.280613
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260989
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: None
+Reg Function Weights: [0.1]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints2/
+Logs are saved in: /home/chahatdeep/Logs2/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-20 02:08:37.815718
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260989
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: None
+Reg Function Weights: [0.1]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints/
+Logs are saved in: /home/chahatdeep/Logs/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-20 02:09:22.544328
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260989
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: None
+Reg Function Weights: [0.1]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints2/
+Logs are saved in: /home/chahatdeep/Logs2/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-20 02:10:54.259187
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet3
+Init Neurons 18.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Num Params: 2079870
+Num FLOPs: 43752260989
+Estimated Model Size (MB): 23.8192596436
+Warp Types used: ['translation', 'translation', 'scale', 'scale']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SL2
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: None
+Reg Function Weights: [0.1]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints/
+Logs are saved in: /home/chahatdeep/Logs/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/

@@ -254,8 +254,8 @@ def HPFilter(I, Radius = 25):
 def rgb2gray(rgb):
     # Code adapted from: https://stackoverflow.com/questions/12201577/how-can-i-convert-an-rgb-image-into-grayscale-in-python
     AppendFlag = False
-    if(len(np.shape(I)) == 3):
-        I = I[np.newaxis, :, :, :] # Append Batch Dim
+    if(len(np.shape(rgb)) == 3):
+        rgb = rgb[np.newaxis, :, :, :] # Append Batch Dim
         AppendFlag = True
     r, g, b = rgb[:,:,:,0], rgb[:,:,:,1], rgb[:,:,:,2]
     gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
