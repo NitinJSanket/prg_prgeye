@@ -41,6 +41,7 @@ from Misc.Decorators import *
 import importlib
 from datetime import datetime
 import getpass
+import copy
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -199,12 +200,13 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, WarpI1PatchIdealPH, p
     return MergedSummaryOP
 
 
-def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lambda, Alpha, VN, OverideKbInput=False):
+def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj, Lambda, Alpha, VN, OverideKbInput=False):
     # TODO: Write to file?
     Username = getpass.getuser()
     cprint('Running on {}'.format(Username), 'yellow')
     cprint('Network Statistics', 'yellow')
     cprint('Network Used: {}'.format(Args.NetworkName), 'yellow')
+    cprint('GPU Used: {}'.format(Args.GPUDevice), 'yellow')
     cprint('Learning Rate: {}'.format(Args.LR), 'yellow')
     cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate), 'yellow')
     cprint('Num Params: {}'.format(NumParams), 'green')
@@ -217,6 +219,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
     cprint('Reg Function used: {}'.format(Args.RegFuncName), 'green')
     cprint('Reg Function Weights: {}'.format(Alpha), 'green')
     cprint('Input used: {}'.format(Args.Input), 'green')
+    cprint('MaxParams used: {}'.format(HObj.MaxParams), 'green')
     cprint('CheckPoints are saved in: {}'.format(Args.CheckPointPath), 'red')
     cprint('Logs are saved in: {}'.format(Args.LogsPath), 'red')
     cprint('Images used for Training are in: {}'.format(Args.BasePath), 'red')
@@ -232,6 +235,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
             RunCommand.write('Username: {}\n'.format(Username))
             RunCommand.write('Learning Rate: {}\n'.format(Args.LR))
             RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
+            RunCommand.write('GPU Used: {}'.format(Args.GPUDevice))
             RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
             RunCommand.write('Num Params: {}\n'.format(NumParams))
             RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
@@ -243,17 +247,19 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
             RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
             RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
             RunCommand.write('Input used: {}\n'.format(Args.Input))
+            RunCommand.write('MaxParams used: {}\n'.format(HObj.MaxParams))
             RunCommand.write('CheckPoints are saved in: {}\n'.format(Args.CheckPointPath))
             RunCommand.write('Logs are saved in: {}\n'.format(Args.LogsPath))
             RunCommand.write('Images used for Training are in: {}\n'.format(Args.BasePath))
         cprint('Log written in {}'.format(FileName), 'yellow')
-        FileName = Args.LogsPath + 'RunCommand.md'
+        FileName = Args.CheckPointPath + 'RunCommand.md'
         with open(FileName, 'w+') as RunCommand:
             RunCommand.write('\n\n')
             RunCommand.write('{}\n'.format(datetime.now()))
             RunCommand.write('Username: {}\n'.format(Username))
             RunCommand.write('Learning Rate: {}\n'.format(Args.LR))
             RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
+            RunCommand.write('GPU Used: {}'.format(Args.GPUDevice))
             RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
             RunCommand.write('Num Params: {}\n'.format(NumParams))
             RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
@@ -265,6 +271,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
             RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
             RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
             RunCommand.write('Input used: {}\n'.format(Args.Input))
+            RunCommand.write('MaxParams used: {}\n'.format(HObj.MaxParams))
             RunCommand.write('CheckPoints are saved in: {}\n'.format(Args.CheckPointPath))
             RunCommand.write('Logs are saved in: {}\n'.format(Args.LogsPath))
             RunCommand.write('Images used for Training are in: {}\n'.format(Args.BasePath))
@@ -306,7 +313,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
     # Maybe Asmall * AbigInv * H * Abig
     # Warp I1 with ideal parameters for visual sanity check
     # MODIFY THIS DEPENDING ON ARCH!
-    opt2 = opt
+    opt2 = copy.copy(opt)
     opt2.warpType = 'pseudosimilarity'
     # optlarge = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = 'pseudosimilarity') # ICSTN Options
     # Alarge = tf.linalg.inv(optlarge.refMtrx)
@@ -355,7 +362,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
             ModelSize = tu.CalculateModelSize(1)
 
             # Pretty Print Stats
-            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, Alpha, VN, OverideKbInput=False)
+            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, HObj, Lambda, Alpha, VN, OverideKbInput=False)
 
             # Tensorboard
             Writer = tf.summary.FileWriter(LogsPath, graph=tf.get_default_graph())
@@ -408,11 +415,11 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
                 print(SaveName + ' Model Saved...')
 
         # Pretty Print Stats before exiting
-        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, Alpha, VN, OverideKbInput=True)
+        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, HObj, Lambda, Alpha, VN, OverideKbInput=True)
     
     except KeyboardInterrupt:
         # Pretty Print Stats before exitting
-        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, Lambda, Alpha, VN)
+        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, HObj, Lambda, Alpha, VN)
 
 def main():
     """
@@ -471,7 +478,7 @@ def main():
     # Setup all needed parameters including file reading
     # MODIFY THIS DEPENDING ON ARCHITECTURE!
     InitNeurons = Args.InitNeurons
-    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
+    warpType = ['translation', 'translation'] # ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale']  # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] #, 'pseudosimilarity']#, 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)
