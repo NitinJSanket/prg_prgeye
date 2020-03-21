@@ -156,7 +156,7 @@ class BatchGeneration():
         else:
             print('ERROR: Unrecognized Input Type ')
             os.exit()
-        ICombined = np.concatenate((P1Batch[:,:,:,0:3], P2Batch[:,:,:,0:3]), axis=3)
+        ICombined = np.concatenate((P1Batch, P2Batch), axis=3)
         
         # Normalize Dataset
         # https://stackoverflow.com/questions/42275815/should-i-substract-imagenet-pretrained-inception-v3-model-mean-value-at-inceptio

@@ -328,7 +328,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, LabelPH, IOrgPH, HPH, WarpI1Pa
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
-    loss, WarpI1Patch, Lambda, Alpha = Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt, Args)
+    loss, WarpI1Patch, Lambda, Alpha = Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSize, opt2, Args)
 
     # Run Backprop and Gradient Update
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
