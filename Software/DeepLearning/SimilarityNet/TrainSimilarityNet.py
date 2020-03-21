@@ -58,7 +58,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, LabelPH, prHVal, prVal, MiniBatchSize, PatchSiz
     Lambda = [1.0, 10.0, 10.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
     # Alpha Weighs the different parts of loss, i.e., loss = loss + alpha_i*Reg_i
-    Alpha = [0.1]
+    Alpha = [0.02]
     # Strip HP and SP to get loss function name
     ReplaceList = ['HP', 'SP']
     # HPLossFlag = ('HP' in Args.LossFuncName)
@@ -216,6 +216,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
     cprint('Loss Function Weights: {}'.format(Lambda), 'green')
     cprint('Reg Function used: {}'.format(Args.RegFuncName), 'green')
     cprint('Reg Function Weights: {}'.format(Alpha), 'green')
+    cprint('Input used: {}'.format(Args.Input), 'green')
     cprint('CheckPoints are saved in: {}'.format(Args.CheckPointPath), 'red')
     cprint('Logs are saved in: {}'.format(Args.LogsPath), 'red')
     cprint('Images used for Training are in: {}'.format(Args.BasePath), 'red')
@@ -241,6 +242,29 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, Lamb
             RunCommand.write('Loss Function Weights: {}\n'.format(Lambda))
             RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
             RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
+            RunCommand.write('Input used: {}\n'.format(Args.Input))
+            RunCommand.write('CheckPoints are saved in: {}\n'.format(Args.CheckPointPath))
+            RunCommand.write('Logs are saved in: {}\n'.format(Args.LogsPath))
+            RunCommand.write('Images used for Training are in: {}\n'.format(Args.BasePath))
+        cprint('Log written in {}'.format(FileName), 'yellow')
+        FileName = Args.LogsPath + 'RunCommand.md'
+        with open(FileName, 'w+') as RunCommand:
+            RunCommand.write('\n\n')
+            RunCommand.write('{}\n'.format(datetime.now()))
+            RunCommand.write('Username: {}\n'.format(Username))
+            RunCommand.write('Learning Rate: {}\n'.format(Args.LR))
+            RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
+            RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
+            RunCommand.write('Num Params: {}\n'.format(NumParams))
+            RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
+            RunCommand.write('Estimated Model Size (MB): {}\n'.format(ModelSize))
+            RunCommand.write('Warp Types used: {}\n'.format(warpType))
+            RunCommand.write('Warp Types For Data Generation: {}\n'.format(warpTypedg))
+            RunCommand.write('Loss Function used: {}\n'.format(Args.LossFuncName))
+            RunCommand.write('Loss Function Weights: {}\n'.format(Lambda))
+            RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
+            RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
+            RunCommand.write('Input used: {}\n'.format(Args.Input))
             RunCommand.write('CheckPoints are saved in: {}\n'.format(Args.CheckPointPath))
             RunCommand.write('Logs are saved in: {}\n'.format(Args.LogsPath))
             RunCommand.write('Images used for Training are in: {}\n'.format(Args.BasePath))
