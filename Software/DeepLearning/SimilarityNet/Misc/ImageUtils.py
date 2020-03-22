@@ -220,13 +220,16 @@ def HPFilterBatch(IBatch, Radius = 10):
     HPBatch = []
     for count in range(BatchSize):
         INow = HPFilter(np.squeeze(IBatch[count, :, :, :]), Radius = Radius)
-        INow = np.uint8(mu.remap(INow, 0., 255.))
+        try:
+            INow = np.uint8(mu.remap(INow, 0., 255.))
+        except:
+            INow = np.uint8(np.zeros(np.shape(INow)))
         HPBatch.append(INow)
 
     return HPBatch
         
 
-def HPFilter(I, Radius = 25):
+def HPFilter(I, Radius = 10):
     # Code adapted from: https://akshaysin.github.io/fourier_transform.html#.XSYBbnVKhhF
     if(len(np.shape(I)) == 3):
         I = cv2.cvtColor(I, cv2.COLOR_BGR2GRAY)
