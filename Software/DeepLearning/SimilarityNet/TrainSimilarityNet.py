@@ -109,9 +109,9 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHVal, prVal, MiniBatch
         #     lossPhoto = tf.reduce_mean(tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1)) + tf.reduce_mean(AlphaSSIM*tf.abs(DiffImg)))
     elif(LossFuncName == 'PhotoRobust'):
         def RobustLoss(x, a, c, e=1e-2):
-	    b = tf.abs(2.-a) + e
-	    d = tf.where(tf.greater_equal(a, 0.), a+e, a-e)
-	    return b/d*(tf.pow(tf.square(x/c)/b+1., 0.5*d)-1.)
+	       b = tf.abs(2.-a) + e
+	       d = tf.where(tf.greater_equal(a, 0.), a+e, a-e)
+	       return b/d*(tf.pow(tf.square(x/c)/b+1., 0.5*d)-1.)
 
         def logZ1(a):
             ps = [1.49130350, 1.38998350, 1.32393250,
@@ -174,7 +174,7 @@ def Optimizer(OptimizerParams, loss):
     # Optimizer = tf.train.MomentumOptimizer(learning_rate=1e-3, momentum=0.9, use_nesterov=True).minimize(loss)
     return OptimizerUpdate
 
-def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args):
+def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args):
     # Create a summary to monitor loss tensor
     tf.summary.scalar('LossEveryIter', loss)
     tf.summary.image('I1Patch', I1PH[:,:,:,0:3], max_outputs=3)
@@ -183,6 +183,9 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, WarpI1PatchIdealPH, p
     if(Args.SuperPointFlag):
          tf.summary.image('C1', C1PH[:,:,:,0:3], max_outputs=3)
          tf.summary.image('C2', C2PH[:,:,:,0:3], max_outputs=3)
+    if(Args.HPFlag):
+         tf.summary.image('HP1', HP1PH[:,:,:,0:3], max_outputs=3)
+         tf.summary.image('HP2', HP2PH[:,:,:,0:3], max_outputs=3)
     I2PHGray = tf.image.rgb_to_grayscale(I2PH)
     WarpI1PatchGray = tf.image.rgb_to_grayscale(WarpI1Patch[:,:,:,0:3]*255.0)
     OverlayImg = tf.concat([tf.concat([I2PHGray, tf.zeros(np.shape(I2PHGray))], axis=3), WarpI1PatchGray], axis=3)
@@ -299,7 +302,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.SqueezeNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
@@ -329,7 +332,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
         
     # Tensorboard
-    MergedSummaryOP = TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args)
+    MergedSummaryOP = TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args)
  
     # Setup Saver
     Saver = tf.train.Saver()
@@ -387,6 +390,17 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
                     if Args.SuperPointFlag:
                         FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, C1PH: C1Batch, C2PH:C2Batch}
                         _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                    elif Args.HPFlag:
+                        HP1Batch = iu.HPFilterBatch(P1Batch)
+                        HP2Batch = iu.HPFilterBatch(P2Batch)
+                        FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, HP1PH: HP1Batch, HP2PH:HP2Batch}
+                        _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                    elif Args.HPFlag and Args.SuperPointFlag:
+                        HP1Batch = iu.HPFilterBatch(P1Batch)
+                        HP2Batch = iu.HPFilterBatch(P2Batch)
+                        FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, C1PH: C1Batch, C2PH:C2Batch,\
+                         HP1PH: HP1Batch, HP2PH:HP2Batch}
+                        _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                     else:
                         FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
                         _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
@@ -434,7 +448,7 @@ def main():
     Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
     Parser.add_argument('--RegFuncName', default='None', help='Choice of regularization function, choose from None, C (Cornerness). Default:None')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet2')
+    Parser.add_argument('--NetworkName', default='Network.SqueezeNet', help='Name of network file, Default: Network.VanillaNet2')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
     Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
@@ -460,6 +474,7 @@ def main():
     DataAug = Args.DataAug
     RegFuncName = Args.RegFuncName
     Args.SuperPointFlag = ('SP' in Args.LossFuncName) or ('SP' in Args.RegFuncName)
+    Args.HPFlag = ('HP' in Args.LossFuncName) or ('HP' in Args.RegFuncName)
 
     # Import Network Module
     Net = importlib.import_module(NetworkName)

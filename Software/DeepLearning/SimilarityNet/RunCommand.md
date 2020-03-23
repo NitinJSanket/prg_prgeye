@@ -3304,3 +3304,87 @@ MaxParams used: [0.05 0.2  0.2 ]
 CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
 Logs are saved in: /home/nitin/PRGEye/Logs/
 Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014Processed
+
+
+2020-03-23 10:56:32.217719
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.ResNet
+GPU Used: 0Init Neurons 18.0, Expansion Factor 2, NumBlocks 3, DropOutFactor 0.7
+Num Params: 1017273
+Num FLOPs: 25459957877
+Estimated Model Size (MB): 11.646030426
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SSIM
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: HP
+Reg Function Weights: [0.1]
+Input used: I
+MaxParams used: [0.25 0.2  0.2 ]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints/
+Logs are saved in: /home/chahatdeep/Logs/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-23 11:03:04.817964
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.ResNet
+GPU Used: 0Init Neurons 18.0, Expansion Factor 2, NumBlocks 3, DropOutFactor 0.7
+Num Params: 1017273
+Num FLOPs: 25459957877
+Estimated Model Size (MB): 11.646030426
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SSIM
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: HP
+Reg Function Weights: [0.1]
+Input used: I
+MaxParams used: [0.25 0.2  0.2 ]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints/
+Logs are saved in: /home/chahatdeep/Logs/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-23 11:05:46.220808
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.ResNet
+GPU Used: 0Init Neurons 18.0, Expansion Factor 2, NumBlocks 3, DropOutFactor 0.7
+Num Params: 1017273
+Num FLOPs: 25459957877
+Estimated Model Size (MB): 11.646030426
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SSIM
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: HP
+Reg Function Weights: [0.1]
+Input used: I
+MaxParams used: [0.25 0.2  0.2 ]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints/
+Logs are saved in: /home/chahatdeep/Logs/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
+
+
+2020-03-23 11:37:27.667326
+Username: chahatdeep
+Learning Rate: 0.0001
+Network Used: Network.SqueezeNet
+GPU Used: 1Init Neurons 14.0, Expansion Factor 1.2, NumBlocks 2, DropOutFactor 0.7
+Num Params: 1167014
+Num FLOPs: 71088291211
+Estimated Model Size (MB): 13.3556518555
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: SSIM
+Loss Function Weights: [1.0, 10.0, 10.0]
+Reg Function used: HP
+Reg Function Weights: [0.02]
+Input used: I
+MaxParams used: [0.25 0.2  0.2 ]
+CheckPoints are saved in: /home/chahatdeep/CheckPoints2/
+Logs are saved in: /home/chahatdeep/Logs2/
+Images used for Training are in: /home/chahatdeep/Datasets/MSCOCO/train2014Processed/
