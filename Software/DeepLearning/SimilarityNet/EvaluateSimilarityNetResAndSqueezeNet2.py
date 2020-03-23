@@ -26,6 +26,7 @@ import Misc.MiscUtils as mu
 import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
+from Network.HomographyNetICSTNSimpler import  ICSTN
 from Misc.MiscUtils import *
 import numpy as np
 import time
@@ -77,7 +78,7 @@ def SetupAll(ReadPath, warpType):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    MaxParams = np.array([0.1, 0.4, 0.4])/2.0 # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
+    MaxParams = np.array([0.5, 0.4, 0.4])/2.0 # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
     
     return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
@@ -164,7 +165,7 @@ class BatchGeneration():
 
 
 def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, PatchSize, ModelPath, ReadPath,\
-                  WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net, InitNeurons):
+                  WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, optSN, optRN, optdg, Net, InitNeurons):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -179,10 +180,19 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.SqueezeNet(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    # Create Network Object with required parameters
+    SN = Net.SqueezeNet(InputPH = PatchPH, Training = True, Opt = optSN, InitNeurons = InitNeurons)
+    RN = Net.ResNet(InputPH = PatchPH, Training = True, Opt = optRN, InitNeurons = InitNeurons)
     # Predict output with forward pass
-    prH, prParams, _ = VN.Network()
+    # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
+    prHValSN, prValSN, _ = SN.Network()
+    prHValRN, prValRN, _ = RN.Network()
 
+    opt2 = optSN
+    opt2.warpType = 'pseudosimilarity'
+    prParams = tf.concat([prValRN, prValSN], axis=1) # [Scale, Translation]
+    prH = warp2.vec2mtrx(opt2, prParams)
+    
     # Setup Saver
     Saver = tf.train.Saver()
     
@@ -232,7 +242,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
             IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(I, PatchSize, MiniBatchSize, HObj, ReadPath, ImageSize, Vis = False)
 
             # TODO: Better way is to feed data into a MiniBatch and Extract it again
-            FeedDict = {VN.InputPH: IBatch}
+            FeedDict = {SN.InputPH: IBatch, RN.InputPH: IBatch}
             prHVal, prParamsVal = sess.run([prH, prParams], feed_dict=FeedDict)
 
             # Extract Values
@@ -294,7 +304,7 @@ def main():
                                                                              help='Path to load images from, Default:WritePath')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
-    Parser.add_argument('--NetworkName', default='Network.SqueezeNet', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--NetworkName', default='Network.ResAndSqueezeNet', help='Name of network file, Default: Network.VanillaNet')
 
     # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
     # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
@@ -318,12 +328,13 @@ def main():
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
-    InitNeurons = 10
-    warpType = ['translation', 'translation'] # ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] #, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    InitNeurons = 20
+    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] #, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj = SetupAll(ReadPath, warpType)
 
-    opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
+    optSN = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['translation']) # ICSTN Options
+    optRN = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = ['scale']) # ICSTN Options
     optdg = warp2.Options(PatchSize=ImageSize, MiniBatchSize=MiniBatchSize, warpType = [warpType[-1]]) # Data Generation Options, warpType should the same the last one in the previous command
      
     # Define PlaceHolder variables for Input and Predicted output
@@ -338,7 +349,7 @@ def main():
         os.mkdir(WritePath)
 
     TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, PatchSize, ModelPath,\
-                  ReadPath, WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net, InitNeurons)
+                  ReadPath, WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, optSN, optRN, optdg, Net, InitNeurons)
 
      
 if __name__ == '__main__':

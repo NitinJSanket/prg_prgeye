@@ -260,8 +260,8 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
                 return ErrorTrans, ErrorTransPx
 
             # Compute Error between GT and Pred
-            ErrorScalePred, ErrorScalePxPred = ComputeScaleError(PatchSize, ParamsBatch[0], prParamsVal[0])
-            ErrorTransPred, ErrorTransPxPred = ComputeTransError(PatchSize, ParamsBatch[1:], prParamsVal[1:])
+            ErrorScalePred, ErrorScalePxPred = ComputeScaleError(PatchSize, ParamsBatch[0], 0)
+            ErrorTransPred, ErrorTransPxPred = ComputeTransError(PatchSize, ParamsBatch, prParamsVal)
 
             # Compute Identity Error
             ErrorScaleIdentity, ErrorScalePxIdentity = ComputeScaleError(PatchSize, ParamsBatch[0])
