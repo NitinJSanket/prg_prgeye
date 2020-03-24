@@ -95,9 +95,10 @@ def UnstackImages(I, NumChannels=3):
     return I[:,:,:NumChannels], I[:,:,NumChannels:]
 
 class DataAugmentationTF:
-    def __init__(self, ImgPH, Augmentations =  ['Brightness', 'Contrast', 'Hue', 'Saturation', 'Gamma', 'Gaussian']):
+    def __init__(self, sess, ImgPH, Augmentations =  ['Brightness', 'Contrast', 'Hue', 'Saturation', 'Gamma', 'Gaussian']):
         self.Augmentations = Augmentations
         self.ImgPH = ImgPH
+        self.sess = sess
 
     def RandPerturbBatch(self):
         IRet = self.ImgPH

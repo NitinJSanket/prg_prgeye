@@ -51,7 +51,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHVal, prVal, MiniBatch
     prHVal = warp2.vec2mtrx(opt, prVal)
     WarpI1Patch = warp2.transformImage(opt, I1PH, prHVal)
     # Lambda weighs the different components of the supervised loss
-    Lambda = [1.0, 10.0, 10.0]
+    Lambda = [1.0, 1.0, 1.0]
     LambdaStack = np.tile(Lambda, (MiniBatchSize, 1))
     # Alpha Weighs the different parts of loss, i.e., loss = loss + alpha_i*Reg_i
     Alpha = [0.02]
@@ -141,10 +141,11 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHVal, prVal, MiniBatch
             return RobustLoss(x, a, c, e) + logZ1(a) + tf.log(c)
 
         Epsa = 1e-3
+        c = 1e-1
         DiffImg = WarpI1Patch - I2PH
-        a = C2PH
+        a = C2PH/255.0
         a = tf.multiply((2.0 - 2.0*Epsa), tf.math.sigmoid(a)) + Epsa
-        lossPhoto = tf.reduce_mean(nll(DiffImg, a, c))
+        lossPhoto = tf.reduce_mean(nll(DiffImg, a, c = c))
 
     if(Args.RegFuncName == 'None'):
         lossReg = 0.
@@ -216,6 +217,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
     cprint('Loss Function Weights: {}'.format(Lambda), 'green')
     cprint('Reg Function used: {}'.format(Args.RegFuncName), 'green')
     cprint('Reg Function Weights: {}'.format(Alpha), 'green')
+    cprint('Augmentations Used: {}'.format(Args.Augmentations), 'green')
     cprint('Input used: {}'.format(Args.Input), 'green')
     cprint('MaxParams used: {}'.format(HObj.MaxParams), 'green')
     cprint('CheckPoints are saved in: {}'.format(Args.CheckPointPath), 'red')
@@ -244,6 +246,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
             RunCommand.write('Loss Function Weights: {}\n'.format(Lambda))
             RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
             RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
+            RunCommand.write('Augmentations Used: {}\n'.format(Args.Augmentations))
             RunCommand.write('Input used: {}\n'.format(Args.Input))
             RunCommand.write('MaxParams used: {}\n'.format(HObj.MaxParams))
             RunCommand.write('CheckPoints are saved in: {}\n'.format(Args.CheckPointPath))
@@ -268,6 +271,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
             RunCommand.write('Loss Function Weights: {}\n'.format(Lambda))
             RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
             RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
+            RunCommand.write('Augmentations Used: {}\n'.format(Args.Augmentations))
             RunCommand.write('Input used: {}\n'.format(Args.Input))
             RunCommand.write('MaxParams used: {}\n'.format(HObj.MaxParams))
             RunCommand.write('CheckPoints are saved in: {}\n'.format(Args.CheckPointPath))
@@ -302,7 +306,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.SqueezeNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
@@ -352,6 +356,14 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
             # Create Batch Generator Object
             bg = BatchGeneration(sess, I2Gen, IOrgPH, HPH, SuperPointFlag = Args.SuperPointFlag)
 
+            # Create Data Augmentation Object
+            if(Args.DataAug):
+                Args.Augmentations =  ['Brightness', 'Contrast', 'Hue', 'Saturation', 'Gamma', 'Gaussian']
+                da = iu.DataAugmentationTF(sess, I1PH, Augmentations = Args.Augmentations)
+            else:
+                Args.Augmentations = 'None'
+                da = None
+
             # Print out Number of parameters
             NumParams = tu.FindNumParams(1)
             # Print out Number of Flops
@@ -369,7 +381,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
                 NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
                 for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
                     IBatch, I1Batch, I2Batch, P1Batch, P2Batch, C1Batch, C2Batch, HBatch, ParamsBatch =\
-                        bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args)
+                        bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args, da)
 
                     # Parse for loss functions on different inputs
                     if 'HP' in Args.LossFuncName:
@@ -448,7 +460,7 @@ def main():
     Parser.add_argument('--LossFuncName', default='SL2', help='Choice of Loss functions, choose from SL2, PhotoL1, PhotoChab, PhotoRobust. Default:SL2')
     Parser.add_argument('--RegFuncName', default='None', help='Choice of regularization function, choose from None, C (Cornerness). Default:None')
     Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
-    Parser.add_argument('--NetworkName', default='Network.SqueezeNet', help='Name of network file, Default: Network.VanillaNet2')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.ResNet')
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/', help='Path to save checkpoints, Default:/home/nitin/PRGEye/CheckPoints/')
     Parser.add_argument('--LogsPath', default='/home/nitin/PRGEye/Logs/', help='Path to save Logs, Default:/home/nitin/PRGEye/Logs/')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
@@ -473,7 +485,7 @@ def main():
     NetworkName = Args.NetworkName
     DataAug = Args.DataAug
     RegFuncName = Args.RegFuncName
-    Args.SuperPointFlag = ('SP' in Args.LossFuncName) or ('SP' in Args.RegFuncName)
+    Args.SuperPointFlag = ('SP' in Args.LossFuncName) or ('SP' in Args.RegFuncName) or ('PhotoRobust' in Args.LossFuncName) or('PhotoRobust' in Args.RegFuncName)
     Args.HPFlag = ('HP' in Args.LossFuncName) or ('HP' in Args.RegFuncName)
 
     # Import Network Module
@@ -481,6 +493,7 @@ def main():
 
     # Set GPUDevice
     tu.SetGPU(GPUDevice)
+
 
     if(RemoveLogs is not 0):
         shutil.rmtree(os.getcwd() + os.sep + 'Logs' + os.sep)
@@ -492,6 +505,7 @@ def main():
     TrainNames, ValNames, TestNames, OptimizerParams,\
     SaveCheckPoint, PatchSize, NumTrainSamples, NumValSamples, NumTestSamples,\
     NumTestRunsPerEpoch, OriginalImageSize, HObj, warpType = SetupAll(BasePath, LearningRate, MiniBatchSize, warpType =  warpType)
+
 
     # If CheckPointPath doesn't exist make the path
     if(not (os.path.isdir(CheckPointPath))):
