@@ -17,7 +17,7 @@ import Misc.MiscUtils as mu
 
 class MobileNetv1(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
-                 Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None):
+                 Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None, Suffix = None, Suffix = None):
         super(VanillaNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
@@ -41,6 +41,12 @@ class MobileNetv1(BaseLayers):
             Padding = 'same'
         self.Padding = Padding
         self.Opt = Opt
+        if(Suffix is None):
+            Suffix = ''
+        self.Suffix = Suffix
+        if(Suffix is None):
+            Suffix = ''
+        self.Suffix = Suffix
 
     @CountAndScope
     @add_arg_scope

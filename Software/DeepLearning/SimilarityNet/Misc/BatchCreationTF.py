@@ -91,7 +91,7 @@ class BatchGeneration():
         return I1, I2, P1, P2, C1, C2, H, Params
 
 
-    def GenerateBatchTF(self, TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args, da):
+    def GenerateBatchTF(self, TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args, da, DataAugGen):
         """
         Inputs: 
         DirNames - Full path to all image files without extension
@@ -145,9 +145,9 @@ class BatchGeneration():
         # Augment Data if asked for
         if(Args.DataAug):
             FeedDict = {da.ImgPH: P1Batch}
-            P1Batch = np.uint8(da.sess.run([da.RandPerturbBatch()], feed_dict=FeedDict)[0])
+            P1Batch = np.uint8(da.sess.run([DataAugGen], feed_dict=FeedDict)[0])
             FeedDict = {da.ImgPH: P2Batch}
-            P2Batch = np.uint8(da.sess.run([da.RandPerturbBatch()], feed_dict=FeedDict)[0])
+            P2Batch = np.uint8(da.sess.run([DataAugGen], feed_dict=FeedDict)[0])
             
         if(Args.Input == 'G'):
             P1Batch = np.tile(iu.rgb2gray(P1Batch)[:,:,:,np.newaxis], (1,1,1,3))

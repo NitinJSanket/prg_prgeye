@@ -58,6 +58,57 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHVal, prVal, MiniBatch
     # Strip HP and SP to get loss function name
     ReplaceList = ['HP', 'SP']
     LossFuncName = re.sub(r'|'.join(map(re.escape, ReplaceList)), '', Args.LossFuncName)
+
+    def RobustLoss(x, a, c, e=1e-2):
+	b = tf.abs(2.-a) + e
+	d = tf.where(tf.greater_equal(a, 0.), a+e, a-e)
+	return b/d*(tf.pow(tf.square(x/c)/b+1., 0.5*d)-1.)
+
+    def logZ1(a):
+        ps = [1.49130350, 1.38998350, 1.32393250,
+        1.26937670, 1.21922380, 1.16928990,
+        1.11524570, 1.04887590, 0.91893853]
+
+        ms = [-1.4264522e-01, -7.7125795e-02, -5.9283373e-02,
+        -5.2147767e-02, -5.0225594e-02, -5.2624177e-02,
+        -6.1122095e-02, -8.4174540e-02, -2.5111488e-01]
+
+        x = 8. * (tf.log(a + 2.) / tf.log(2.) - 1.)
+        i0 = tf.cast(tf.clip_by_value(x, 0., tf.cast(len(ps) - 2, tf.float32)), tf.int32)
+        p0 = tf.gather(ps, i0)
+        p1 = tf.gather(ps, i0 + 1)
+        m0 = tf.gather(ms, i0)
+        m1 = tf.gather(ms, i0 + 1)
+        t = x - tf.cast(i0, tf.float32)
+        h01 = t * t * (-2. * t + 3.)
+        h00 = 1. - h01
+        h11 = t * t * (t - 1.)
+        h10 = h11 + t * (1. - t)
+        return tf.where(t < 0., ms[0] * t + ps[0],
+        tf.where(t > 1., ms[-1] * (t - 1.) + ps[-1],
+        p0 * h00 + p1 * h01 + m0 * h10 + m1 * h11))
+
+    def nll(x, a, c, e=1e-2):
+        return RobustLoss(x, a, c, e) + logZ1(a) + tf.log(c)
+
+    def SSIM(I1, I2):
+        # Adapted from: https://github.com/yzcjtr/GeoNet/blob/master/geonet_model.py
+        C1 = 0.01 ** 2
+        C2 = 0.03 ** 2
+
+        mu_x = tf.nn.avg_pool(I1, ksize = (3,3), strides=(1,1), padding='SAME')
+        mu_y = tf.nn.avg_pool(I2, ksize = (3,3), strides=(1,1), padding='SAME')
+
+        sigma_x  = tf.nn.avg_pool(I1 ** 2, ksize = (3,3), strides=(1,1), padding='SAME') - mu_x ** 2
+        sigma_y  = tf.nn.avg_pool(I2 ** 2, ksize = (3,3), strides=(1,1), padding='SAME') - mu_y ** 2
+        sigma_xy = tf.nn.avg_pool(I1 * I2 , ksize = (3,3), strides=(1,1), padding='SAME') - mu_x * mu_y
+        
+        SSIM_n = (2 * mu_x * mu_y + C1) * (2 * sigma_xy + C2)
+        SSIM_d = (mu_x ** 2 + mu_y ** 2 + C1) * (sigma_x + sigma_y + C2)
+        
+        SSIM = SSIM_n / SSIM_d
+        return SSIM
+    
     # Choice of Loss Function
     if(LossFuncName == 'SL2'):
         # Supervised L2 loss
@@ -73,26 +124,10 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHVal, prVal, MiniBatch
         alpha = 0.45
         lossPhoto = tf.reduce_mean(tf.pow(tf.square(DiffImg) + tf.square(epsilon), alpha))
     elif(LossFuncName == 'SSIM'):
-        # Adapted from: https://github.com/yzcjtr/GeoNet/blob/master/geonet_model.py
-        C1 = 0.01 ** 2
-        C2 = 0.03 ** 2
-
-        mu_x = tf.nn.avg_pool(WarpI1Patch, ksize = (3,3), strides=(1,1), padding='SAME')
-        mu_y = tf.nn.avg_pool(I2PH, ksize = (3,3), strides=(1,1), padding='SAME')
-
-        sigma_x  = tf.nn.avg_pool(WarpI1Patch ** 2, ksize = (3,3), strides=(1,1), padding='SAME') - mu_x ** 2
-        sigma_y  = tf.nn.avg_pool(I2PH ** 2, ksize = (3,3), strides=(1,1), padding='SAME') - mu_y ** 2
-        sigma_xy = tf.nn.avg_pool(WarpI1Patch * I2PH , ksize = (3,3), strides=(1,1), padding='SAME') - mu_x * mu_y
-
-        SSIM_n = (2 * mu_x * mu_y + C1) * (2 * sigma_xy + C2)
-        SSIM_d = (mu_x ** 2 + mu_y ** 2 + C1) * (sigma_x + sigma_y + C2)
-
-        SSIM = SSIM_n / SSIM_d
-
         DiffImg = WarpI1Patch - I2PH
 
         AlphaSSIM = 0.005
-        lossPhoto = tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1) + AlphaSSIM*tf.abs(DiffImg))
+        lossPhoto = tf.reduce_mean(tf.clip_by_value((1 - SSIM(WarpI1Patch, I2PH)) / 2, 0, 1) + AlphaSSIM*tf.abs(DiffImg))
     elif(LossFuncName == 'SSIMTF'):
         # TF's official SSIM
         SSIM = tf.image.ssim(tf.image.rgb_to_grayscale(WarpI1Patch), tf.image.rgb_to_grayscale(I2PH), max_val=255, filter_size=11,\
@@ -108,40 +143,8 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHVal, prVal, MiniBatch
         #     AlphaSSIM = 0.005
         #     lossPhoto = tf.reduce_mean(tf.reduce_mean(tf.clip_by_value((1 - SSIM) / 2, 0, 1)) + tf.reduce_mean(AlphaSSIM*tf.abs(DiffImg)))
     elif(LossFuncName == 'PhotoRobust'):
-        def RobustLoss(x, a, c, e=1e-2):
-	       b = tf.abs(2.-a) + e
-	       d = tf.where(tf.greater_equal(a, 0.), a+e, a-e)
-	       return b/d*(tf.pow(tf.square(x/c)/b+1., 0.5*d)-1.)
-
-        def logZ1(a):
-            ps = [1.49130350, 1.38998350, 1.32393250,
-            1.26937670, 1.21922380, 1.16928990,
-            1.11524570, 1.04887590, 0.91893853]
-
-            ms = [-1.4264522e-01, -7.7125795e-02, -5.9283373e-02,
-            -5.2147767e-02, -5.0225594e-02, -5.2624177e-02,
-            -6.1122095e-02, -8.4174540e-02, -2.5111488e-01]
-
-            x = 8. * (tf.log(a + 2.) / tf.log(2.) - 1.)
-            i0 = tf.cast(tf.clip_by_value(x, 0., tf.cast(len(ps) - 2, tf.float32)), tf.int32)
-            p0 = tf.gather(ps, i0)
-            p1 = tf.gather(ps, i0 + 1)
-            m0 = tf.gather(ms, i0)
-            m1 = tf.gather(ms, i0 + 1)
-            t = x - tf.cast(i0, tf.float32)
-            h01 = t * t * (-2. * t + 3.)
-            h00 = 1. - h01
-            h11 = t * t * (t - 1.)
-            h10 = h11 + t * (1. - t)
-            return tf.where(t < 0., ms[0] * t + ps[0],
-            tf.where(t > 1., ms[-1] * (t - 1.) + ps[-1],
-            p0 * h00 + p1 * h01 + m0 * h10 + m1 * h11))
-
-        def nll(x, a, c, e=1e-2):
-            return RobustLoss(x, a, c, e) + logZ1(a) + tf.log(c)
-
         Epsa = 1e-3
-        c = 1e-1
+        c = 1e-2 # 1e-1 was used before
         DiffImg = WarpI1Patch - I2PH
         a = C2PH/255.0
         a = tf.multiply((2.0 - 2.0*Epsa), tf.math.sigmoid(a)) + Epsa
@@ -149,19 +152,47 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHVal, prVal, MiniBatch
 
     if(Args.RegFuncName == 'None'):
         lossReg = 0.
-    elif(Args.RegFuncName == 'SP'):
+    elif(Args.RegFuncName == 'SPL1'):
         WarpC1 = warp2.transformImage(opt, C1PH, prHVal)
         lossReg = tf.reduce_mean(Alpha[0]*tf.abs(tf.math.multiply(WarpI1Patch, WarpC1/255.0) - tf.math.multiply(I2PH, C2PH/255.0)))
-    elif(Args.RegFuncName == 'HP'):
+    elif(Args.RegFuncName == 'HPL1'):
         WarpHP1 = warp2.transformImage(opt, HP1PH, prHVal)
         lossReg = tf.reduce_mean(Alpha[0]*tf.abs(tf.math.multiply(WarpI1Patch, WarpHP1/255.0) - tf.math.multiply(I2PH, HP2PH/255.0)))
-    elif(Args.RegFuncName == 'SPHP'):
+    elif(Args.RegFuncName == 'SPHPL1'):
         WarpC1 = warp2.transformImage(opt, C1PH, prHVal)
         lossReg1 = tf.reduce_mean(Alpha[0]*tf.abs(tf.math.multiply(WarpI1Patch, WarpC1/255.0) - tf.math.multiply(I2PH, C2PH/255.0)))
         WarpHP1 = warp2.transformImage(opt, HP1PH, prHVal)
         lossReg2 = tf.reduce_mean(Alpha[1]*tf.abs(tf.math.multiply(WarpI1Patch, WarpHP1/255.0) - tf.math.multiply(I2PH, HP2PH/255.0)))
         lossReg = lossReg1 + lossReg2
-    
+    elif(Args.RegFuncName == 'SPRobust'):
+        Epsa = 1e-3
+        c = 1e-2
+        DiffImg = WarpI1Patch - I2PH
+        a = C2PH/255.0
+        a = tf.multiply((2.0 - 2.0*Epsa), tf.math.sigmoid(a)) + Epsa
+        lossReg = tf.reduce_mean(Alpha[0]*nll(DiffImg, a, c = c))
+    elif(Args.RegFuncName == 'HPRobust'):
+        Epsa = 1e-3
+        c = 1e-2
+        DiffImg = WarpI1Patch - I2PH
+        a = HP2PH/255.0
+        a = tf.multiply((2.0 - 2.0*Epsa), tf.math.sigmoid(a)) + Epsa
+        lossReg = tf.reduce_mean(Alpha[0]*nll(DiffImg, a, c = c))
+    elif(Args.RegFuncName == 'SPHPL1'):
+        Epsa = 1e-3
+        c = 1e-2
+        DiffImg = WarpI1Patch - I2PH
+        a = C2PH/255.0
+        a = tf.multiply((2.0 - 2.0*Epsa), tf.math.sigmoid(a)) + Epsa
+        lossReg1 = tf.reduce_mean(Alpha[0]*nll(DiffImg, a, c = c))
+        a = HP2PH/255.0
+        a = tf.multiply((2.0 - 2.0*Epsa), tf.math.sigmoid(a)) + Epsa
+        lossReg2 = tf.reduce_mean(Alpha[1]*nll(DiffImg, a, c = c))
+        lossReg = lossReg1 + lossReg2
+    else:
+        print('Unknown Reg Func Type')
+        sys.exit()
+        
     loss = lossPhoto + lossReg
     return loss, WarpI1Patch, Lambda, Alpha
 
@@ -235,7 +266,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
             RunCommand.write('Username: {}\n'.format(Username))
             RunCommand.write('Learning Rate: {}\n'.format(Args.LR))
             RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
-            RunCommand.write('GPU Used: {}'.format(Args.GPUDevice))
+            RunCommand.write('GPU Used: {}\n'.format(Args.GPUDevice))
             RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
             RunCommand.write('Num Params: {}\n'.format(NumParams))
             RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
@@ -260,7 +291,7 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
             RunCommand.write('Username: {}\n'.format(Username))
             RunCommand.write('Learning Rate: {}\n'.format(Args.LR))
             RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
-            RunCommand.write('GPU Used: {}'.format(Args.GPUDevice))
+            RunCommand.write('GPU Used: {}\n'.format(Args.GPUDevice))
             RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
             RunCommand.write('Num Params: {}\n'.format(NumParams))
             RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
@@ -360,8 +391,10 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
             if(Args.DataAug):
                 Args.Augmentations =  ['Brightness', 'Contrast', 'Hue', 'Saturation', 'Gamma', 'Gaussian']
                 da = iu.DataAugmentationTF(sess, I1PH, Augmentations = Args.Augmentations)
+                DataAugGen = da.RandPerturbBatch()
             else:
                 Args.Augmentations = 'None'
+                DataAugGen = None
                 da = None
 
             # Print out Number of parameters
@@ -381,7 +414,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
                 NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
                 for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
                     IBatch, I1Batch, I2Batch, P1Batch, P2Batch, C1Batch, C2Batch, HBatch, ParamsBatch =\
-                        bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args, da)
+                        bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args, da, DataAugGen)
 
                     # Parse for loss functions on different inputs
                     if 'HP' in Args.LossFuncName:

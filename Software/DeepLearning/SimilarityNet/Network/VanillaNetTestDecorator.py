@@ -19,7 +19,7 @@ import Misc.MiscUtils as mu
 
 class VanillaNet(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
-                 Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None):
+                 Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None, Suffix = None):
         super(VanillaNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
@@ -43,8 +43,9 @@ class VanillaNet(BaseLayers):
             Padding = 'same'
         self.Padding = Padding
         self.Opt = Opt
-        b
-        self.Suffix = 'T'
+        if(Suffix is None):
+            Suffix = ''
+        self.Suffix = Suffix
 
     @CountAndScope
     @add_arg_scope

@@ -18,7 +18,7 @@ import Misc.MiscUtils as mu
 
 class ResNet(BaseLayers):
     # http://torch.ch/blog/2016/02/04/resnets.html
-    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, NumBlocks = None, InitNeurons = None):
+    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, NumBlocks = None, InitNeurons = None, Suffix = None):
         super(ResNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
@@ -40,6 +40,9 @@ class ResNet(BaseLayers):
         if(NumBlocks is None):
             NumBlocks =  3
         self.NumBlocks = NumBlocks
+        if(Suffix is None):
+            Suffix = ''
+        self.Suffix = Suffix
 
     @CountAndScope
     @add_arg_scope

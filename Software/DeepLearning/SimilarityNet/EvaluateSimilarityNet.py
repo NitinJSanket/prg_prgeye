@@ -77,7 +77,7 @@ def SetupAll(ReadPath, warpType):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    MaxParams = np.array([0.1, 0.4, 0.4])/2.0 # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
+    MaxParams = np.array([0.5, 0.4, 0.4])/2.0 # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
     
     return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
@@ -137,7 +137,7 @@ class BatchGeneration():
         return I1, I2, P1, P2, H, Params
 
 
-    def GenerateBatchTF(self, I, PatchSize, MiniBatchSize, HObj, BasePath, ImageSize, Vis = False):
+    def GenerateBatchTF(self, I, PatchSize, MiniBatchSize, HObj, BasePath, ImageSize, Args, da, DataAugGen, Vis = False):
         """
         Inputs: 
         DirNames - Full path to all image files without extension
@@ -153,6 +153,13 @@ class BatchGeneration():
 
         # Similarity and Patch generation 
         I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = self.RandSimilarityPerturbationTF(I, HObj, PatchSize, MiniBatchSize, ImageSize = None, Vis = Vis)
+
+        # Augment Data if asked for
+        if(Args.DataAug):
+            FeedDict = {da.ImgPH: P1Batch}
+            P1Batch = np.uint8(da.sess.run([DataAugGen], feed_dict=FeedDict)[0])
+            FeedDict = {da.ImgPH: P2Batch}
+            P2Batch = np.uint8(da.sess.run([DataAugGen], feed_dict=FeedDict)[0])
             
         ICombined = np.concatenate((P1Batch[:,:,:,0:3], P2Batch[:,:,:,0:3]), axis=3)
         # Normalize Dataset
@@ -164,7 +171,7 @@ class BatchGeneration():
 
 
 def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, PatchSize, ModelPath, ReadPath,\
-                  WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net, InitNeurons):
+                  WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net, InitNeurons, Args):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -179,7 +186,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.SqueezeNet(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.VanillaNet(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     prH, prParams, _ = VN.Network()
 
@@ -221,6 +228,16 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
         # Create Batch Generator Object
         bg = BatchGeneration(sess, I2Gen, I1PH, PerturbHPH)
 
+        # Create Data Augmentation Object
+        if(Args.DataAug):
+            Args.Augmentations =  ['Brightness', 'Contrast', 'Hue', 'Saturation', 'Gamma', 'Gaussian']
+            da = iu.DataAugmentationTF(sess, tf.placeholder(tf.float32, shape=(1, PatchSize[0], PatchSize[1], PatchSize[2]), name='P1'), Augmentations = Args.Augmentations)
+            DataAugGen = da.RandPerturbBatch()
+        else:
+            Args.Augmentations = 'None'
+            DataAugGen = None
+            da = None
+
         for TestName in tqdm(TestNames):
             # Generate batch of I1 original images
             ImageName = ReadPath + os.sep + TestName
@@ -229,7 +246,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
             if (I is None):
                 continue
             I = np.array(I[np.newaxis, :, :, :])
-            IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(I, PatchSize, MiniBatchSize, HObj, ReadPath, ImageSize, Vis = False)
+            IBatch, I1Batch, I2Batch, P1Batch, P2Batch, HBatch, ParamsBatch = bg.GenerateBatchTF(I, PatchSize, MiniBatchSize, HObj, ReadPath, ImageSize, Args, da, DataAugGen, Vis = False)
 
             # TODO: Better way is to feed data into a MiniBatch and Extract it again
             FeedDict = {VN.InputPH: IBatch}
@@ -294,11 +311,9 @@ def main():
                                                                              help='Path to load images from, Default:WritePath')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
-    Parser.add_argument('--NetworkName', default='Network.SqueezeNet', help='Name of network file, Default: Network.VanillaNet')
-
-    # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
-    # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
-
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--DataAug', type=int, default=0, help='Do you want to do Data augmentation?, Default:0')
+    
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
     ReadPath = Args.ReadPath
@@ -313,13 +328,13 @@ def main():
 
     # Import Network Module
     Net = importlib.import_module(NetworkName)
-    
+
     # Set GPUNum
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
-    InitNeurons = 10
-    warpType = ['translation', 'translation'] # ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] #, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    InitNeurons = 36
+    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] #, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
     TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj = SetupAll(ReadPath, warpType)
 
@@ -338,7 +353,7 @@ def main():
         os.mkdir(WritePath)
 
     TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, PatchSize, ModelPath,\
-                  ReadPath, WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net, InitNeurons)
+                  ReadPath, WritePath, TestNames, NumTestSamples, CropType, MiniBatchSize, MaxParams, warpType, HObj, opt, optdg, Net, InitNeurons, Args)
 
      
 if __name__ == '__main__':
