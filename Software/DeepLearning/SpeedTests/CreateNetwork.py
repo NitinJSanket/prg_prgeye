@@ -25,16 +25,11 @@ import Misc.ImageUtils as iu
 import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
-from Network.EVHomographyNetUnsupSmall import EVHomographyNetUnsupSmall
-from Network.EVHomographyNetUnsupSmallMaixPy import EVHomographyNetUnsupSmallMaixPy
-from Network.EVHomographyNetUnsup import EVHomographyNetUnsup
-from Network.EVHomographyNetUnsupSmallTRT import EVHomographyNetUnsupSmallTRT
 from Misc.MiscUtils import *
 import numpy as np
 import time
 import argparse
 import shutil
-from StringIO import StringIO
 import string
 from termcolor import colored, cprint
 import math as m
@@ -42,16 +37,20 @@ from tqdm import tqdm
 import Misc.STNUtils as stn
 import Misc.TFUtils as tu
 import Misc.MiscUtils as mu
+import importlib
+import Misc.warpICSTN2 as warp2
+
+
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
     
-def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize):    
+def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, NumImgs, Args, Net, opt):    
     # Predict output with forward pass
-    if(NetworkType == 'Small'):
-        prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
-    elif(NetworkType == 'Large'):
-        prHVal = EVHomographyNetUnsupSmallMaixPy(ImgPH, ImageSize, MiniBatchSize)
+    ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
+    VanillaNet = getattr(Net, ClassName)
+    VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
+    _, prVal, _ = VN.Network()
             
     # Setup Saver
     Saver = tf.train.Saver()
@@ -68,37 +67,94 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, Mi
         # Print Model Size in MB
         tu.CalculateModelSize(1)
 
-        # Try TFLite
-        # Converting a GraphDef from session.
-
+        # TFLite Conversions
         def representative_dataset_gen():
             for _ in range(10):
                 # Get sample input data as a numpy array in a method of your choosing.
-                input = np.float32(2.*(np.random.rand(MiniBatchSize, ImageSize[0], ImageSize[1], ImageSize[2]) - 0.5))
+                input = np.float32(2.*(np.random.rand(MiniBatchSize, ImageSize[0], ImageSize[1], NumImgs*ImageSize[2]) - 0.5))
                 yield [input]
 
+        if(Args.TFLite):
+            converter = tf.lite.TFLiteConverter.from_session(sess, [VN.InputPH], [prVal])
+            # Optimizer Flags
+            if(Args.TFLiteOpt == 'Latency'):
+                converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] 
+            elif(Args.TFLiteOpt == 'Size'):
+                converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+            else:
+                converter.optimizations = [tf.lite.Optimize.DEFAULT]
 
-        converter = tf.lite.TFLiteConverter.from_session(sess, [ImgPH], [prHVal])
-        converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] #[tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
-        # converter.representative_dataset = representative_dataset_gen
-        # input_arrays = converter.get_input_arrays()
-        # converter.quantized_input_stats = {input_arrays[0] : (0., 1.)}  # mean, std_dev
-        # converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-        # converter.inference_input_type = tf.uint8
-        # converter.inference_output_type = tf.uint8
-        tflite_model = converter.convert() 
-        open("converted_model.tflite", "wb").write(tflite_model)
-        print('TFLite Model Written....')
+            # Weight Quantization
+            if(Args.TFLiteQuant == 'Float16'): # Float32, Float16, Int64, Int32, Int8, UInt8
+                # converter.target_spec.supported_types = [tf.lite.constants.FLOAT16]
+                converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
+            elif(Args.TFLiteQuant == 'Int64'):
+                # converter.target_spec.supported_types = [tf.lite.constants.INT64]
+                converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            elif(Args.TFLiteQuant == 'Int32'):
+                # converter.target_spec.supported_types = [tf.lite.constants.INT32]
+                converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            elif(Args.TFLiteQuant == 'Int8'):
+                # converter.target_spec.supported_types = [tf.lite.constants.INT8]
+                converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            elif(Args.TFLiteQuant == 'UInt8'):
+                # converter.target_spec.supported_types = [tf.lite.constants.QUANTIZED_UINT8]
+                converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            else:
+                # converter.target_spec.supported_types = [tf.lite.constants.FLOAT]
+                converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
+
+            if('Int' in Args.TFLiteQuant):
+                converter.inference_input_type = tf.uint8
+                converter.inference_output_type = tf.uint8
+            # else:
+            #     converter.inference_input_type = tf.float32
+            #     converter.inference_output_type = tf.float32
+                
+            converter.representative_dataset = representative_dataset_gen
+            # input_arrays = converter.get_input_arrays()
+            # converter.quantized_input_stats = {input_arrays[0] : (0., 1.)}  # mean, std_dev
+            # converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            # converter.inference_input_type = tf.uint8
+            # converter.inference_output_type = tf.uint8
+            tflite_model = converter.convert()
+            TFLiteName = Args.CheckPointPath + os.sep + ModelPrefix +'TFLite.tflite'
+            with open(TFLiteName, "wb") as File:
+                File.write(tflite_model)
+            print('TFLite Model Written in {}....'.format(TFLiteName))
+
+        if(Args.EdgeTPU):
+            converter = tf.lite.TFLiteConverter.from_session(sess, [VN.InputPH], [prVal])
+            # Optimizer Flags
+            if(Args.TFLiteOpt == 'Latency'):
+                converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] 
+            elif(Args.TFLiteOpt == 'Size'):
+                converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+            else:
+                converter.optimizations = [tf.lite.Optimize.DEFUALT]
+
+            # Weight Quantization
+            converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            converter.inference_input_type = tf.uint8
+            converter.inference_output_type = tf.uint8
+            converter.representative_dataset = representative_dataset_gen
+
+            tflite_model = converter.convert()
+            TFLiteName = Args.CheckPointPath + os.sep + ModelPrefix +'TFLiteEdgeTPU.tflite'
+            with open(TFLiteName, "wb") as File:
+                File.write(tflite_model)
+            print('TFLite Model Written in {}....'.format(TFLiteName))
 
         # Save model every epoch
         SaveName = CheckPointPath + os.sep + ModelPrefix +'model.ckpt'
         Saver.save(sess, save_path=SaveName)
-        print(SaveName + ' Model Saved...')
+        print('Model Saved in {}...'.format(SaveName))
 
     # Reset graph after using: https://github.com/tensorflow/tensorflow/issues/19731
     tf.reset_default_graph()
 
-def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize, TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin, Append=False):
+def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, TestMultipleMiniBatch,\
+                   NumTest, MiniBatchSizeIncrement, MiniBatchMin, NumImgs, Args, Net, opt, Append=False):
     if(TestMultipleMiniBatch):
         StartIdx = MiniBatchMin - 1
     else:
@@ -116,10 +172,10 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
         ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSizeNow, ImageSize[0], ImageSize[1], ImageSize[2]), name='Input')
             
         # Predict output with forward pass
-        if(NetworkType == 'Small'):
-            prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
-        elif(NetworkType == 'Large'):
-            prHVal = EVHomographyNetUnsup(ImgPH, ImageSize, MiniBatchSize)
+        ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
+        VanillaNet = getattr(Net, ClassName)
+        VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
+        _, prVal, _ = VN.Network()
 
         # Setup Saver
         Saver = tf.train.Saver()
@@ -157,8 +213,8 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, M
                 if(count == 1):
                     # Start timer after first iteration
                     Timer1 = mu.tic()
-                FeedDict = {ImgPH: RandImgBatch}
-                _ = sess.run([prHVal], FeedDict)
+                FeedDict = {VN.InputPH: RandImgBatch}
+                _ = sess.run([prVal], FeedDict)
 
         Time = mu.toc(Timer1)/NumTest
         FPS = 1/Time*MiniBatchSizeNow
@@ -185,21 +241,24 @@ def main():
     Parser.add_argument('--CheckPointPath', default='/home/nitin/PRGEye/CheckPoints/SpeedTests', help='Path to save Model, Default:/home/nitin/PRGEye/CheckPoints/SpeedTests')
     Parser.add_argument('--ModelPrefix', default='', help='Prefix for model name, Default: ''')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
-    Parser.add_argument('--NetworkType', default='Large', help='Choice of Network type, choose from Small, Large, Default:Large')
     Parser.add_argument('--MiniBatchSize', type=int, default=1, help='Size of the MiniBatch to use, Default:1')
+    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.ResNet')
     Parser.add_argument('--TestMultipleMiniBatch', type=int, default=0, help='Used for Testing only, if active MiniBatchSize represents max value')
     Parser.add_argument('--NumTest', type=int, default=100, help='Number of times code will run to take avg. time')
     Parser.add_argument('--Mode', default='Train', help='Mode: Train or Test or TrainTest')
     Parser.add_argument('--MiniBatchMin', type=int, default=1, help='Used for Testing only, is active when TestMultipleMiniBatch is used and MiniBatchMin represents min value.')
     Parser.add_argument('--MiniBatchSizeIncrement', type=int, default=1, help='Used for Testing only, is active when TestMultipleMiniBatch is used and MiniBatchSize represents max value. The code is tested for these increment steps. ')
     Parser.add_argument('--ForceBatchSize1', type=int, default=0, help='Used for Testing only, is active when TestMultipleMiniBatch is used and MiniBatchSize represents max value. Force runs for BatchSize of 1.')
-    
+    Parser.add_argument('--TFLite', default=0, type=int, help='Convert to TFLite quantized to type --TFLiteQuant? Default: 0')
+    Parser.add_argument('--TFLiteOpt', default='Default', help='TFLite Optimization, Choose from Default, Size and Latency. Default: Default')
+    Parser.add_argument('--TFLiteQuant', default='Float32', help='TFLite Quantization. Choose from Float32, Float16, Int64, Int32, Int8, UInt8. Default: Float32')
+    Parser.add_argument('--EdgeTPU', default=0, type=int, help='TFLite For EdgeTPU. This works in addition to TFLite conversion. Default: 0')
+    Parser.add_argument('--InitNeurons', type=float, default=8, help='Learning Rate, Default: 8')
 
     Args = Parser.parse_args()
     CheckPointPath = Args.CheckPointPath
     ModelPrefix = Args.ModelPrefix
     GPUDevice = Args.GPUDevice
-    NetworkType = Args.NetworkType
     MiniBatchSize = Args.MiniBatchSize
     Mode = Args.Mode
     TestMultipleMiniBatch = bool(Args.TestMultipleMiniBatch)
@@ -208,31 +267,44 @@ def main():
     MiniBatchMin = Args.MiniBatchMin
     ForceBatchSize1 = bool(Args.ForceBatchSize1)
 
+    # Import Network Module
+    Net = importlib.import_module(Args.NetworkName)
+
     # Parameters
-    ImageSize = np.array([224, 224, 3])
+    ImageSize = np.array([128, 128, 3])
+    NumImgs = 2
+
+    warpType = ['pseudosimilarity']
+    opt = warp2.Options(PatchSize=ImageSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
     
     # Set GPUDevice
     tu.SetGPU(GPUDevice)
 
     # Placeholders
-    ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, ImageSize[0], ImageSize[1], ImageSize[2]), name='Input')
+    ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSize, ImageSize[0], ImageSize[1], NumImgs*ImageSize[2]), name='Input')
     
     # Generate the model and save        
     if(Mode == 'Train'):
-        GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize)
+        GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, NumImgs, Args, Net, opt)
     elif(Mode == 'Test'):
         if(ForceBatchSize1 and TestMultipleMiniBatch):
-            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, 1, False, NumTest, MiniBatchSizeIncrement, 1)
-            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize, TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin, Append=True)
+            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, 1, False,\
+                           NumTest, MiniBatchSizeIncrement, 1, NumImgs, Args, Net)
+            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,\
+                           TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin, NumImgs, Args, Net, opt, Append=True)
         else:
-            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize, TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin)
+            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,\
+                           TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin, NumImgs, Args, Net, opt)
     elif(Mode=='TrainTest'):
-        GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize)
+        GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, NumImgs, Args, Net, opt)
         if(ForceBatchSize1 and TestMultipleMiniBatch):
-            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, 1, False, NumTest, MiniBatchSizeIncrement, 1)
-            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize, TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin, Append=True)
+            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, 1, False\
+                           , NumTest, MiniBatchSizeIncrement, 1, NumImgs, Args, Net, opt)
+            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,\
+                           TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin, NumImgs, Args, Net, opt, Append=True)
         else:
-            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, NetworkType, MiniBatchSize, TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin)
+            SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,\
+                           TestMultipleMiniBatch, NumTest, MiniBatchSizeIncrement, MiniBatchMin, NumImgs, Args, Net, opt)
     else:
         print('ERROR: Invalid Mode!')
         sys.exit(0)

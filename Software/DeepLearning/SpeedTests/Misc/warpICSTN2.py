@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.linalg
 import tensorflow as tf
+import cv2
 
 
 class Options:
@@ -10,6 +11,7 @@ class Options:
         self.batchSize = np.array(MiniBatchSize).astype(np.int32)
         self.NumBlocks = NumBlocks
         self.warpType = warpType
+        self.warpDim = 0
         if(isinstance(self.warpType, list)): # If you don't need different warps, send single string for warpType instead
             # Also update NumBlocks here
             self.NumBlocks = len(self.warpType)
@@ -17,10 +19,12 @@ class Options:
             for val in self.warpType:
                 if val == 'yaw':
                     self.warpDim.append(1)
-                if val == 'scale':
+                elif val == 'scale':
                     self.warpDim.append(1)
-                if val == 'translation':
+                elif val == 'translation':
                     self.warpDim.append(2)
+                elif val == 'pseudosimilarity':
+                    self.warpDim.append(3) # Only Translation and Scale
                 elif val == 'similarity':
                     self.warpDim.append(4)
                 elif val == 'affine':
@@ -29,13 +33,15 @@ class Options:
                     self.warpDim.append(8)
             self.pInit = tf.zeros([MiniBatchSize, self.warpDim[0]])
         else:
-            self.warpType = warpType
+            # self.warpType = warpType
             if self.warpType == 'yaw':
                 self.warpDim = 1
-            if self.warpType == 'scale':
+            elif self.warpType == 'scale':
                 self.warpDim = 1
-            if self.warpType == 'translation':
+            elif self.warpType == 'translation':
                 self.warpDim = 2
+            elif self.warpType == 'pseudosimilarity': # Only Translation and Scale
+                self.warpDim == 3
             elif self.warpType == 'similarity':
                 self.warpDim = 4
             elif self.warpType == 'affine':
@@ -46,6 +52,11 @@ class Options:
         self.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32)
         self.image4pts = np.array([[0,0],[0,PatchSize[1]-1],[PatchSize[0]-1,PatchSize[1]-1],[PatchSize[0]-1,0]],dtype=np.float32)
         self.refMtrx = fit(Xsrc=self.canon4pts, Xdst=self.image4pts)
+        
+        # self.refMtrx[0,0] = self.W/2
+        # self.refMtrx[0,2] = self.W/2
+        # self.refMtrx[1,1] = self.H/2
+        # self.refMtrx[1,2] = self.H/2
         self.pertScale = pertScale
         self.transScale = transScale
         self.AddTranslation = bool(AddTranslation)
@@ -68,9 +79,10 @@ def compose(opt,pMtrx,dpMtrx):
                 # pMtrx = vec2mtrx(opt,p)
                 # dpMtrx = vec2mtrx(opt,dp)
                 pMtrxNew = tf.matmul(dpMtrx,pMtrx)
+                # pMtrxNew = tf.divide(pMtrxNew, pMtrxNew[:,2:3,2:3])
                 pMtrxNew /= pMtrxNew[:,2:3,2:3]
                 # pNew = mtrx2vec(opt,pMtrxNew)
-        return pMtrxNew
+        return pMtrxNew 
 
 # compute inverse of warp parameters
 def inverse(opt,p):
@@ -82,35 +94,38 @@ def inverse(opt,p):
 
 # convert warp parameters to matrix
 def vec2mtrx(opt,p):
-        with tf.name_scope("vec2mtrx"):
-                O = tf.zeros([opt.batchSize])
-                I = tf.ones([opt.batchSize])
-                if(isinstance(opt.warpType, list)):
-                        # If you don't need different warps, send single string for warpType instead
-                        CompareVal = opt.warpType[opt.currBlock]
-                else:
-                        CompareVal =  opt.warpType
-                if CompareVal == "yaw":
-                       # value of sinpsi is regressed directly
-                       sinpsi = tf.squeeze(p) # tf.unstack(p,axis=1)
-                       cospsi = tf.math.sqrt(tf.math.subtract(1.0, tf.math.pow(sinpsi,2)))
-                       pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,O],[cospsi,sinpsi,O],[O,O,I]]),perm=[2,0,1])
-                if CompareVal == "scale":
-                       scale = tf.squeeze(p) # tf.unstack(p,axis=1)
-                       pMtrx = tf.transpose(tf.stack([[scale,O,O],[O,scale,O],[O,O,I]]),perm=[2,0,1])
-                if CompareVal == "translation":
-                       tx,ty = tf.unstack(p,axis=1)
-                       pMtrx = tf.transpose(tf.stack([[I,O,tx],[O,I,ty],[O,O,I]]),perm=[2,0,1])
-                if CompareVal == "similarity":
-                       pc,ps,tx,ty = tf.unstack(p,axis=1)
-                       pMtrx = tf.transpose(tf.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]),perm=[2,0,1])
-                if CompareVal == "affine":
-                       p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
-                       pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]),perm=[2,0,1])
-                if CompareVal == "homography":
-                       p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
-                       pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]),perm=[2,0,1])
-        return pMtrx
+    with tf.name_scope("vec2mtrx"):
+        O = tf.zeros([opt.batchSize])
+        I = tf.ones([opt.batchSize])
+        if(isinstance(opt.warpType, list)):
+            # If you don't need different warps, send single string for warpType instead
+            CompareVal = opt.warpType[opt.currBlock]
+        else:
+            CompareVal =  opt.warpType
+        if CompareVal == "yaw":
+            # value of sinpsi is regressed directly
+            sinpsi = tf.squeeze(p) # tf.unstack(p,axis=1)
+            cospsi = tf.math.sqrt(tf.math.subtract(1.0, tf.math.pow(sinpsi,2)))
+            pMtrx = tf.transpose(tf.stack([[cospsi,-sinpsi,O],[cospsi,sinpsi,O],[O,O,I]]),perm=[2,0,1])
+        if CompareVal == "scale":
+            scale =  tf.squeeze(p) # tf.unstack(p,axis=1) # tf.squeeze(p) # tf.unstack(p,axis=1)
+            pMtrx = tf.transpose(tf.stack([[I+scale,O,O],[O,I+scale,O],[O,O,I]]),perm=[2,0,1])
+        if CompareVal == "translation":
+            tx,ty = tf.unstack(p,axis=1)
+            pMtrx = tf.transpose(tf.stack([[I,O,tx],[O,I,ty],[O,O,I]]),perm=[2,0,1])
+        if CompareVal == "pseudosimilarity":
+            scale,tx,ty = tf.unstack(p,axis=1)
+            pMtrx = tf.transpose(tf.stack([[I+scale,O,tx],[O,I+scale,ty],[O,O,I]]),perm=[2,0,1])
+        if CompareVal == "similarity":
+            pc,ps,tx,ty = tf.unstack(p,axis=1)
+            pMtrx = tf.transpose(tf.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]),perm=[2,0,1])
+        if CompareVal == "affine":
+            p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
+            pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]),perm=[2,0,1])
+        if CompareVal == "homography":
+            p1,p2,p3,p4,p5,p6,p7,p8 = tf.unstack(p,axis=1)
+            pMtrx = tf.transpose(tf.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]),perm=[2,0,1])
+    return pMtrx
 
 # convert warp matrix to parameters
 def mtrx2vec(opt,pMtrx):
@@ -125,9 +140,10 @@ def mtrx2vec(opt,pMtrx):
                 else:
                         CompareVal =  opt.warpType
 
-                if CompareVal == "yaw": p = [[e11]] # value of sinpsi is regressed directly, this might make cospsi unconstrained?
-                if CompareVal == "scale": p = [[e00]] # this might make e00 != e11?
+                if CompareVal == "yaw": p = tf.expand_dims(e11, 1)# [[e11]] # value of sinpsi is regressed directly, this might make cospsi unconstrained?
+                if CompareVal == "scale": p = tf.expand_dims(e00-1, 1) # [[e00-1]] # this might make e00 != e11?
                 if CompareVal == "translation": p = tf.stack([e02,e12],axis=1)
+                if CompareVal == "pseudosimilarity": p = tf.stack([e00-1,e02,e12],axis=1)
                 if CompareVal == "similarity": p = tf.stack([e00-1,e10,e02,e12],axis=1)
                 if CompareVal == "affine": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12],axis=1)
                 if CompareVal == "homography": p = tf.stack([e00-1,e01,e02,e10,e11-1,e12,e20,e21],axis=1)
@@ -138,7 +154,7 @@ def transformImage(opt,image,pMtrx):
         with tf.name_scope("transformImage"):
                # opt.refMtrx = warp.fit(Xsrc=opt.canon4pts,Xdst=opt.image4pts)
                refMtrx = tf.tile(tf.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
-               transMtrx = tf.matmul(refMtrx,pMtrx)
+               transMtrx = tf.matmul(refMtrx, pMtrx) # tf.matmul(refMtrx, tf.matmul(pMtrx, tf.linalg.inv(refMtrx)))
                # warp the canonical coordinates
                X,Y = np.meshgrid(np.linspace(-1,1,opt.W),np.linspace(-1,1,opt.H))
                X,Y = X.flatten(),Y.flatten()
@@ -177,57 +193,49 @@ def transformImage(opt,image,pMtrx):
                imageWarp = imageUL+imageUR+imageBL+imageBR
         return imageWarp
 
-# # generate training batch
-# def genPerturbationsNP(opt):
-# 	# DOESNT WORK FOR batchSize = 1
-# 	X = np.tile(opt.canon4pts[:,0],[opt.batchSize,1]) # opt.canon4pts = np.array([[-1,-1],[-1,1],[1,1],[1,-1]],dtype=np.float32) BS x 4
-# 	Y = np.tile(opt.canon4pts[:,1],[opt.batchSize,1]) # BS x 4
-# 	dX = np.random.normal(size=[opt.batchSize,4])*opt.pertScale + \
-# 		np.random.normal(size=[opt.batchSize,1])*opt.transScale # transScale = 0.25, pertScale = 0.25 BS x 4
-# 	dY = np.random.normal(size=[opt.batchSize,4])*opt.pertScale + \
-# 		np.random.normal(size=[opt.batchSize,1])*opt.transScale # transScale = 0.25, pertScale = 0.25 BS x 4
-# 	O = np.zeros([opt.batchSize,4],dtype=np.float32)
-# 	I = np.ones([opt.batchSize,4],dtype=np.float32)
-        
-# 	# fit warp parameters to generated displacements
-# 	if opt.warpType=="homography":
-# 		A = np.concatenate([np.stack([X,Y,I,O,O,O,-X*(X+dX),-Y*(X+dX)],axis=-1),
-# 				    np.stack([O,O,O,X,Y,I,-X*(Y+dY),-Y*(Y+dY)],axis=-1)],1) # Normal Ax = b (8 parameters) 
-# 		b = np.expand_dims(np.concatenate([X+dX,Y+dY],1),-1)
-# 		pPert = np.linalg.solve(A,b)[:,:,0]  # Homography matrix as a vector
-# 		pPert -= np.asarray([[1,0,0,0,1,0,0,0]]).astype(float) # 1 is subtracted for homogeneous transformation
-# 	else:
-# 		if opt.warpType=="translation":
-# 			J = np.concatenate([np.stack([I,O],axis=-1),
-# 					    np.stack([O,I],axis=-1)],axis=1)
-# 		if opt.warpType=="similarity":
-# 			J = np.concatenate([np.stack([X,Y,I,O],axis=-1),
-# 					    np.stack([-Y,X,O,I],axis=-1)],axis=1)
-# 		if opt.warpType=="affine":
-# 			J = np.concatenate([np.stack([X,Y,I,O,O,O],axis=-1),
-# 					    np.stack([O,O,O,X,Y,I],axis=-1)],axis=1)
-# 		        dXY = np.expand_dims(np.concatenate([dX,dY],1),-1)
-# 		        pPert = np.linalg.lstsq(J,dXY)[:,:,0]
-# 	return pPert
+def transformImageNP(opt,image,pMtrx):
+    refMtrx = np.tile(np.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
+    transMtrx = np.matmul(refMtrx, pMtrx) # tf.matmul(refMtrx, tf.matmul(pMtrx, tf.linalg.inv(refMtrx)))
+    # warp the canonical coordinates
+    X,Y = np.meshgrid(np.linspace(-1,1,opt.W),np.linspace(-1,1,opt.H))
+    X,Y = X.flatten(),Y.flatten()
+    XYhom = np.stack([X,Y,np.ones_like(X)],axis=1).T
+    XYhom = np.tile(XYhom,[opt.batchSize,1,1]).astype(np.float32)
+    XYwarpHom = np.matmul(transMtrx,XYhom)
+    XwarpHom,YwarpHom,ZwarpHom = np.squeeze(np.split(XYwarpHom, 3, axis=1))
+    Xwarp = np.reshape(XwarpHom/(ZwarpHom+1e-8),[opt.batchSize,opt.H,opt.W])
+    Ywarp = np.reshape(YwarpHom/(ZwarpHom+1e-8),[opt.batchSize,opt.H,opt.W])
+    # get the integer sampling coordinates
+    Xfloor,Xceil = np.floor(Xwarp),np.ceil(Xwarp)
+    Yfloor,Yceil = np.floor(Ywarp),np.ceil(Ywarp)
+    XfloorInt,XceilInt = np.int32(Xfloor),np.int32(Xceil)
+    YfloorInt,YceilInt = np.int32(Yfloor),np.int32(Yceil)
+    imageIdx = np.tile(np.arange(opt.batchSize).reshape([opt.batchSize,1,1]),[1,opt.H,opt.W])
+    imageVec = np.reshape(image,[-1,int(image.shape[-1])])
+    imageVecOut = np.concatenate([imageVec,np.zeros([1,int(image.shape[-1])])],axis=0)
+    idxUL = (imageIdx*opt.H+YfloorInt)*opt.W+XfloorInt
+    idxUR = (imageIdx*opt.H+YfloorInt)*opt.W+XceilInt
+    idxBL = (imageIdx*opt.H+YceilInt)*opt.W+XfloorInt
+    idxBR = (imageIdx*opt.H+YceilInt)*opt.W+XceilInt
+    idxOutside = np.ones([opt.batchSize,opt.H,opt.W])*opt.batchSize*opt.H*opt.W
+    def insideImage(Xint,Yint):
+            return np.array(Xint>=0) & np.array(Xint<opt.W) & np.array(Yint>=0) & np.array(Yint<opt.H)
+    def gather(params, indexes):
+        # Taken from https://stackoverflow.com/questions/53578484/tf-gather-with-indices-of-higher-dimention-than-input-data
+        return np.take(params, indexes.astype(int), axis=0)
+    # print(np.shape(insideImage(XfloorInt,YfloorInt)))
+    idxUL = np.where(insideImage(XfloorInt,YfloorInt).astype(float),idxUL,idxOutside).astype(float)
+    idxUR = np.where(insideImage(XceilInt,YfloorInt).astype(float),idxUR,idxOutside).astype(float)
+    idxBL = np.where(insideImage(XfloorInt,YceilInt).astype(float),idxBL,idxOutside).astype(float)
+    idxBR = np.where(insideImage(XceilInt,YceilInt).astype(float),idxBR,idxOutside).astype(float)
+    # bilinear interpolation
+    Xratio = np.reshape(Xwarp-Xfloor,[opt.batchSize,opt.H,opt.W,1])
+    Yratio = np.reshape(Ywarp-Yfloor,[opt.batchSize,opt.H,opt.W,1])
+    imageUL = gather(imageVecOut,idxUL).astype(float)*(1-Xratio)*(1-Yratio)
+    imageUR = gather(imageVecOut,idxUR).astype(float)*(Xratio)*(1-Yratio)
+    imageBL = gather(imageVecOut,idxBL).astype(float)*(1-Xratio)*(Yratio)
+    imageBR = gather(imageVecOut,idxBR).astype(float)*(Xratio)*(Yratio)
+    imageWarp = np.uint8(np.round(imageUL+imageUR+imageBL+imageBR))
 
-# # convert warp parameters to matrix
-# # This is in Canon4Pts domain, i.e., [-1,1]
-# def vec2mtrxNP(opt, p):
-# 	# DOESNT WORK FOR batchSize = 1
-# 	O = np.zeros([opt.batchSize])
-# 	I = np.ones([opt.batchSize])
-# 	if opt.warpType=="translation":
-# 		tx, ty = np.squeeze(np.split(p, opt.warpDim, axis=1))
-# 		pMtrx = np.transpose(np.stack([[I,O,tx],[O,I,ty],[O,O,I]]), axes=[2,0,1])
-# 	if opt.warpType=="similarity":
-# 		pc,ps,tx,ty = np.squeeze(np.split(p, opt.warpDim, axis=1))
-# 		pMtrx = np.transpose(np.stack([[I+pc,-ps,tx],[ps,I+pc,ty],[O,O,I]]), axes=[2,0,1])
-# 	if opt.warpType=="affine":
-# 		p1,p2,p3,p4,p5,p6,p7,p8 = np.squeeze(np.split(p, opt.warpDim, axis=1))
-# 		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[O,O,I]]), axes=[2,0,1])
-# 	if opt.warpType=="homography":
-# 		p1,p2,p3,p4,p5,p6,p7,p8 = np.squeeze(np.split(p, opt.warpDim, axis=1))
-# 		pMtrx = np.transpose(np.stack([[I+p1,p2,p3],[p4,I+p5,p6],[p7,p8,I]]), axes=[2,0,1])
-# 	        refMtrx = np.tile(np.expand_dims(opt.refMtrx,axis=0),[opt.batchSize,1,1])
-# 	        transMtrx = np.matmul(refMtrx, pMtrx)
-# 	return pMtrx, transMtrx
+    return imageWarp
+

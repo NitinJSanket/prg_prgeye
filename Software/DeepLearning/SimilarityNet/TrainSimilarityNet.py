@@ -24,7 +24,6 @@ import numpy as np
 import time
 import argparse
 import shutil
-from StringIO import StringIO
 import string
 from termcolor import colored, cprint
 import math as m
@@ -42,6 +41,7 @@ import importlib
 from datetime import datetime
 import getpass
 import copy
+import platform
 
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
@@ -60,9 +60,9 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHVal, prVal, MiniBatch
     LossFuncName = re.sub(r'|'.join(map(re.escape, ReplaceList)), '', Args.LossFuncName)
 
     def RobustLoss(x, a, c, e=1e-2):
-	b = tf.abs(2.-a) + e
-	d = tf.where(tf.greater_equal(a, 0.), a+e, a-e)
-	return b/d*(tf.pow(tf.square(x/c)/b+1., 0.5*d)-1.)
+        b = tf.abs(2.-a) + e
+        d = tf.where(tf.greater_equal(a, 0.), a+e, a-e)
+        return b/d*(tf.pow(tf.square(x/c)/b+1., 0.5*d)-1.)
 
     def logZ1(a):
         ps = [1.49130350, 1.38998350, 1.32393250,
@@ -257,7 +257,12 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
     if(OverideKbInput):
         Key = 'y'
     else:
-        Key = raw_input('Enter y/Y/yes/Yes/YES to save to RunCommand.md, any other key to exit.')
+        PythonVer = platform.python_version().split('.')[0]
+        # Parse Python Version to handle super accordingly
+        if (PythonVer == '2'):
+            Key = raw_input('Enter y/Y/yes/Yes/YES to save to RunCommand.md, any other key to exit.')
+        else:
+            Key = input('Enter y/Y/yes/Yes/YES to save to RunCommand.md, any other key to exit.')
     if(Key.lower() == 'y' or Key.lower() == 'yes'):
         FileName = 'RunCommand.md'
         with open(FileName, 'a+') as RunCommand:
@@ -337,7 +342,10 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     Saves Trained network in CheckPointPath
     """
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
+    VanillaNet = getattr(Net, ClassName)
+    VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    # VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
