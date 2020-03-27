@@ -15,10 +15,10 @@ import Misc.MiscUtils as mu
 
 # TODO: Add training flag
 
-class MobileNetv1(BaseLayers):
+class MobileNet(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
                  Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None, Suffix = None):
-        super(MobileNetv1, self).__init__()
+        super(MobileNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)

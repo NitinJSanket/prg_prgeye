@@ -343,8 +343,8 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     """
     # Create Network Object with required parameters
     ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
-    VanillaNet = getattr(Net, ClassName)
-    VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    Network = getattr(Net, ClassName)
+    VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data

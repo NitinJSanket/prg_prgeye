@@ -48,8 +48,8 @@ sys.dont_write_bytecode = True
 def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, NumImgs, Args, Net, opt):    
     # Predict output with forward pass
     ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
-    VanillaNet = getattr(Net, ClassName)
-    VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
+    Network = getattr(Net, ClassName)
+    VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
     _, prVal, _ = VN.Network()
             
     # Setup Saver
@@ -119,8 +119,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, 
             # converter.inference_output_type = tf.uint8
             tflite_model = converter.convert()
             TFLiteName = Args.CheckPointPath + os.sep + ModelPrefix +'TFLite.tflite'
-            with open(TFLiteName, "wb") as File:
-                File.write(tflite_model)
+            open(TFLiteName, "wb").write(tflite_model)
             print('TFLite Model Written in {}....'.format(TFLiteName))
 
         if(Args.EdgeTPU):
@@ -131,7 +130,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, 
             elif(Args.TFLiteOpt == 'Size'):
                 converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
             else:
-                converter.optimizations = [tf.lite.Optimize.DEFUALT]
+                converter.optimizations = [tf.lite.Optimize.DEFAULT]
 
             # Weight Quantization
             converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
@@ -141,8 +140,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, 
 
             tflite_model = converter.convert()
             TFLiteName = Args.CheckPointPath + os.sep + ModelPrefix +'TFLiteEdgeTPU.tflite'
-            with open(TFLiteName, "wb") as File:
-                File.write(tflite_model)
+            open(TFLiteName, "wb").write(tflite_model)
             print('TFLite Model Written in {}....'.format(TFLiteName))
 
         # Save model every epoch
@@ -173,8 +171,8 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,
             
         # Predict output with forward pass
         ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
-        VanillaNet = getattr(Net, ClassName)
-        VN = VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
+        Network = getattr(Net, ClassName)
+        VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
         _, prVal, _ = VN.Network()
 
         # Setup Saver
@@ -275,7 +273,14 @@ def main():
     NumImgs = 2
 
     warpType = ['pseudosimilarity']
+    if(len(warpType) > 1):
+        print('ERROR: Only 1 warping block is supported in TFLite conversions.')
+        sys.exit()
     opt = warp2.Options(PatchSize=ImageSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
+
+    # If CheckPointPath doesn't exist make the path
+    if(not (os.path.isdir(CheckPointPath))):
+       os.makedirs(CheckPointPath)
     
     # Set GPUDevice
     tu.SetGPU(GPUDevice)

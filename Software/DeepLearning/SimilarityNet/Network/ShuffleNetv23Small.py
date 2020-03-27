@@ -15,10 +15,10 @@ import Misc.MiscUtils as mu
 
 # TODO: Add training flag
 
-class ShuffleNetv2(BaseLayers):
+class ShuffleNet(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
                  Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None, Suffix = None):
-        super(ShuffleNetv2, self).__init__()
+        super(ShuffleNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
