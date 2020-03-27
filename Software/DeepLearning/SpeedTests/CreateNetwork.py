@@ -40,8 +40,6 @@ import Misc.MiscUtils as mu
 import importlib
 import Misc.warpICSTN2 as warp2
 
-
-
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
     
@@ -158,6 +156,35 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,
     else:
         StartIdx =  MiniBatchSize - 1 # Run 1 iteration only
 
+    WarmUp = 5
+
+    if(Args.TFLite):
+        import tflite_runtime.interpreter as tflite
+        TFLiteName = Args.CheckPointPath + os.sep + ModelPrefix +'TFLite.tflite'
+        # Load TFLite model and allocate tensors.
+        interpreter = tflite.Interpreter(model_path=TFLiteName)
+        interpreter.allocate_tensors()
+        LogFile = open(CheckPointPath + os.sep + ModelPrefix + 'LogTFLite.txt', 'w')
+
+        # Get input and output tensors.
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+
+        # Test model on random input data.
+        input_shape = input_details[0]['shape']
+        input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32) # np.uint8
+        interpreter.set_tensor(input_details[0]['index'], input_data)
+        for count in range(NumTest+WarmUp):
+            if(count == WarmUp):
+                # Start timer after first iteration
+                Timer1 = mu.tic()
+            interpreter.invoke()
+            # output_data = interpreter.get_tensor(output_details[0]['index'])
+        Time = mu.toc(Timer1)/NumTest
+        FPS = 1/Time
+        LogFile.write('{}, {}, {}\n'.format(1, Time, FPS))
+        LogFile.close()
+        
     # Open file for logging
     if(not Append):
         LogFile = open(CheckPointPath + os.sep + ModelPrefix + 'Log.txt', 'w')
@@ -167,7 +194,7 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,
     for count2 in range(StartIdx, MiniBatchSize, MiniBatchSizeIncrement):
         MiniBatchSizeNow = count2 + 1
         print('Testing MiniBatchSize {} ....'.format(MiniBatchSizeNow))
-        ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSizeNow, ImageSize[0], ImageSize[1], ImageSize[2]), name='Input')
+        ImgPH = tf.placeholder(tf.float32, shape=(MiniBatchSizeNow, ImageSize[0], ImageSize[1], NumImgs*ImageSize[2]), name='Input')
             
         # Predict output with forward pass
         ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
@@ -203,12 +230,12 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,
             print('Loaded weights from ' + LoadName + '....')
 
             # Run once to setup graph
-            RandImg = np.random.rand(ImageSize[0], ImageSize[1], ImageSize[2])
+            RandImg = np.random.rand(ImageSize[0], ImageSize[1], NumImgs*ImageSize[2])
             RandImg = RandImg[np.newaxis, :, :, :]
 
             RandImgBatch = np.tile(RandImg, (MiniBatchSizeNow,1,1,1))
-            for count in range(NumTest+1):
-                if(count == 1):
+            for count in range(NumTest+WarmUp):
+                if(count == WarmUp):
                     # Start timer after first iteration
                     Timer1 = mu.tic()
                 FeedDict = {VN.InputPH: RandImgBatch}
