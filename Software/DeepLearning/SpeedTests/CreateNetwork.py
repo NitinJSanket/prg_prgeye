@@ -62,8 +62,11 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, 
         # Print Number of parameters in the network    
         tu.FindNumParams(1)
 
+        # Print out Number of Flops
+        NumFlops = tu.FindNumFlops(sess, 1)
+
         # Print Model Size in MB
-        tu.CalculateModelSize(1)
+        A = tu.CalculateModelSize(1)
 
         # TFLite Conversions
         def representative_dataset_gen():
