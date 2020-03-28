@@ -91,10 +91,6 @@ class VanillaNet(BaseLayers):
                     pNow = self.Opt.pInit
                     pMtrxNow = warp2.vec2mtrx(self.Opt, pNow)
                 with tf.variable_scope('ICTSNBlock' + str(count)):
-                    # Warp Original Image based on previous composite warp parameters
-                    if(self.Training):
-                        ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
-
                     # Compute current warp parameters
                     dpNow = self.VanillaNetBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
                     pMtrxNow = None
