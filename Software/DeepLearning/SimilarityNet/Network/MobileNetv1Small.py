@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# Use when all warps are of same type
-
 import tensorflow as tf
 import sys
 import numpy as np
@@ -14,15 +12,13 @@ from Misc.Decorators import *
 import Misc.warpICSTN2 as warp2
 from Network.BaseLayers import *
 import Misc.MiscUtils as mu
-import platform
 
 # TODO: Add training flag
 
-class VanillaNet(BaseLayers):
+class MobileNet(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
                  Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None, Suffix = None):
-        PythonVer = platform.python_version().split('.')[0]
-        super(VanillaNet, self).__init__()
+        super(MobileNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
@@ -32,11 +28,11 @@ class VanillaNet(BaseLayers):
         self.InputPH = InputPH
         self.Training = Training
         if(InitNeurons is None):
-            InitNeurons = 37
+            InitNeurons = 16
         if(ExpansionFactor is None):
-            ExpansionFactor =  2.0
+            ExpansionFactor =  1.95
         if(NumBlocks is None):
-            NumBlocks = 3
+            NumBlocks = 2
         self.InitNeurons = InitNeurons
         self.ExpansionFactor = ExpansionFactor
         self.DropOutRate = 0.7
@@ -48,6 +44,17 @@ class VanillaNet(BaseLayers):
         if(Suffix is None):
             Suffix = ''
         self.Suffix = Suffix
+        if(Suffix is None):
+            Suffix = ''
+        self.Suffix = Suffix
+
+    @CountAndScope
+    @add_arg_scope
+    def DepthwiseConvBNReLU(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
+        conv = tf.layers.separable_conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = (1,1), padding = padding, dilation_rate  = (1,1), activation=None)
+        bn = self.BN(conv)
+        Output = self.ReLU(bn)
+        return Output
 
     @CountAndScope
     @add_arg_scope
@@ -63,7 +70,7 @@ class VanillaNet(BaseLayers):
 
     @CountAndScope
     @add_arg_scope
-    def VanillaNetBlock(self, inputs = None, filters = None, NumOut = None, ExpansionFactor = None):
+    def MobileNetv1Block(self, inputs = None, filters = None, NumOut = None, ExpansionFactor = None):
         if(ExpansionFactor is None):
             ExpansionFactor = self.ExpansionFactor
         # Conv
@@ -74,14 +81,15 @@ class VanillaNet(BaseLayers):
         # Conv
         for count in range(self.NumBlocks):
             NumFilters = int(NumFilters*ExpansionFactor)
-            Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
-      
+            Net = self.DepthwiseConvBNReLU(inputs = Net, filters = NumFilters)
+            Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters)
+             
         # Output
         Net = self.OutputLayer(inputs = Net, rate=self.DropOutRate, NumOut = NumOut)
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.DepthwiseConvBNReLU, self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
@@ -96,7 +104,7 @@ class VanillaNet(BaseLayers):
                         ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
 
                     # Compute current warp parameters
-                    dpNow = self.VanillaNetBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
+                    dpNow = self.MobileNetv1Block(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
                     dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)    
                     pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow) 
 
@@ -113,3 +121,5 @@ class VanillaNet(BaseLayers):
                             ImgWarp = None
             
         return pMtrxNow, pNow, ImgWarp
+
+
