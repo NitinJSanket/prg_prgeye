@@ -175,7 +175,10 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,
 
         # Test model on random input data.
         input_shape = input_details[0]['shape']
-        input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32) # np.uint8
+        if('Float' in Args.TFLiteQuant):
+            input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
+        else:
+            input_data = np.array(np.random.random_sample(input_shape), dtype=np.uint8)
         interpreter.set_tensor(input_details[0]['index'], input_data)
         for count in range(NumTest+WarmUp):
             if(count == WarmUp):
