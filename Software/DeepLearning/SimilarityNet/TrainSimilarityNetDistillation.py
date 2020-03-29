@@ -79,12 +79,13 @@ def Optimizer(OptimizerParams, loss):
     # Optimizer = tf.train.MomentumOptimizer(learning_rate=1e-3, momentum=0.9, use_nesterov=True).minimize(loss)
     return OptimizerUpdate
 
-def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args):
+def TensorBoard(loss, WarpI1PatchT, WarpI1PatchS, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args):
     # Create a summary to monitor loss tensor
     tf.summary.scalar('LossEveryIter', loss)
     tf.summary.image('I1Patch', I1PH[:,:,:,0:3], max_outputs=3)
     tf.summary.image('I2Patch', I2PH[:,:,:,0:3], max_outputs=3)
-    tf.summary.image('WarpI1Patch', WarpI1Patch[:,:,:,0:3], max_outputs=3)
+    tf.summary.image('WarpI1PatchT', WarpI1PatchT[:,:,:,0:3], max_outputs=3)
+    tf.summary.image('WarpI1PatchS', WarpI1PatchS[:,:,:,0:3], max_outputs=3)
     if(Args.SuperPointFlag):
          tf.summary.image('C1', C1PH[:,:,:,0:3], max_outputs=3)
          tf.summary.image('C2', C2PH[:,:,:,0:3], max_outputs=3)
@@ -103,7 +104,7 @@ def TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1P
     return MergedSummaryOP
 
 
-def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj, Lambda, Alpha, VN, OverideKbInput=False):
+def PrettyPrint(Args, warpType, warpTypedg, HObj, Lambda, VNT, VNS, OverideKbInput=False):
     # TODO: Write to file?
     Username = getpass.getuser()
     cprint('Running on {}'.format(Username), 'yellow')
@@ -111,16 +112,14 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
     cprint('Network Used: {}'.format(Args.NetworkName), 'yellow')
     cprint('GPU Used: {}'.format(Args.GPUDevice), 'yellow')
     cprint('Learning Rate: {}'.format(Args.LR), 'yellow')
-    cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate), 'yellow')
-    cprint('Num Params: {}'.format(NumParams), 'green')
-    cprint('Num FLOPs: {}'.format(NumFlops), 'green')
-    cprint('Estimated Model Size (MB): {}'.format(ModelSize), 'green')
+    cprint('Teacher Model', 'yellow')
+    cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VN.InitNeurons, VNT.ExpansionFactor, VNT.NumBlocks, VNT.DropOutRate), 'yellow')
+    cprint('Student Model', 'yellow')
+    cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VN.InitNeurons, VNS.ExpansionFactor, VNS.NumBlocks, VNS.DropOutRate), 'yellow')
     cprint('Warp Types used: {}'.format(warpType), 'green')
     cprint('Warp Types For Data Generation: {}'.format(warpTypedg), 'green')
     cprint('Loss Function used: {}'.format(Args.LossFuncName), 'green')
     cprint('Loss Function Weights: {}'.format(Lambda), 'green')
-    cprint('Reg Function used: {}'.format(Args.RegFuncName), 'green')
-    cprint('Reg Function Weights: {}'.format(Alpha), 'green')
     cprint('Augmentations Used: {}'.format(Args.Augmentations), 'green')
     cprint('Input used: {}'.format(Args.Input), 'green')
     cprint('MaxParams used: {}'.format(HObj.MaxParams), 'green')
@@ -145,16 +144,14 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
             RunCommand.write('Learning Rate: {}\n'.format(Args.LR))
             RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
             RunCommand.write('GPU Used: {}\n'.format(Args.GPUDevice))
-            RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
-            RunCommand.write('Num Params: {}\n'.format(NumParams))
-            RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
-            RunCommand.write('Estimated Model Size (MB): {}\n'.format(ModelSize))
+            RunCommand.write('Teacher Model \n')
+            RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VNT.InitNeurons, VNT.ExpansionFactor, VNT.NumBlocks, VNT.DropOutRate))
+            RunCommand.write('Student Model \n')
+            RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VNS.InitNeurons, VNS.ExpansionFactor, VNS.NumBlocks, VNS.DropOutRate))
             RunCommand.write('Warp Types used: {}\n'.format(warpType))
             RunCommand.write('Warp Types For Data Generation: {}\n'.format(warpTypedg))
             RunCommand.write('Loss Function used: {}\n'.format(Args.LossFuncName))
             RunCommand.write('Loss Function Weights: {}\n'.format(Lambda))
-            RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
-            RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
             RunCommand.write('Augmentations Used: {}\n'.format(Args.Augmentations))
             RunCommand.write('Input used: {}\n'.format(Args.Input))
             RunCommand.write('MaxParams used: {}\n'.format(HObj.MaxParams))
@@ -170,16 +167,14 @@ def PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, warpTypedg, HObj
             RunCommand.write('Learning Rate: {}\n'.format(Args.LR))
             RunCommand.write('Network Used: {}\n'.format(Args.NetworkName))
             RunCommand.write('GPU Used: {}\n'.format(Args.GPUDevice))
-            RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VN.InitNeurons, VN.ExpansionFactor, VN.NumBlocks, VN.DropOutRate))
-            RunCommand.write('Num Params: {}\n'.format(NumParams))
-            RunCommand.write('Num FLOPs: {}\n'.format(NumFlops))
-            RunCommand.write('Estimated Model Size (MB): {}\n'.format(ModelSize))
+            RunCommand.write('Teacher Model \n')
+            RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VNT.InitNeurons, VNT.ExpansionFactor, VNT.NumBlocks, VNT.DropOutRate))
+            RunCommand.write('Student Model \n')
+            RunCommand.write('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}\n'.format(VNS.InitNeurons, VNS.ExpansionFactor, VNS.NumBlocks, VNS.DropOutRate))
             RunCommand.write('Warp Types used: {}\n'.format(warpType))
             RunCommand.write('Warp Types For Data Generation: {}\n'.format(warpTypedg))
             RunCommand.write('Loss Function used: {}\n'.format(Args.LossFuncName))
             RunCommand.write('Loss Function Weights: {}\n'.format(Lambda))
-            RunCommand.write('Reg Function used: {}\n'.format(Args.RegFuncName))
-            RunCommand.write('Reg Function Weights: {}\n'.format(Alpha))
             RunCommand.write('Augmentations Used: {}\n'.format(Args.Augmentations))
             RunCommand.write('Input used: {}\n'.format(Args.Input))
             RunCommand.write('MaxParams used: {}\n'.format(HObj.MaxParams))
@@ -253,7 +248,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
         
     # Tensorboard
-    MergedSummaryOP = TensorBoard(loss, WarpI1Patch, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args)
+    MergedSummaryOP = TensorBoard(loss, WarpI1PatchT, WarpI1PatchS, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args)
 
      AllVars = tf.global_variables()
      VarsT = [Vars for Vars in AllVars if Vars.name.endswith('T')]
@@ -291,15 +286,8 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
                 DataAugGen = None
                 da = None
 
-            # Print out Number of parameters
-            NumParams = tu.FindNumParams(1)
-            # Print out Number of Flops
-            NumFlops = tu.FindNumFlops(sess, 1)
-            # Print out Expected Model Size
-            ModelSize = tu.CalculateModelSize(1)
-
             # Pretty Print Stats
-            PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, HObj, Lambda, VNT, OverideKbInput=False)
+            PrettyPrint(Args, warpType, opt2.warpType, HObj, Lambda, VNT, VNS, OverideKbInput=False)
 
             # Tensorboard
             Writer = tf.summary.FileWriter(LogsPath, graph=tf.get_default_graph())
@@ -369,11 +357,11 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
                 print(SaveNameS + ' Model Saved...')
 
         # Pretty Print Stats before exiting
-        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, HObj, Lambda, Alpha, VNT, OverideKbInput=True)
+        PrettyPrint(Args, warpType, opt2.warpType, HObj, Lambda, VNT, VNS, OverideKbInput=True)
      
     except KeyboardInterrupt:
         # Pretty Print Stats before exitting
-        PrettyPrint(Args, NumParams, NumFlops, ModelSize, warpType, opt2.warpType, HObj, Lambda, Alpha, VN)
+        PrettyPrint(Args, warpType, opt2.warpType, HObj, Lambda, VNT, VNS)
 
 def main():
     """
