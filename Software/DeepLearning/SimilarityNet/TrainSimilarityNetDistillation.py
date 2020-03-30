@@ -48,24 +48,24 @@ import platform
 sys.dont_write_bytecode = True
 
 @Scope
-def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHValT, prValT, prHValS, prValT, MiniBatchSize, PatchSize, opt, Args):
+def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHValT, prHValS, prValT, prValS, MiniBatchSize, PatchSize, opt, Args):
     prHValT = warp2.vec2mtrx(opt, prValT)
     prHValS = warp2.vec2mtrx(opt, prValS)
     WarpI1PatchT = warp2.transformImage(opt, I1PH, prHValT)
     WarpI1PatchS = warp2.transformImage(opt, I1PH, prHValS)
 
-    def TSLoss(prValT, prValS, Args):
-        if Args.LossFuncName == 'Caruana':
-            # NIPS 2014 Paper: https://arxiv.org/pdf/1312.6184.pdf
-            loss = tf.reduce_mean(tf.square(prValT - prValS))
-        elif Args.LossFuncName == 'Proj':
-            # NIPS 2015 Paper: https://arxiv.org/pdf/1503.02531.pdf
-            # https://research.google/pubs/pub46569/
-            Lambda = [1.0, 1.0, 0.1] # T, S, Proj.
-            lossT = tf.square(prValT - LabelPH)
-            lossS = tf.square(prValS - LabelPH)
-            lossProj = tf.square(prValT - prValS)
-            loss = tf.reduce_mean(Lambda[0]*lossT + Lambda[1]*lossS + Lambda[2]*lossProj)
+    if Args.LossFuncName == 'TS':
+        # NIPS 2014 Paper: https://arxiv.org/pdf/1312.6184.pdf
+        Lambda = 0.0
+        loss = tf.reduce_mean(tf.square(prValT - prValS))
+    elif Args.LossFuncName == 'Proj':
+        # NIPS 2015 Paper: https://arxiv.org/pdf/1503.02531.pdf
+        # https://research.google/pubs/pub46569/
+        Lambda = [1.0, 1.0, 0.1] # T, S, Proj.
+        lossT = tf.square(prValT - LabelPH)
+        lossS = tf.square(prValS - LabelPH)
+        lossProj = tf.square(prValT - prValS)
+        loss = tf.reduce_mean(Lambda[0]*lossT + Lambda[1]*lossS + Lambda[2]*lossProj)
             
     return loss, WarpI1PatchT, WarpI1PatchS, Lambda
 
@@ -79,7 +79,7 @@ def Optimizer(OptimizerParams, loss):
     # Optimizer = tf.train.MomentumOptimizer(learning_rate=1e-3, momentum=0.9, use_nesterov=True).minimize(loss)
     return OptimizerUpdate
 
-def TensorBoard(loss, WarpI1PatchT, WarpI1PatchS, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args):
+def TensorBoard(loss, WarpI1PatchT, WarpI1PatchS, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prValT, prValS, LabelPH, Args):
     # Create a summary to monitor loss tensor
     tf.summary.scalar('LossEveryIter', loss)
     tf.summary.image('I1Patch', I1PH[:,:,:,0:3], max_outputs=3)
@@ -92,12 +92,8 @@ def TensorBoard(loss, WarpI1PatchT, WarpI1PatchS, I1PH, I2PH, C1PH, C2PH, HP1PH,
     if(Args.HPFlag):
          tf.summary.image('HP1', HP1PH[:,:,:,0:3], max_outputs=3)
          tf.summary.image('HP2', HP2PH[:,:,:,0:3], max_outputs=3)
-    I2PHGray = tf.image.rgb_to_grayscale(I2PH)
-    WarpI1PatchGray = tf.image.rgb_to_grayscale(WarpI1Patch[:,:,:,0:3]*255.0)
-    OverlayImg = tf.concat([tf.concat([I2PHGray, tf.zeros(np.shape(I2PHGray))], axis=3), WarpI1PatchGray], axis=3)
-    tf.summary.image('DiffOverlay', OverlayImg, max_outputs=3)
-    # tf.summary.image('WarpI1PatchIdeal', WarpI1PatchIdealPH[:,:,:,0:3], max_outputs=3)
-    tf.summary.histogram('prVal', prVal)
+    tf.summary.histogram('prValT', prValT)
+    tf.summary.histogram('prValS', prValS)
     tf.summary.histogram('Label', LabelPH)
     # Merge all summaries into a single operation
     MergedSummaryOP = tf.summary.merge_all()
@@ -113,9 +109,9 @@ def PrettyPrint(Args, warpType, warpTypedg, HObj, Lambda, VNT, VNS, OverideKbInp
     cprint('GPU Used: {}'.format(Args.GPUDevice), 'yellow')
     cprint('Learning Rate: {}'.format(Args.LR), 'yellow')
     cprint('Teacher Model', 'yellow')
-    cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VN.InitNeurons, VNT.ExpansionFactor, VNT.NumBlocks, VNT.DropOutRate), 'yellow')
+    cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VNT.InitNeurons, VNT.ExpansionFactor, VNT.NumBlocks, VNT.DropOutRate), 'yellow')
     cprint('Student Model', 'yellow')
-    cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VN.InitNeurons, VNS.ExpansionFactor, VNS.NumBlocks, VNS.DropOutRate), 'yellow')
+    cprint('Init Neurons {}, Expansion Factor {}, NumBlocks {}, DropOutFactor {}'.format(VNS.InitNeurons, VNS.ExpansionFactor, VNS.NumBlocks, VNS.DropOutRate), 'yellow')
     cprint('Warp Types used: {}'.format(warpType), 'green')
     cprint('Warp Types For Data Generation: {}'.format(warpTypedg), 'green')
     cprint('Loss Function used: {}'.format(Args.LossFuncName), 'green')
@@ -212,19 +208,19 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     # Teacher
     # Create Network Object with required parameters
     # Import Network Module
-    NetT = importlib.import_module(NetworkName)
+    NetT = importlib.import_module(Args.NetworkName)
     ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
     Network = getattr(NetT, ClassName)
-    VNT = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeuronsT, Suffix = 'T')
+    VNT = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeuronsT, Suffix = 'Teacher')
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHValT, prValT, _ = VNT.Network()
 
     # Student
-    NetS = importlib.import_module(NetworkName + 'Small')
-    ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
+    NetS = importlib.import_module(Args.NetworkName + 'Small')
+    # Currently Only supports same type models
     Network = getattr(NetS, ClassName)
-    VNS = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeuronsS, Suffix = 'S')
+    VNS = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeuronsS, Suffix = 'Student')
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHValS, prValS, _ = VNS.Network()
@@ -242,17 +238,18 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     I2Gen = warp2.transformImage(optdg, IOrgPH, HPH)
 
     # Compute Loss
-    loss, WarpI1PatchT, WarpI1PatchS, Lambda = Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHValT, prValT, prHValS, prValT, MiniBatchSize, PatchSize, opt2, Args)
+    loss, WarpI1PatchT, WarpI1PatchS, Lambda = Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHValT, prHValS, prValT, prValS, MiniBatchSize, PatchSize, opt2, Args)
 
     # Run Backprop and Gradient Update
     OptimizerUpdate = Optimizer(OptimizerParams, loss)
         
     # Tensorboard
-    MergedSummaryOP = TensorBoard(loss, WarpI1PatchT, WarpI1PatchS, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prVal, LabelPH, Args)
+    
+    MergedSummaryOP = TensorBoard(loss, WarpI1PatchT, WarpI1PatchS, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, WarpI1PatchIdealPH, prValT, prValS, LabelPH, Args)
 
-     AllVars = tf.global_variables()
-     VarsT = [Vars for Vars in AllVars if Vars.name.endswith('T')]
-     VarsS = [Vars for Vars in AllVars if Vars.name.startswith('S')]
+    AllVars = tf.global_variables()
+    VarsT = [Vars for Vars in AllVars if 'Teacher' in Vars.name]
+    VarsS = [Vars for Vars in AllVars if 'Student' in Vars.name]
         
     # Setup Saver
     SaverT = tf.train.Saver(VarsT)
@@ -329,8 +326,16 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
                          HP1PH: HP1Batch, HP2PH:HP2Batch}
                         _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                     else:
-                        FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
-                        _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                        if(Args.LossFuncName == 'TS'):
+                            FeedDict = {VNT.InputPH: IBatch}
+                            prValTRet = sess.run([prValT], feed_dict=FeedDict)[0]
+                            FeedDict = {VNS.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: prValTRet, IOrgPH: I1Batch}
+                            _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                            print('ERROR: Not Implemented Yet!')
+                            sys.exit()
+                        else:
+                            FeedDict = {VNT.InputPH: IBatch, VNS.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
+                            _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                    
 
                     # Tensorboard

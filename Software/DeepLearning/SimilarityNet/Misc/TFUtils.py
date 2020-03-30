@@ -28,12 +28,15 @@ def SetGPU(GPUNum=-1):
 def CalculateModelSize(PrintFlag=None):
     var_sizes = [np.product(list(map(int, v.shape))) * v.dtype.size
                  for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]
+    # print(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
+    # print(var_sizes)       
+    # input('q')
     SizeMB = sum(var_sizes) / (1024. ** 2)
     if(PrintFlag is not None):
         print('Expected Model Size is %f' % SizeMB)
     return SizeMB
             
-def Rename(CheckPointPath, ReplaceSource=None, ReplaceDestination=None, AddPrefix=None):
+def Rename(CheckPointPath, ReplaceSource=None, ReplaceDestination=None, AddPrefix=None, AddSuffix=None):
     # Help!
     # https://github.com/tensorflow/models/issues/974
     # https://stackoverflow.com/questions/37086268/rename-variable-scope-of-saved-model-in-tensorflow
@@ -55,6 +58,8 @@ def Rename(CheckPointPath, ReplaceSource=None, ReplaceDestination=None, AddPrefi
                 NewName = NewName.replace(ReplaceSource, ReplaceDestination)
             if(AddPrefix is not None):
                 NewName = AddPrefix + NewName
+            if(AddSuffix is not None):
+                NewName = NewName + AddSuffix
 
             print('Renaming %s to %s.' % (VarName, NewName))
             # Rename the variable

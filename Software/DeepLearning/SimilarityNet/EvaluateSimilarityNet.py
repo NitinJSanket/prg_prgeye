@@ -196,6 +196,12 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     with tf.Session() as sess:
         # Restore Model
         Saver.restore(sess, ModelPath)
+
+        # SaveName = ModelPath.replace('.ckpt', '11.ckpt')
+        # Saver.save(sess, save_path=SaveName)
+        # print(SaveName + ' Model Saved...')
+        # input('q')
+                
         # Print out Number of parameters
         NumParams = tu.FindNumParams(1)
         # Print out Number of Flops
