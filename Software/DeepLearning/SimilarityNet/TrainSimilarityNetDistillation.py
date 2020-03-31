@@ -262,7 +262,9 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
                 # Load Teacher Model
                 SaverT.restore(sess, Args.TeacherCheckPoint)
             if LatestFile is not None:
-                SaverS.restore(sess, CheckPointPath + LatestFile + '.ckpt')
+                SaverS.restore(sess, CheckPointPath + LatestFile[:-1] + 'S.ckpt')
+                if(Args.DistillType == 'Proj'):
+                    SaverT.restore(sess, CheckPointPath + LatestFile[:-1] + 'T.ckpt')
                 # Extract only numbers from the name
                 StartEpoch = int(''.join(c for c in LatestFile.split('a')[0] if c.isdigit())) + 1
                 print('Loaded latest checkpoint with the name ' + LatestFile + '....')

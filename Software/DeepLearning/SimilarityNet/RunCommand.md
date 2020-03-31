@@ -3759,3 +3759,66 @@ MaxParams used: [0.25 0.2  0.2 ]
 CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
 Logs are saved in: /home/nitin/PRGEye/Logs/
 Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014
+
+
+2020-03-30 17:48:27.751011
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet
+GPU Used: 1
+Teacher Model 
+Init Neurons 36.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Student Model 
+Init Neurons 20.0, Expansion Factor 2.0, NumBlocks 2, DropOutFactor 0.7
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: Proj
+Loss Function Weights: [1.0, 1.0, 0.1]
+Augmentations Used: None
+Input used: I
+MaxParams used: [0.25 0.2  0.2 ]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014
+
+
+2020-03-30 17:48:29.266168
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet
+GPU Used: 1
+Teacher Model 
+Init Neurons 36.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Student Model 
+Init Neurons 20.0, Expansion Factor 2.0, NumBlocks 2, DropOutFactor 0.7
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: Proj
+Loss Function Weights: [1.0, 1.0, 0.1]
+Augmentations Used: None
+Input used: I
+MaxParams used: [0.25 0.2  0.2 ]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014
+
+
+2020-03-30 17:48:51.037188
+Username: nitin
+Learning Rate: 0.0001
+Network Used: Network.VanillaNet
+GPU Used: 1
+Teacher Model 
+Init Neurons 36.0, Expansion Factor 2.0, NumBlocks 3, DropOutFactor 0.7
+Student Model 
+Init Neurons 20.0, Expansion Factor 2.0, NumBlocks 2, DropOutFactor 0.7
+Warp Types used: ['pseudosimilarity']
+Warp Types For Data Generation: pseudosimilarity
+Loss Function used: Proj
+Loss Function Weights: [1.0, 1.0, 0.1]
+Augmentations Used: None
+Input used: I
+MaxParams used: [0.25 0.2  0.2 ]
+CheckPoints are saved in: /home/nitin/PRGEye/CheckPoints/
+Logs are saved in: /home/nitin/PRGEye/Logs/
+Images used for Training are in: /home/nitin/Datasets/MSCOCO/train2014

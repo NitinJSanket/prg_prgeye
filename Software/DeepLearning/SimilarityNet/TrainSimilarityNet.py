@@ -345,21 +345,13 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
     Network = getattr(Net, ClassName)
     VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
-    # VN = Net.VanillaNet(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
 
-    # TODO: Warp Patch here
-    # Maybe Asmall * AbigInv * H * Abig
-    # Warp I1 with ideal parameters for visual sanity check
     # MODIFY THIS DEPENDING ON ARCH!
     opt2 = copy.copy(opt)
     opt2.warpType = 'pseudosimilarity'
-    # optlarge = warp2.Options(PatchSize=OriginalImageSize, MiniBatchSize=MiniBatchSize, warpType = 'pseudosimilarity') # ICSTN Options
-    # Alarge = tf.linalg.inv(optlarge.refMtrx)
-    # HCorr = tf.matmul(Alarge, tf.matmul(warp2.vec2mtrx(opt2, LabelPH), tf.linalg.inv(Alarge)))
-    # WarpI1PatchIdeal = warp2.transformImage(opt, I1PH, HCorr)
     WarpI1PatchIdeal = warp2.transformImage(opt, IOrgPH, warp2.vec2mtrx(opt2, LabelPH))
 
     # Data Generation

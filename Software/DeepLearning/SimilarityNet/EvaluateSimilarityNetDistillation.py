@@ -195,7 +195,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     NetT = importlib.import_module(Args.NetworkName)
     ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
     Network = getattr(NetT, ClassName)
-    VNT = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeuronsT, Suffix = 'Teacher')
+    VNT = Network(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = Args.InitNeuronsT, Suffix = 'Teacher')
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     _, prValT, _ = VNT.Network()
@@ -204,7 +204,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     NetS = importlib.import_module(Args.NetworkName + 'Small')
     # Currently Only supports same type models
     Network = getattr(NetS, ClassName)
-    VNS = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeuronsS, Suffix = 'Student')
+    VNS = Network(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = Args.InitNeuronsS, Suffix = 'Student')
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     _, prValS, _ = VNS.Network()
@@ -306,10 +306,10 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
             ErrorScaleIdentity, ErrorScalePxIdentity = ComputeScaleError(PatchSize, ParamsBatch[0])
             ErrorTransIdentity, ErrorTransPxIdentity = ComputeTransError(PatchSize, ParamsBatch[1:])
 
-            PredOutsT.write(ImageName + '\t' +  str(ParamsBatch) + '\t' +  str(prParamsVal) + '\t' + \
+            PredOutsT.write(ImageName + '\t' +  str(ParamsBatch) + '\t' +  str(prValTRet) + '\t' + \
                            str(ErrorScalePxPredT) +  '\t' + str(ErrorScalePxIdentity) + '\t' + \
                            str(ErrorTransPxPredT) +  '\t' + str(ErrorTransPxIdentity) + '\n')
-            PredOutsS.write(ImageName + '\t' +  str(ParamsBatch) + '\t' +  str(prParamsVal) + '\t' + \
+            PredOutsS.write(ImageName + '\t' +  str(ParamsBatch) + '\t' +  str(prValSRet) + '\t' + \
                            str(ErrorScalePxPredS) +  '\t' + str(ErrorScalePxIdentity) + '\t' + \
                            str(ErrorTransPxPredS) +  '\t' + str(ErrorTransPxIdentity) + '\n')
         PredOutsT.close()
@@ -341,11 +341,9 @@ def main():
     Parser.add_argument('--InitNeuronsT', type=float, default=36, help='Starting Number of Neurons in Teacher, Default: 36')
     Parser.add_argument('--InitNeuronsS', type=float, default=36, help='Starting Number of Neurons in Student, Default: 20')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
-    Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet')
     Parser.add_argument('--DataAug', type=int, default=0, help='Do you want to do Data augmentation?, Default:0')
     
     Args = Parser.parse_args()
-    ModelPath = Args.ModelPath
     ReadPath = Args.ReadPath
     WritePath = Args.WritePath
     GPUDevice = Args.GPUDevice
