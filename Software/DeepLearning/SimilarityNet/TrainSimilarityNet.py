@@ -344,7 +344,7 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
     # Create Network Object with required parameters
     ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
     Network = getattr(Net, ClassName)
-    VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons, Suffix = 'Teacher')
+    VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = InitNeurons, Suffix = Args.Suffix)
     # Predict output with forward pass
     # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prHVal, prVal, _ = VN.Network()
@@ -501,6 +501,7 @@ def main():
     Parser.add_argument('--LR', type=float, default=1e-4, help='Learning Rate, Default: 1e-4')
     Parser.add_argument('--InitNeurons', type=float, default=8, help='Learning Rate, Default: 8')
     Parser.add_argument('--Input', default='I', help='Input, choose from I: RGB Images, G: Grayscale Images, HP: HP Grayscale Images, SP: Cornerness, Default: I')
+    Parser.add_argument('--Suffix', default='', help='Suffix for Naming Network, Default: ''')
     
     Args = Parser.parse_args()
     NumEpochs = Args.NumEpochs

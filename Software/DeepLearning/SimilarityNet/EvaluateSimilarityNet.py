@@ -186,7 +186,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
     I2Gen = warp2.transformImage(optdg, I1PH, PerturbHPH)
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.VanillaNet(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons)
+    VN = Net.VanillaNet(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = InitNeurons, Suffix = 'Teacher')
     # Predict output with forward pass
     prH, prParams, _ = VN.Network()
 
