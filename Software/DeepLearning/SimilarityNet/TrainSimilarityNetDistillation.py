@@ -57,7 +57,7 @@ def Loss(I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, prHValT, prHValS, prValT
     if Args.LossFuncName == 'TS':
         # NIPS 2014 Paper: https://arxiv.org/pdf/1312.6184.pdf
         Lambda = 0.0
-        loss = tf.reduce_mean(tf.square(prValT - prValS))
+        loss = tf.reduce_mean(tf.square(LabelPH - prValS))
     elif Args.LossFuncName == 'Proj':
         # NIPS 2015 Paper: https://arxiv.org/pdf/1503.02531.pdf
         # https://research.google/pubs/pub46569/
@@ -297,47 +297,14 @@ def TrainOperation(ImgPH, I1PH, I2PH, C1PH, C2PH, HP1PH, HP2PH, LabelPH, IOrgPH,
                     IBatch, I1Batch, I2Batch, P1Batch, P2Batch, C1Batch, C2Batch, HBatch, ParamsBatch =\
                         bg.GenerateBatchTF(TrainNames, PatchSize, MiniBatchSize, HObj, BasePath, OriginalImageSize, Args, da, DataAugGen)
 
-                    # Parse for loss functions on different inputs
-                    if 'HP' in Args.LossFuncName:
-                        try:
-                            P1Batch = iu.HPFilterBatch(P1Batch)
-                            P2Batch = iu.HPFilterBatch(P2Batch)
-                        except:
-                            pass
-                    elif 'SP' in Args.LossFuncName:
-                        P1Batch = C1Batch
-                        P2Batch = C2Batch
-                    elif 'G' in Args.LossFuncName:
-                        try:
-                            P1Batch = np.tile(iu.rgb2gray(P1Batch), (1,1,1,3))
-                            P2Batch = np.tile(iu.rgb2gray(P2Batch), (1,1,1,3))
-                        except:
-                            pass
-                    if Args.SuperPointFlag:
-                        FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, C1PH: C1Batch, C2PH:C2Batch}
-                        _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
-                    elif Args.HPFlag:
-                        HP1Batch = iu.HPFilterBatch(P1Batch)
-                        HP2Batch = iu.HPFilterBatch(P2Batch)
-                        FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, HP1PH: HP1Batch, HP2PH:HP2Batch}
-                        _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
-                    elif Args.HPFlag and Args.SuperPointFlag:
-                        HP1Batch = iu.HPFilterBatch(P1Batch)
-                        HP2Batch = iu.HPFilterBatch(P2Batch)
-                        FeedDict = {VN.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch, C1PH: C1Batch, C2PH:C2Batch,\
-                         HP1PH: HP1Batch, HP2PH:HP2Batch}
+                    if(Args.LossFuncName == 'TS'):
+                        FeedDict = {VNT.InputPH: IBatch}
+                        prValTRet = sess.run([prValT], feed_dict=FeedDict)[0]
+                        FeedDict = {VNS.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: prValTRet, IOrgPH: I1Batch}
                         _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                     else:
-                        if(Args.LossFuncName == 'TS'):
-                            FeedDict = {VNT.InputPH: IBatch}
-                            prValTRet = sess.run([prValT], feed_dict=FeedDict)[0]
-                            FeedDict = {VNS.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: prValTRet, IOrgPH: I1Batch}
-                            _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
-                            print('ERROR: Not Implemented Yet!')
-                            sys.exit()
-                        else:
-                            FeedDict = {VNT.InputPH: IBatch, VNS.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
-                            _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
+                        FeedDict = {VNT.InputPH: IBatch, VNS.InputPH: IBatch, I1PH: P1Batch, I2PH: P2Batch, LabelPH: ParamsBatch, IOrgPH: I1Batch}
+                        _, LossThisBatch, Summary = sess.run([OptimizerUpdate, loss, MergedSummaryOP], feed_dict=FeedDict)
                    
 
                     # Tensorboard
