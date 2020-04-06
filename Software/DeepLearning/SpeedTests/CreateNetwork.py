@@ -24,6 +24,7 @@ import glob
 import Misc.ImageUtils as iu
 import random
 from skimage import data, exposure, img_as_float
+from Network.EVHomographyNetUnsupSmall import EVHomographyNetUnsupSmall
 import matplotlib.pyplot as plt
 from Misc.MiscUtils import *
 import numpy as np
@@ -45,10 +46,11 @@ sys.dont_write_bytecode = True
     
 def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, NumImgs, Args, Net, opt):    
     # Predict output with forward pass
-    ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
-    Network = getattr(Net, ClassName)
-    VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
-    _, prVal, _ = VN.Network()
+    # ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
+    # Network = getattr(Net, ClassName)
+    # VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
+    # _, prVal, _ = VN.Network()
+    prVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
             
     # Setup Saver
     Saver = tf.train.Saver()
@@ -76,7 +78,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, 
                 yield [input]
 
         if(Args.TFLite):
-            converter = tf.lite.TFLiteConverter.from_session(sess, [VN.InputPH], [prVal])
+            converter = tf.lite.TFLiteConverter.from_session(sess, [ImgPH], [prVal])
             # Optimizer Flags
             if(Args.TFLiteOpt == 'Latency'):
                 converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] 
@@ -124,7 +126,7 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, 
             print('TFLite Model Written in {}....'.format(TFLiteName))
 
         if(Args.EdgeTPU):
-            converter = tf.lite.TFLiteConverter.from_session(sess, [VN.InputPH], [prVal])
+            converter = tf.lite.TFLiteConverter.from_session(sess, [ImgPH], [prVal])
             # Optimizer Flags
             if(Args.TFLiteOpt == 'Latency'):
                 converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY] 
@@ -303,7 +305,7 @@ def main():
 
     # Parameters
     ImageSize = np.array([128, 128, 3])
-    NumImgs = 2
+    NumImgs = 1
 
     warpType = ['pseudosimilarity']
     if(len(warpType) > 1):
