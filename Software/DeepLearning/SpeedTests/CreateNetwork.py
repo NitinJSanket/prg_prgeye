@@ -46,11 +46,12 @@ sys.dont_write_bytecode = True
     
 def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, NumImgs, Args, Net, opt):    
     # Predict output with forward pass
-    # ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
-    # Network = getattr(Net, ClassName)
-    # VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons)
-    # _, prVal, _ = VN.Network()
-    prVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
+    ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
+    Network = getattr(Net, ClassName)
+    VN = Network(InputPH = ImgPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons, NumBlocks = Args.NumBlocks)
+    _, prVal, _ = VN.Network()
+    # prVal = EVHomographyNetUnsupSmall(ImgPH, ImageSize, MiniBatchSize)
+    NetworkConfig = open(CheckPointPath + os.sep + ModelPrefix + 'NetworkConfig.txt', 'w')
             
     # Setup Saver
     Saver = tf.train.Saver()
@@ -62,13 +63,20 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, 
         # Summary_writer = tf.summary.FileWriter("logs_viz",graph=tf.get_default_graph())
 
         # Print Number of parameters in the network    
-        tu.FindNumParams(1)
+        NumParams = tu.FindNumParams(1)
 
         # Print out Number of Flops
         NumFlops = tu.FindNumFlops(sess, 1)
 
         # Print Model Size in MB
-        A = tu.CalculateModelSize(1)
+        ModelSize = tu.CalculateModelSize(1)*3
+
+        NetworkConfig.write('Note: Actual Model size 0.33 of the one displayed here.\n')
+        NetworkConfig.write('ModelSize, NumParams, NumFlops\n')
+        NetworkConfig.write('{}, {}, {}\n'.format(ModelSize, NumParams, NumFlops))
+        NetworkConfig.write('InitNeurons, NumBlocks\n')
+        NetworkConfig.write('{}, {}\n'.format(Args.InitNeurons, Args.NumBlocks))
+        NetworkConfig.close()
 
         # TFLite Conversions
         def representative_dataset_gen():
@@ -151,6 +159,10 @@ def GenerateModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize, 
         Saver.save(sess, save_path=SaveName)
         print('Model Saved in {}...'.format(SaveName))
 
+        cprint('ModelSize is {}'.format(ModelSize), 'yellow')
+        cprint('NumFlops is {}'.format(NumFlops), 'yellow')
+        cprint('NumParams is {}'.format(NumParams), 'yellow')
+
     # Reset graph after using: https://github.com/tensorflow/tensorflow/issues/19731
     tf.reset_default_graph()
 
@@ -218,7 +230,7 @@ def SpeedTestModel(ImgPH, ImageSize, CheckPointPath, ModelPrefix, MiniBatchSize,
             print('Model initialized....')
 
             # Predict Model Size
-            ModelSize = 0#tu.CalculateModelSize(sess, PrintFlag=1)
+            ModelSize = tu.CalculateModelSize(sess, PrintFlag=1)
 
             # Write this the first time only
             if((count2 == StartIdx) and (not Append)):
@@ -287,6 +299,7 @@ def main():
     Parser.add_argument('--TFLiteQuant', default='Float32', help='TFLite Quantization. Choose from Float32, Float16, Int64, Int32, Int8, UInt8. Default: Float32')
     Parser.add_argument('--EdgeTPU', default=0, type=int, help='TFLite For EdgeTPU. This works in addition to TFLite conversion. Default: 0')
     Parser.add_argument('--InitNeurons', type=float, default=8, help='Learning Rate, Default: 8')
+    Parser.add_argument('--NumBlocks', type=int, default=2, help='Number of Blocks, Default: 2')
 
     Args = Parser.parse_args()
     CheckPointPath = Args.CheckPointPath
@@ -305,7 +318,7 @@ def main():
 
     # Parameters
     ImageSize = np.array([128, 128, 3])
-    NumImgs = 1
+    NumImgs = 2
 
     warpType = ['pseudosimilarity']
     if(len(warpType) > 1):
