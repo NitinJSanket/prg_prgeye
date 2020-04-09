@@ -185,4 +185,3 @@ ax.XAxis.MinorTickValues = ax.XAxis.Limits(1):4:ax.XAxis.Limits(2);
 % ax.YAxis.MinorTickValues = ax.YAxis.Limits(1):10:ax.YAxis.Limits(2);
 saveas(gcf, [Network, '.eps'], 'epsc');
 saveas(gcf, [Network, '.png']);
-close all;
