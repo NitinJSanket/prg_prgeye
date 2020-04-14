@@ -77,7 +77,11 @@ def SetupAll(ReadPath, warpType, Args):
     NumTestSamples = len(TestNames)
 
     # Similarity Perturbation Parameters
-    MaxParams = np.array([0.5, 0.4, 0.4])/2.0 # np.array([0.25, 0.2, 0.2]) # np.array([0.5, 0.4, 0.4])
+    if(Args.Deviation == 'L'):
+        Div = 1.0
+    elif(Args.Deviation == 'N'):
+        Div = 2.0
+    MaxParams = np.array([0.5, 0.4, 0.4])/Div
     HObj = iu.HomographyICTSN(TransformType = 'pseudosimilarity', MaxParams = MaxParams)
     
     return TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj
@@ -226,10 +230,7 @@ def TestOperation(PatchPH, I1PH, I2PH, PerturbParamsPH, PerturbHPH, ImageSize, P
         print('Expected Model Size is %f' % ModelSize)
 
         # Create PredOuts File
-        if(MaxParams[0] > 0.25):
-            Name = 'PredOutsLargeDeviation.txt'
-        else:
-            Name = 'PredOuts.txt'
+        Name = 'PredOuts' + Args.Deviation + Args.Input + '.txt'
         PredOuts = open(WritePath + os.sep + Name, 'w') # LargeDeviation
         PredOuts.write('Model Used: {}\n'.format(ModelPath))
         PredOuts.write('Model Statistics: \n')
