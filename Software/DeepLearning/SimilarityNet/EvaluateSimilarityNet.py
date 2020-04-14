@@ -51,7 +51,7 @@ import importlib
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
-def SetupAll(ReadPath, warpType):
+def SetupAll(ReadPath, warpType, Args):
     """
     Inputs: 
     BasePath is the base path where Images are saved without "/" at the end
@@ -160,6 +160,21 @@ class BatchGeneration():
             P1Batch = np.uint8(da.sess.run([DataAugGen], feed_dict=FeedDict)[0])
             FeedDict = {da.ImgPH: P2Batch}
             P2Batch = np.uint8(da.sess.run([DataAugGen], feed_dict=FeedDict)[0])
+
+        if(Args.Input == 'G'):
+            P1Batch = np.tile(iu.rgb2gray(P1Batch)[:,:,:,np.newaxis], (1,1,1,3))
+            P2Batch = np.tile(iu.rgb2gray(P2Batch)[:,:,:,np.newaxis], (1,1,1,3))
+        elif(Args.Input == 'HP'):
+            P1Batch = iu.HPFilterBatch(P1Batch)
+            P2Batch = iu.HPFilterBatch(P2Batch)
+        elif(Args.Input == 'SP'):
+            print('ERROR: Not Implemented Yet!')
+            os.exit()
+        elif(Args.Input == 'RGB'):
+            pass
+        else:
+            print('ERROR: Unrecognized Input Type ')
+            os.exit()
             
         ICombined = np.concatenate((P1Batch[:,:,:,0:3], P2Batch[:,:,:,0:3]), axis=3)
         # Normalize Dataset
@@ -319,6 +334,9 @@ def main():
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
     Parser.add_argument('--NetworkName', default='Network.VanillaNet', help='Name of network file, Default: Network.VanillaNet')
     Parser.add_argument('--DataAug', type=int, default=0, help='Do you want to do Data augmentation?, Default:0')
+    Parser.add_argument('--InitNeurons', type=int, default=26, help='Number of starting neurons, Default:26')
+    Parser.add_argument('--Deviation', default='N', help='Deviation Type? N: Normal, L: Large, Default:N')
+    Parser.add_argument('--Input', default='RGB', help='Input Type? RGB: Normal, G: Grayscale, HP: High Pass, SP: Cornerness, Default:RGB')
     
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
@@ -329,9 +347,6 @@ def main():
     MiniBatchSize = 1
     NetworkName = Args.NetworkName
 
-    # ImageFormat = Args.ImageFormat
-    # Prefix = Args.Prefix
-
     # Import Network Module
     Net = importlib.import_module(NetworkName)
 
@@ -339,10 +354,10 @@ def main():
     tu.SetGPU(GPUDevice)
 
     # Setup all needed parameters including file reading
-    InitNeurons = 36
-    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] #, 'pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    InitNeurons = Args.InitNeurons
+    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] 
     # Homography Perturbation Parameters
-    TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj = SetupAll(ReadPath, warpType)
+    TestNames, ImageSize, PatchSize, NumTestSamples, MaxParams, HObj = SetupAll(ReadPath, warpType, Args)
 
     opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
     optdg = warp2.Options(PatchSize=ImageSize, MiniBatchSize=MiniBatchSize, warpType = [warpType[-1]]) # Data Generation Options, warpType should the same the last one in the previous command
