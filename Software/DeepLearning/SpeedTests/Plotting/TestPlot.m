@@ -86,7 +86,7 @@ Names = {' Up', ' CoralDev', ' CoralUSB', ' NanoPi@1.368GHz', ' BananPiM2-Zero',
 
 % NanoPi1: 1.368GHz,  NanoPi2: 1.008GHz, NanoPi3: 480MHz
 % PC1: i9 CPU with AVX, PC2: i9 CPU without AVX, PC3: Titan Xp
-T = readtable('SpeedTest.xlsx');
+T = readtable('SpeedTest_updatedApril16.xlsx');
 
 % Add Names for each
 % Color for each
