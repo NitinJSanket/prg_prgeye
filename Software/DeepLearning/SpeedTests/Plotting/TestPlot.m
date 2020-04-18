@@ -70,7 +70,7 @@ Volume =  [96.3, 116.2, 15.6, 4.8, 9.75, 4.8, 65.3, 59192, 59192, 59192, 20.4, 1
 a = 2; b = 2; c = -6.9; d = -0.6;
 % Volume = (Volume)*200;
 Volume = (log(Volume) - 1.2) * 1000;
-disp(Volume)
+% disp(Volume)
 % Volume = a.*((b.*(Volume+c)).^(1/3) + d).*100;%Volume).^(1/3)*400;
 % Volume = erf(sqrt(pi)/2 * log10(Volume)/10)*100;
 % disp(Volume);
