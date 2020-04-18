@@ -69,3 +69,6 @@ axis([0, 300, 4, 2.5e3]);
 ax = gca;
 ax.XAxis.MinorTick = 'on';
 ax.XAxis.MinorTickValues = ax.XAxis.Limits(1):4:ax.XAxis.Limits(2);
+
+saveas(gcf, 'CompileDiffBoard.eps', 'epsc');
+saveas(gcf, 'CompileDiffBoard.png');

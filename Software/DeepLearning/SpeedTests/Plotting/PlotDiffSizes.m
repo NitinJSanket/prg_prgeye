@@ -30,6 +30,8 @@ FaceColor = [116, 229, 90;     % Light Green
 AxisLim = [2e5, 4e8, 0.5, 3e3];
 PlotStuff(T, RowsDeep, Names, FaceColor, AxisLim);
 title('Deep');
+saveas(gcf, 'Deep.eps', 'epsc');
+saveas(gcf, 'Deep.png');
 
 % figure('units','normalized','outerposition',[0 0 1 1]),
 % NumParam = cell2mat(table2cell(T(RowsDeep, 10)));
@@ -40,12 +42,15 @@ title('Deep');
 AxisLim = [2e5, 4e8, 0.5, 3e3];
 PlotStuff(T, RowsWide, Names, FaceColor, AxisLim);
 title('Wide');
+saveas(gcf, 'Wide.eps', 'epsc');
+saveas(gcf, 'Wide.png');
 
 %% Wide And Deep
 AxisLim = [2e5, 4e8, 0.5, 3e3];
 PlotStuff(T, RowsWideAndDeep, Names, FaceColor, AxisLim);
 title('WideAndDeep');
-
+saveas(gcf, 'WideAndDeep.eps', 'epsc');
+saveas(gcf, 'WideAndDeep.png');
 %%
 function PlotStuff(T, Rows, Names, FaceColor, AxisLim)
 figure('units','normalized','outerposition',[0 0 1 1]),
