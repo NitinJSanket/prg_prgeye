@@ -87,6 +87,7 @@ else
         p = pie(d,repmat({''},length(d),1));
         t = p(1);
         t.FaceColor = [102, 191, 255]./255; % Blue
+%         t.EdgeColor = 'none';
         t = p(3);
         t.FaceColor = [255, 120, 120]./255; % Red
         % title(graph_labels{i})

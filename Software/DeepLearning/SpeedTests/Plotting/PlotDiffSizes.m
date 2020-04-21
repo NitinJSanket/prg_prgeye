@@ -3,6 +3,10 @@ clear all
 close all
 warning off;
 
+% Add Laptop
+% Add NanoPi
+% Add BananaPi
+
 T = readtable('SpeedTest.xlsx', 'Sheet', 'VanillaNetDiffSizes');
 
 Names = {'CoralUSB', 'CoralNanoPi', 'CoralDev', 'TX2', 'PC-i9', 'PC-TitanXp'};
@@ -20,7 +24,7 @@ FaceColor = [116, 229, 90;     % Light Green
     067, 209, 147;    % Jungle Green
     229, 231, 88;     % Yellow
     180, 180, 180;    % Gray
-    100, 100, 100;    % Black
+    136, 116, 182;    % Cyan
     179, 143, 129;]   ...% Brown
     ./255;
 
@@ -61,6 +65,7 @@ NumParam = cell2mat(table2cell(T(Rows, 10)));
 
 for count = 1:length(Names)
    plot(NumParam, FPS(:, count), 'MarkerFaceColor', FaceColor(count, :), 'LineWidth', 2);
+%    plot(NumParam, FPS(:, count), 'Color', FaceColor(count, :), 'LineWidth', 2);
 end
 legend(Names);
 % for count = 1:length(NumParam)
