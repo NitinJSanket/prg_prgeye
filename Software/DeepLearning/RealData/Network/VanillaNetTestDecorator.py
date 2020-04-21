@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Use when all warps are of same type
+
 import tensorflow as tf
 import sys
 import numpy as np
@@ -15,10 +17,10 @@ import Misc.MiscUtils as mu
 
 # TODO: Add training flag
 
-class MobileNet(BaseLayers):
+class VanillaNet(BaseLayers):
     def __init__(self, InputPH = None, Training = False,  Padding = None,\
                  Opt = None, InitNeurons = None, ExpansionFactor = None, NumBlocks = None, Suffix = None):
-        super(MobileNet, self).__init__()
+        super(VanillaNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
             sys.exit(0)
@@ -28,7 +30,7 @@ class MobileNet(BaseLayers):
         self.InputPH = InputPH
         self.Training = Training
         if(InitNeurons is None):
-            InitNeurons = 16
+            InitNeurons = 37
         if(ExpansionFactor is None):
             ExpansionFactor =  2.0
         if(NumBlocks is None):
@@ -47,14 +49,6 @@ class MobileNet(BaseLayers):
 
     @CountAndScope
     @add_arg_scope
-    def DepthwiseConvBNReLU(self, inputs = None, filters = None, kernel_size = None, strides = None, padding = None):
-        conv = tf.layers.separable_conv2d(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = (1,1), padding = padding, dilation_rate  = (1,1), activation=None)
-        bn = self.BN(conv)
-        Output = self.ReLU(bn)
-        return Output
-
-    @CountAndScope
-    @add_arg_scope
     def OutputLayer(self, inputs = None, padding = None, rate=None, NumOut=None):
         if(rate is None):
             rate = 0.5
@@ -67,7 +61,7 @@ class MobileNet(BaseLayers):
 
     @CountAndScope
     @add_arg_scope
-    def MobileNetv1Block(self, inputs = None, filters = None, NumOut = None, ExpansionFactor = None):
+    def VanillaNetBlock(self, inputs = None, filters = None, NumOut = None, ExpansionFactor = None):
         if(ExpansionFactor is None):
             ExpansionFactor = self.ExpansionFactor
         # Conv
@@ -78,15 +72,14 @@ class MobileNet(BaseLayers):
         # Conv
         for count in range(self.NumBlocks):
             NumFilters = int(NumFilters*ExpansionFactor)
-            Net = self.DepthwiseConvBNReLU(inputs = Net, filters = NumFilters)
-            Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters)
-             
+            Net = self.ConvBNReLUBlock(inputs = Net, filters = NumFilters, kernel_size = (3,3))
+      
         # Output
         Net = self.OutputLayer(inputs = Net, rate=self.DropOutRate, NumOut = NumOut)
         return Net
         
     def _arg_scope(self):
-        with arg_scope([self.DepthwiseConvBNReLU, self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
+        with arg_scope([self.ConvBNReLUBlock, self.Conv], kernel_size = (3,3), strides = (2,2), padding = self.Padding) as sc: 
             return sc
         
     def Network(self):
@@ -95,15 +88,15 @@ class MobileNet(BaseLayers):
                 if(count == 0):
                     pNow = self.Opt.pInit
                     pMtrxNow = warp2.vec2mtrx(self.Opt, pNow)
-                with tf.variable_scope('ICTSNBlock' + str(count)):
+                with tf.variable_scope('ICTSNBlock' + str(count) + self.Suffix):
                     # Warp Original Image based on previous composite warp parameters
+                    if(self.Training):
+                        ImgWarpNow = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow)
+
                     # Compute current warp parameters
-                    dpNow = self.MobileNetv1Block(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
+                    dpNow = self.VanillaNetBlock(self.InputPH,  filters = self.InitNeurons, NumOut = self.Opt.warpDim[count]) 
                     dpMtrxNow = warp2.vec2mtrx(self.Opt, dpNow)    
-                    # pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow)
-                    with tf.name_scope("compose"):
-                        pMtrxNow = tf.matmul(dpMtrxNow,pMtrxNow)
-                        # pMtrxNew = tf.divide(pMtrxNew, pMtrxNew[:,2:3,2:3])           
+                    pMtrxNow = warp2.compose(self.Opt, pMtrxNow, dpMtrxNow) 
 
                     # Update counter used for looping over warpType
                     self.Opt.currBlock += 1
@@ -111,10 +104,13 @@ class MobileNet(BaseLayers):
                     if(self.Opt.currBlock == self.Opt.NumBlocks):
                         # Decrement counter so you use last warp Type
                         self.Opt.currBlock -= 1
-                        # pNow = dpNow
                         pNow = warp2.mtrx2vec(self.Opt, pMtrxNow) 
-
-        return pNow
+                        if(self.Training):
+                            ImgWarp = warp2.transformImage(self.Opt, self.InputPH, pMtrxNow) # Final Image Warp
+                        else:
+                            ImgWarp = None
+            
+        return pMtrxNow, pNow, ImgWarp
 
 # def main():
 #    tu.SetGPU(0)

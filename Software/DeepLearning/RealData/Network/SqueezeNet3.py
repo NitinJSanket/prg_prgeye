@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-9+import tensorflow as tf
+import tensorflow as tf
 import sys
 import numpy as np
 import inspect
@@ -16,7 +16,7 @@ import Misc.MiscUtils as mu
 # TODO: Add training flag
 
 class SqueezeNet(BaseLayers):
-    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, InitNeurons = None, NumFire = None, NumBlocks = None):
+    def __init__(self, InputPH = None, Training = False,  Padding = None, Opt = None, InitNeurons = None, NumFire = None, NumBlocks = None, Suffix = None):
         super(SqueezeNet, self).__init__()
         if(InputPH is None):
             print('ERROR: Input PlaceHolder cannot be empty!')
@@ -41,6 +41,9 @@ class SqueezeNet(BaseLayers):
             NumBlocks = 2
         self.NumBlocks = NumBlocks
         self.NumFire = NumFire
+        if(Suffix is None):
+            Suffix = ''
+        self.Suffix = Suffix
 
     @CountAndScope
     @add_arg_scope

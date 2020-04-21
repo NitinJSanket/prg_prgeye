@@ -54,7 +54,7 @@ sys.dont_write_bytecode = True
 
 
 def TestOperation(PatchPH, PatchSize, ModelPath,\
-                  ReadPath, WritePath, CropType, MiniBatchSize, warpType, opt, Net, InitNeurons):
+                  ReadPath, WritePath, CropType, MiniBatchSize, warpType, opt, Net, Args):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -72,8 +72,11 @@ def TestOperation(PatchPH, PatchSize, ModelPath,\
     ImgFormat = '.png'
     # Predict output with forward pass
     # Create Network Object with required parameters
-    VN = Net.ResNet(InputPH = PatchPH, Training = False, Opt = opt, InitNeurons = InitNeurons)
+    ClassName = Args.NetworkName.replace('Network.', '').split('Net')[0]+'Net'
+    Network = getattr(Net, ClassName)
+    VN = Network(InputPH = PatchPH, Training = True, Opt = opt, InitNeurons = Args.InitNeurons, Suffix = '')
     # Predict output with forward pass
+    # WarpI1Patch contains warp of both I1 and I2, extract first three channels for useful data
     prH, prParams, _ = VN.Network()
 
     # Setup Saver
@@ -91,15 +94,19 @@ def TestOperation(PatchPH, PatchSize, ModelPath,\
         print('Expected Model Size is %f' % ModelSize)
 
         # Create PredOuts File
+        Name = 'NetworkConfig.txt'
+        NetworkConfig = open(WritePath + os.sep + Name, 'w') # LargeDeviation
+        NetworkConfig.write('Model Used: {}\n'.format(ModelPath))
+        NetworkConfig.write('Model Statistics: \n')
+        NetworkConfig.write('Number of Parameters: {}\n'.format(NumParams))
+        NetworkConfig.write('Number of Flops: {}\n'.format(NumFlops))
+        NetworkConfig.write('Expected Model Size: {} MB\n'.format(ModelSize))
+        NetworkConfig.write('Dataset Used to test: {}\n'.format(ReadPath))
+        NetworkConfig.write('ImageName' + '\t' + 'prParamsVal' +'\n')
+
         Name = 'PredOuts.txt'
         PredOuts = open(WritePath + os.sep + Name, 'w') # LargeDeviation
-        PredOuts.write('Model Used: {}\n'.format(ModelPath))
-        PredOuts.write('Model Statistics: \n')
-        PredOuts.write('Number of Parameters: {}\n'.format(NumParams))
-        PredOuts.write('Number of Flops: {}\n'.format(NumFlops))
-        PredOuts.write('Expected Model Size: {} MB\n'.format(ModelSize))
-        PredOuts.write('Dataset Used to test: {}\n'.format(ReadPath))
-        PredOuts.write('ImageName' + '\t' + 'prParamsVal' +'\n')
+
 
         # Create Write Folder if doesn't exist
         if(not os.path.exists(WritePath)):
@@ -131,7 +138,8 @@ def TestOperation(PatchPH, PatchSize, ModelPath,\
             prHVal = prHVal[0]
             prParamsVal = prParamsVal[0]
 
-            PredOuts.write(ImageName + '\t' +  str(prParamsVal) + '\n')
+            # PredOuts.write(ImageName + '\t' +  str(prParamsVal) + '\n')
+            PredOuts.write(str(prParamsVal[0]) + ',' + str(prParamsVal[1]) + ',' + str(prParamsVal[2]) + '\n')
         PredOuts.close()
                     
                     
@@ -156,7 +164,8 @@ def main():
                                                                              help='Path to load images from, Default:WritePath')
     Parser.add_argument('--GPUDevice', type=int, default=0, help='What GPU do you want to use? -1 for CPU, Default:0')
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
-    Parser.add_argument('--NetworkName', default='Network.ResNet', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--NetworkName', default='Network.ResNet3', help='Name of network file, Default: Network.VanillaNet')
+    Parser.add_argument('--InitNeurons', type=int, default=13, help='Number of Init Neurons, Default: 13')
 
     # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
     # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
@@ -184,8 +193,7 @@ def main():
 
 
     # Setup all needed parameters including file reading
-    InitNeurons = 26
-    warpType = ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
+    warpType = ['translation', 'translation', 'scale', 'scale'] # ['pseudosimilarity'] # ['translation', 'translation', 'scale', 'scale'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity', 'pseudosimilarity'] # ['scale', 'scale', 'translation', 'translation'] # ['pseudosimilarity', 'pseudosimilarity']
     # Homography Perturbation Parameters
 
     opt = warp2.Options(PatchSize=PatchSize, MiniBatchSize=MiniBatchSize, warpType = warpType) # ICSTN Options
@@ -200,7 +208,7 @@ def main():
         os.mkdir(WritePath)
 
     TestOperation(PatchPH, PatchSize, ModelPath,\
-                  ReadPath, WritePath, CropType, MiniBatchSize, warpType, opt, Net, InitNeurons)
+                  ReadPath, WritePath, CropType, MiniBatchSize, warpType, opt, Net, Args)
 
      
 if __name__ == '__main__':
