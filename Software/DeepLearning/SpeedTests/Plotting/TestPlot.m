@@ -10,7 +10,7 @@ warning off
 % SqueezeNetFloat: 28, SqueezeNetInt: 34;
 % MobileNetFloat: 42, MobileNetInt: 49;
 % ShuffleNet: 57;
-RowNum = 1;
+RowNum = 38;
 
 switch RowNum
     case 1
@@ -50,12 +50,12 @@ end
 
 disp(['Current Network: ', Network]);
 
-Weights = [100, 136, 20, 7.2, 15, 7.2, 200, 300, 300, 300, 27.2, 250, 250, 22];
+Weights = [80, 136, 20, 7.2, 15, 7.2, 200, 300, 300, 300, 27.2, 250, 250, 22];
 IdxsMakeNaN = [6, 14];
 Weights(IdxsMakeNaN) = NaN;
 
 % Laptop weight is 2220 and PC weight is 15000
-Volume =  [96.3, 116.2, 15.6, 4.8, 9.75, 4.8, 65.3, 59192, 59192, 59192, 20.4, 3170.91, 3170.91, 17.2]'; % cm^3
+Volume =  [96.3, 116.2, 15.6, 4.8, 9.75, 4.8, 208.8, 59192, 59192, 59192, 20.4, 3170.91, 3170.91, 17.2]'; % cm^3
 Volume = (log(Volume) - 1.2) * 1000;
 % 59192.6 is the volume of Desktop PC
 % 544 is the largest dimension of Desktop PC
@@ -163,5 +163,5 @@ ax = gca;
 ax.XAxis.MinorTick = 'on';
 ax.XAxis.MinorTickValues = ax.XAxis.Limits(1):4:ax.XAxis.Limits(2);
 % ax.YAxis.MinorTickValues = ax.YAxis.Limits(1):10:ax.YAxis.Limits(2);
-% saveas(gcf, [Network, '.eps'], 'epsc');
+saveas(gcf, [Network, '.eps'], 'epsc');
 saveas(gcf, [Network, '.png']);
