@@ -68,7 +68,7 @@ def TestOperation(PatchPH, PatchSize, ModelPath,\
     # Test Set Params
     NumImgs = 1000
     StartNum = 0
-    SkipNum = 2
+    SkipNum = Args.SkipNum
     ImgFormat = '.png'
     # Predict output with forward pass
     # Create Network Object with required parameters
@@ -136,8 +136,8 @@ def TestOperation(PatchPH, PatchSize, ModelPath,\
 
             # Extract Values
             prHVal = prHVal[0]
-            prParamsVal = prParamsVal[0]
-
+	    prParamsVal = prParamsVal[0]
+	
             # PredOuts.write(ImageName + '\t' +  str(prParamsVal) + '\n')
             PredOuts.write(str(prParamsVal[0]) + ',' + str(prParamsVal[1]) + ',' + str(prParamsVal[2]) + '\n')
         PredOuts.close()
@@ -166,6 +166,7 @@ def main():
     Parser.add_argument('--CropType', dest='CropType', default='C', help='What kind of crop do you want to perform? R: Random, C: Center, Default: C')
     Parser.add_argument('--NetworkName', default='Network.ResNet3', help='Name of network file, Default: Network.VanillaNet')
     Parser.add_argument('--InitNeurons', type=int, default=13, help='Number of Init Neurons, Default: 13')
+    Parser.add_argument('--SkipNum', type=int, default=2, help='Number of Frames to Skip, Default: 2')
 
     # Parser.add_argument('--ImageFormat', default='.jpg', help='Image format, default: .jpg')
     # Parser.add_argument('--Prefix', default='COCO_test2014_%012d', help='Image name prefix, default: COCO_test2014_%012d')
