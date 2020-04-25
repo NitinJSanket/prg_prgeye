@@ -28,3 +28,16 @@ set(gcf, 'outerposition',[0 0 1 1]);
 
 saveas(gcf, 'Power.eps', 'epsc');
 saveas(gcf, 'Power.png');
+
+%%
+% QuadrotorSize = 0:8;
+% % TotalPower = [ones(8,1); 10];
+% TotalPower = linspace(1,1.01, 8);
+% HoverPowerEfficiency = [1, 2, 4, 5, 6, 7, 8, 9]'./14;
+% PowerArray = [ones(8,1), zeros(8,1)];
+% 
+% bubblepie(QuadrotorSize, TotalPower, HoverPowerEfficiency, PowerArray, [], {}, '', '', 0);
+% axis off;
+% 
+% saveas(gcf, 'PowerLegend.eps', 'epsc');
+% saveas(gcf, 'PowerLegend.png');
