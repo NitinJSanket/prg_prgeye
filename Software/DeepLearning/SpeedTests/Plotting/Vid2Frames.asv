@@ -1,0 +1,18 @@
+clc
+clear all
+close all
+
+VidPath = '';
+WritePath = 'Frames/';
+v = VideoReader(VidPath);
+
+count = 0;
+
+while hasFrame(v)
+    frame = readFrame(v);
+    FileName = [WritePath, 'frame
+    ReadPath + os.sep +  'frame' + '%06d'%(TestNum + SkipNum) + ImgFormat
+    imwrite(FileName);
+    count = count + 1;
+    
+end
